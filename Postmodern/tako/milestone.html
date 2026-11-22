@@ -1,0 +1,426 @@
+<html>
+<head>
+  <style>
+    :root {
+      --ink: #111111;
+      --cream: #f6f1e7;
+      --blue: #2347f5;
+      --yellow: #e9ff32;
+      --pink: #ff3366;
+      --muted: #6f6759;
+      --font-display: "Arial Black", "Segoe UI Black", Impact, Haettenschweiler, sans-serif;
+      --font-mono: "Courier New", Courier, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      overflow: hidden;
+    }
+
+    body {
+      margin: 0;
+      padding: 1rem;
+      background: none;
+      font-family: var(--font-mono);
+      font-size: 16px;
+      line-height: 1.3;
+      color: var(--ink);
+      overflow: hidden;
+    }
+
+    .ticket {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      background-color: var(--cream);
+      background-image: radial-gradient(rgba(17, 17, 17, 0.1) 0.05rem, transparent 0.05rem);
+      background-size: 0.6rem 0.6rem;
+      border: 0.2rem solid var(--ink);
+      box-shadow: 0.3rem 0.3rem 0 var(--blue);
+      padding: 0.95rem 1.05rem 1rem 1.75rem;
+    }
+
+    .tab {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0.7rem;
+      background: var(--blue);
+      border-right: 0.2rem solid var(--ink);
+    }
+
+    .grommet {
+      position: absolute;
+      left: 0.35rem;
+      top: 1.05rem;
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 50%;
+      background: var(--cream);
+      border: 0.12rem solid var(--ink);
+      transform: translate(-50%, 0);
+      z-index: 2;
+    }
+
+    .row-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .label {
+      font-size: 0.6rem;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      background: var(--pink);
+      color: var(--cream);
+      border: 0.12rem solid var(--ink);
+      padding: 0.14rem 0.42rem;
+      flex-shrink: 0;
+    }
+
+    .step-pill {
+      font-size: 0.6rem;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink);
+      background: var(--yellow);
+      border: 0.12rem solid var(--ink);
+      box-shadow: 0.1rem 0.1rem 0 var(--ink);
+      padding: 0.12rem 0.42rem;
+      flex-shrink: 0;
+    }
+
+    .title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 0.5rem;
+    }
+
+    .perf {
+      border-bottom: 0.14rem dashed var(--ink);
+      margin: 0 0 0.55rem;
+    }
+
+    .amounts {
+      display: flex;
+      align-items: baseline;
+      gap: 0.45rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .current {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .target {
+      flex: 1;
+      min-width: 0;
+      font-size: 0.72rem;
+      line-height: 1.2;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pct {
+      font-size: 0.68rem;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      background: var(--yellow);
+      border: 0.12rem solid var(--ink);
+      box-shadow: 0.1rem 0.1rem 0 var(--ink);
+      padding: 0.1rem 0.4rem;
+      flex-shrink: 0;
+    }
+
+    .bar-bg {
+      height: 1rem;
+      background: #ffffff;
+      border: 0.16rem solid var(--ink);
+      overflow: hidden;
+      margin-bottom: 0.7rem;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      background: repeating-linear-gradient(
+        -45deg,
+        var(--yellow) 0 0.45rem,
+        var(--pink) 0.45rem 0.9rem
+      );
+    }
+
+    .steps {
+      display: flex;
+      align-items: stretch;
+      gap: 0.4rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .chip {
+      flex: 1 1 0;
+      min-width: 0;
+      background: #ffffff;
+      border: 0.14rem solid var(--ink);
+      padding: 0.28rem 0.32rem 0.26rem;
+    }
+
+    .chip.done {
+      background: var(--blue);
+    }
+
+    .chip.active {
+      background: var(--yellow);
+      box-shadow: 0.12rem 0.12rem 0 var(--ink);
+    }
+
+    .chip-top {
+      display: flex;
+      align-items: center;
+      gap: 0.28rem;
+      min-width: 0;
+    }
+
+    .chip-num {
+      font-size: 0.55rem;
+      line-height: 1;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      background: var(--ink);
+      color: var(--cream);
+      padding: 0.14rem 0.2rem;
+      flex-shrink: 0;
+    }
+
+    .chip.done .chip-num {
+      background: var(--cream);
+      color: var(--blue);
+    }
+
+    .chip.active .chip-num {
+      background: var(--ink);
+      color: var(--yellow);
+    }
+
+    .chip-title {
+      flex: 1;
+      min-width: 0;
+      font-size: 0.58rem;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chip.done .chip-title {
+      color: var(--cream);
+    }
+
+    .chip-bar {
+      height: 0.2rem;
+      margin-top: 0.24rem;
+      background: rgba(17, 17, 17, 0.15);
+      overflow: hidden;
+    }
+
+    .chip-bar > div {
+      height: 100%;
+      background: var(--ink);
+    }
+
+    .chip.done .chip-bar > div {
+      background: var(--cream);
+    }
+
+    .chip.active .chip-bar > div {
+      background: var(--pink);
+    }
+
+    .active {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.5rem;
+      border-top: 0.1rem dashed rgba(17, 17, 17, 0.3);
+      padding-top: 0.45rem;
+    }
+
+    .active-label {
+      flex: 1;
+      min-width: 0;
+      font-size: 0.64rem;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .active-amount {
+      font-size: 0.66rem;
+      line-height: 1.2;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .is-complete .bar-fill {
+      background: var(--blue);
+    }
+
+    .is-complete .pct {
+      background: var(--blue);
+      color: var(--cream);
+    }
+  </style>
+</head>
+<body>
+  <div class="ticket" id="ticket">
+    <div class="tab"></div>
+    <div class="grommet"></div>
+
+    <div class="row-head">
+      <span class="label">Milestone</span>
+      <span class="step-pill" id="step-pill">Step {{stepIndex}} / {{stepCount}}</span>
+    </div>
+
+    <div class="title" id="ms-title">{{title}}</div>
+
+    <div class="perf"></div>
+
+    <div class="amounts">
+      <span class="current" id="current">{{formattedCurrentAmount}}</span>
+      <span class="target" id="target">/ {{formattedTargetAmount}}</span>
+      <span class="pct" id="pct">{{overallPercentage}}%</span>
+    </div>
+
+    <div class="bar-bg">
+      <div class="bar-fill" id="bar-fill" style="width: {{overallPercentage}}%"></div>
+    </div>
+
+    <div class="steps" id="steps"></div>
+
+    <div class="active" id="active">
+      <span class="active-label" id="active-label">{{stepTitle}}</span>
+      <span class="active-amount" id="active-amount">{{formattedStepProgress}} / {{formattedStepTarget}}</span>
+    </div>
+  </div>
+
+  <script>
+    const titleRaw = "{{title}}";
+    const stepTitleRaw = "{{stepTitle}}";
+    const stepProgressRaw = "{{formattedStepProgress}}";
+    const stepTargetRaw = "{{formattedStepTarget}}";
+    const overallPercentage = Number({{overallPercentage}}) || 0;
+    const stepIndex = Number({{stepIndex}}) || 0;
+    const stepCount = Number({{stepCount}}) || 0;
+    const stepsData = {{steps}};
+
+    const ticketEl = document.getElementById("ticket");
+    const titleEl = document.getElementById("ms-title");
+    const stepPill = document.getElementById("step-pill");
+    const pctEl = document.getElementById("pct");
+    const barFill = document.getElementById("bar-fill");
+    const stepsEl = document.getElementById("steps");
+    const activeEl = document.getElementById("active");
+    const activeLabel = document.getElementById("active-label");
+    const activeAmount = document.getElementById("active-amount");
+
+    if (titleRaw && titleRaw.indexOf("{{") === -1) {
+      titleEl.textContent = titleRaw;
+    } else {
+      titleEl.textContent = "Milestone";
+    }
+
+    const pct = Math.max(0, Math.round(overallPercentage));
+    pctEl.textContent = pct + "%";
+    barFill.style.width = Math.min(100, pct) + "%";
+
+    if (pct >= 100) ticketEl.classList.add("is-complete");
+
+    if (stepCount > 1 && stepIndex > 0) {
+      stepPill.textContent = "Step " + stepIndex + " / " + stepCount;
+    } else {
+      stepPill.style.display = "none";
+    }
+
+    if (Array.isArray(stepsData) && stepsData.length > 0) {
+      stepsData.forEach(function (step, i) {
+        const stepPct = Math.max(0, Math.min(100, Number(step.percentage) || 0));
+        const chip = document.createElement("div");
+        chip.className = "chip" + (step.isActive ? " active" : stepPct >= 100 ? " done" : "");
+
+        const top = document.createElement("div");
+        top.className = "chip-top";
+
+        const num = document.createElement("span");
+        num.className = "chip-num";
+        num.textContent = (i + 1 < 10 ? "0" : "") + (i + 1);
+
+        const name = document.createElement("span");
+        name.className = "chip-title";
+        name.textContent = step.title || "Langkah " + (i + 1);
+
+        top.appendChild(num);
+        top.appendChild(name);
+
+        const bar = document.createElement("div");
+        bar.className = "chip-bar";
+        const inner = document.createElement("div");
+        inner.style.width = stepPct + "%";
+        bar.appendChild(inner);
+
+        chip.appendChild(top);
+        chip.appendChild(bar);
+        stepsEl.appendChild(chip);
+      });
+    } else {
+      stepsEl.style.display = "none";
+    }
+
+    const hasStepTitle = stepTitleRaw && stepTitleRaw.indexOf("{{") === -1;
+    const hasStepProgress = stepProgressRaw && stepProgressRaw.indexOf("{{") === -1;
+    const hasStepTarget = stepTargetRaw && stepTargetRaw.indexOf("{{") === -1;
+
+    if (hasStepTitle || hasStepProgress) {
+      activeLabel.textContent = hasStepTitle ? stepTitleRaw : "Langkah " + stepIndex;
+      activeAmount.textContent = (hasStepProgress ? stepProgressRaw : "") + (hasStepTarget ? " / " + stepTargetRaw : "");
+    } else {
+      activeEl.style.display = "none";
+    }
+  </script>
+</body>
+</html>

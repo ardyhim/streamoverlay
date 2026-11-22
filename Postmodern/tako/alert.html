@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tako Postmodern Alert</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 100%;
+      padding: 1.1rem;
+      background: transparent;
+      font-family: "Space Grotesk", sans-serif;
+      color: #111111;
+      overflow: hidden;
+    }
+
+    .pm-stage {
+      position: relative;
+      width: 100%;
+      padding-bottom: 0.65rem;
+      padding-right: 0.6rem;
+      animation: pmEnter 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes pmEnter {
+      0% {
+        opacity: 0;
+        transform: translateY(1.25rem) rotate(-1.8deg) scale(0.95);
+      }
+      70% {
+        opacity: 1;
+        transform: translateY(-0.18rem) rotate(0.5deg) scale(1.01);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) rotate(0deg) scale(1);
+      }
+    }
+
+    .pm-backplate {
+      position: relative;
+      width: 100%;
+      background-color: #2347f5;
+      border: 0.2rem solid #111111;
+      transform: translate(0.45rem, 0.45rem);
+      z-index: 1;
+    }
+
+    .pm-card {
+      position: relative;
+      width: 100%;
+      background-color: #f6f1e7;
+      background-image: radial-gradient(#111111 0.05rem, transparent 0.05rem);
+      background-size: 0.7rem 0.7rem;
+      border: 0.2rem solid #111111;
+      transform: translate(-0.45rem, -0.45rem);
+      z-index: 2;
+      overflow: visible;
+    }
+
+    .pm-starburst {
+      position: absolute;
+      top: -0.75rem;
+      right: -0.65rem;
+      width: 2rem;
+      height: 2rem;
+      z-index: 5;
+      animation: spinSlow 10s linear infinite;
+    }
+
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Slim Top Meta Bar */
+    .pm-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      background-color: #111111;
+      color: #f6f1e7;
+      padding: 0.28rem 0.8rem;
+      border-bottom: 0.18rem solid #111111;
+      font-family: "Space Mono", monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .pm-topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-weight: 700;
+    }
+
+    .pm-dot {
+      width: 0.45rem;
+      height: 0.45rem;
+      background-color: #e9ff32;
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulseDot 1.2s ease-in-out infinite;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.75); }
+    }
+
+    .pm-topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .pm-meta-chip {
+      display: none;
+      background-color: #2b2b2b;
+      color: #f6f1e7;
+      padding: 0.06rem 0.34rem;
+      font-weight: 700;
+    }
+
+    .pm-tier {
+      background-color: #e9ff32;
+      color: #111111;
+      padding: 0.06rem 0.38rem;
+      font-weight: 700;
+    }
+
+    .pm-tier.tier-high {
+      background-color: #ff3366;
+      color: #f6f1e7;
+    }
+
+    .pm-tier.tier-mega {
+      background-color: #2347f5;
+      color: #e9ff32;
+    }
+
+    /* Main Content Stack */
+    .pm-body {
+      padding: 1rem 1.15rem 1.2rem 1.15rem;
+      background: linear-gradient(135deg, rgba(246, 241, 231, 0.95) 60%, rgba(246, 241, 231, 0.85) 100%);
+    }
+
+    /* 1. DOMINANT NAME HEADER */
+    .pm-header-row {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .pm-avatar-frame {
+      flex-shrink: 0;
+      width: 3.6rem;
+      height: 3.6rem;
+      background-color: #ff3366;
+      border: 0.18rem solid #111111;
+      box-shadow: 0.22rem 0.22rem 0 #111111;
+      transform: rotate(-2.5deg);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pm-avatar-img {
+      display: none;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .pm-avatar-fallback {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      font-family: "Syne", sans-serif;
+      font-weight: 800;
+      font-size: 1.65rem;
+      color: #f6f1e7;
+      background-color: #2347f5;
+    }
+
+    .pm-identity-col {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .pm-name-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .pm-gifter-name {
+      font-family: "Syne", sans-serif;
+      font-weight: 800;
+      font-size: 1.85rem;
+      line-height: 1.02;
+      letter-spacing: -0.025em;
+      text-transform: uppercase;
+      color: #111111;
+      word-break: break-word;
+    }
+
+    .pm-verified {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background-color: #2347f5;
+      color: #f6f1e7;
+      border: 0.14rem solid #111111;
+      padding: 0.12rem 0.38rem;
+      font-family: "Space Mono", monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      transform: rotate(-2deg);
+    }
+
+    .pm-badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 0.32rem;
+    }
+
+    .pm-badge-icon {
+      height: 1.25rem;
+      width: auto;
+      display: block;
+      object-fit: contain;
+      filter: drop-shadow(0.08rem 0.08rem 0 #111111);
+    }
+
+    .pm-badge {
+      font-family: "Space Mono", monospace;
+      font-size: 0.62rem;
+      font-weight: 700;
+      padding: 0.1rem 0.38rem;
+      border: 0.12rem solid #111111;
+    }
+
+    .badge-cobalt { background-color: #2347f5; color: #f6f1e7; }
+    .badge-magenta { background-color: #ff3366; color: #f6f1e7; }
+    .badge-ink { background-color: #111111; color: #e9ff32; }
+
+    /* 2. DOMINANT NOMINAL BLOCK */
+    .pm-amount-hero {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.85rem;
+      padding: 0.55rem 0.95rem;
+      background-color: #e9ff32;
+      border: 0.22rem solid #111111;
+      box-shadow: 0.35rem 0.35rem 0 #ff3366, 0.35rem 0.35rem 0 0.15rem #111111;
+      transform: rotate(-0.7deg);
+    }
+
+    .pm-amount-value {
+      font-family: "Syne", sans-serif;
+      font-weight: 800;
+      font-size: 2.65rem;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      color: #111111;
+      word-break: break-word;
+    }
+
+    .pm-amount-tag {
+      flex-shrink: 0;
+      font-family: "Space Mono", monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background-color: #111111;
+      color: #e9ff32;
+      padding: 0.2rem 0.45rem;
+    }
+
+    /* 3. DOMINANT MESSAGE BLOCK */
+    .pm-message-box {
+      width: 100%;
+      background-color: #ffffff;
+      border: 0.2rem solid #111111;
+      border-left: 0.65rem solid #ff3366;
+      padding: 0.85rem 1rem;
+      box-shadow: 0.3rem 0.3rem 0 #111111;
+    }
+
+    .pm-message-text {
+      font-size: 1.28rem;
+      font-weight: 700;
+      line-height: 1.35;
+      color: #111111;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <div class="pm-stage">
+    <div class="pm-backplate">
+      <div class="pm-card">
+
+        <svg class="pm-starburst" viewBox="0 0 100 100" aria-hidden="true">
+          <polygon points="50,2 61,35 96,24 71,50 96,76 61,65 50,98 39,65 4,76 29,50 4,24 39,35" fill="#E9FF32" stroke="#111111" stroke-width="6"/>
+        </svg>
+
+        <div class="pm-topbar">
+          <div class="pm-topbar-left">
+            <span class="pm-dot"></span>
+            <span>SUPPORT</span>
+          </div>
+          <div class="pm-topbar-right">
+            <span id="media-tag" class="pm-meta-chip"></span>
+            <span id="stamp" class="pm-meta-chip">{{timestamp}}</span>
+            <span id="tier-tag" class="pm-tier">LIVE</span>
+          </div>
+        </div>
+
+        <div class="pm-body">
+          <div class="pm-header-row">
+            <div class="pm-avatar-frame">
+              <img id="avatar-img" class="pm-avatar-img" alt="" />
+              <div id="avatar-fallback" class="pm-avatar-fallback">?</div>
+            </div>
+
+            <div class="pm-identity-col">
+              <div class="pm-name-line">
+                <span id="gifter-name" class="pm-gifter-name">{{gifterName}}</span>
+                <span id="verified-badge" class="pm-verified">✓</span>
+              </div>
+              <div id="badges-container" class="pm-badges-row"></div>
+            </div>
+          </div>
+
+          <div class="pm-amount-hero">
+            <span class="pm-amount-value">{{formattedAmount}}</span>
+            <span class="pm-amount-tag">SUPPORT</span>
+          </div>
+
+          <div id="message-wrap" class="pm-message-box">
+            <p id="alert-message" class="pm-message-text">{{message}}</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var picture = "{{gifterPicture}}".trim();
+      var badgesRaw = "{{gifterBadges}}".trim();
+      var isVerified = "{{isGifterVerified}}" === "true";
+      var rawAmount = Number("{{amount}}") || 0;
+      var mediaDuration = "{{mediaDuration}}".trim();
+      var showTimestamp = "{{showTimestamp}}" === "true";
+
+      var BADGE_ICON_URLS = {
+        "Tako Verified Partner": "https://tako.id/images/badges/partnered-creator.png",
+        "Tako Verified Creator": "https://tako.id/images/badges/verified-creator.png",
+        "Rich Rich Club": "https://tako.id/images/badges/king.png",
+        "Charity": "https://tako.id/images/badges/charity.png",
+        "VTuber": "https://tako.id/images/badges/vtuber.png",
+        "Tako Team": "https://tako.id/images/badges/admin.png"
+      };
+
+      var verifiedEl = document.getElementById("verified-badge");
+      if (verifiedEl) {
+        verifiedEl.style.display = isVerified ? "inline-flex" : "none";
+      }
+
+      var tierEl = document.getElementById("tier-tag");
+      if (tierEl) {
+        if (rawAmount >= 100000) {
+          tierEl.textContent = "S-TIER";
+          tierEl.className = "pm-tier tier-mega";
+        } else if (rawAmount >= 50000) {
+          tierEl.textContent = "A-TIER";
+          tierEl.className = "pm-tier tier-high";
+        } else {
+          tierEl.textContent = "LIVE";
+          tierEl.className = "pm-tier";
+        }
+      }
+
+      var badgesContainer = document.getElementById("badges-container");
+      if (badgesContainer) {
+        if (badgesRaw && badgesRaw.indexOf("{{") === -1) {
+          var list = badgesRaw.split(",").map(function (b) { return b.trim(); }).filter(Boolean);
+          if (list.length === 0) {
+            badgesContainer.style.display = "none";
+          } else {
+            var palette = ["badge-cobalt", "badge-magenta", "badge-ink"];
+            list.forEach(function (entry, idx) {
+              var isUrl = entry.indexOf("https://") === 0 || entry.indexOf("http://") === 0 || entry.indexOf("/") === 0;
+              var iconUrl = isUrl ? entry : BADGE_ICON_URLS[entry];
+
+              if (iconUrl) {
+                var icon = document.createElement("img");
+                icon.className = "pm-badge-icon";
+                icon.src = iconUrl;
+                icon.alt = "Badge";
+                icon.onerror = function () {
+                  icon.style.display = "none";
+                };
+                badgesContainer.appendChild(icon);
+              } else {
+                var span = document.createElement("span");
+                span.className = "pm-badge " + palette[idx % palette.length];
+                span.textContent = entry.toUpperCase();
+                badgesContainer.appendChild(span);
+              }
+            });
+          }
+        } else {
+          badgesContainer.style.display = "none";
+        }
+      }
+
+      var avatarImg = document.getElementById("avatar-img");
+      var avatarFallback = document.getElementById("avatar-fallback");
+      var gifterNameEl = document.getElementById("gifter-name");
+      if (avatarImg && avatarFallback) {
+        var nameText = gifterNameEl ? gifterNameEl.textContent.trim() : "?";
+        avatarFallback.textContent = (nameText && nameText.indexOf("{{") === -1)
+          ? nameText.charAt(0).toUpperCase()
+          : "?";
+
+        if (picture && picture.indexOf("{{") === -1) {
+          avatarImg.src = picture;
+          avatarImg.style.display = "block";
+          avatarFallback.style.display = "none";
+          avatarImg.onerror = function () {
+            avatarImg.style.display = "none";
+            avatarFallback.style.display = "flex";
+          };
+        }
+      }
+
+      var mediaTag = document.getElementById("media-tag");
+      if (mediaTag && mediaDuration && mediaDuration.indexOf("{{") === -1 && Number(mediaDuration) > 0) {
+        mediaTag.textContent = "⏱ " + mediaDuration + "s";
+        mediaTag.style.display = "inline-block";
+      }
+
+      var stampEl = document.getElementById("stamp");
+      var stampText = stampEl ? stampEl.textContent.trim() : "";
+      if (stampEl && showTimestamp && stampText && stampText.indexOf("{{") === -1) {
+        stampEl.style.display = "inline-block";
+      }
+    })();
+  </script>
+</body>
+</html>

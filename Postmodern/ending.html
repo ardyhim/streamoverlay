@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jaden Bahtera — Postmodern Ending Stream Overlay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #F2EFE9;
+      --ink: #0D0D0D;
+      --vermilion: #FF3B1D;
+      --cobalt: #1836FF;
+      --acid: #DCFF00;
+      --magenta: #FF2E93;
+      --border-w: 3px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent !important;
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--ink);
+      user-select: none;
+    }
+
+    .stage-wrapper {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+    }
+
+    .stage {
+      width: 1920px;
+      height: 1080px;
+      position: relative;
+      overflow: hidden;
+      background-color: var(--paper);
+      transform-origin: center center;
+      flex-shrink: 0;
+    }
+
+    /* ================= POSTMODERN PRINT TEXTURES & GRAPHICS ================= */
+    .print-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(13, 13, 13, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(13, 13, 13, 0.08) 1px, transparent 1px);
+      background-size: 96px 96px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .halftone-left {
+      position: absolute;
+      width: 540px;
+      height: 480px;
+      left: -90px;
+      top: -50px;
+      background-image: radial-gradient(var(--vermilion) 2.5px, transparent 2.5px);
+      background-size: 16px 16px;
+      opacity: 0.2;
+      transform: rotate(-10deg);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .halftone-right {
+      position: absolute;
+      width: 480px;
+      height: 360px;
+      right: -50px;
+      bottom: 40px;
+      background-image: radial-gradient(var(--cobalt) 2.4px, transparent 2.4px);
+      background-size: 15px 15px;
+      opacity: 0.22;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .noise-overlay {
+      position: absolute;
+      inset: 0;
+      opacity: 0.045;
+      pointer-events: none;
+      z-index: 50;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* Registration Marks */
+    .reg-mark {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      z-index: 12;
+      pointer-events: none;
+    }
+    .reg-mark::before, .reg-mark::after {
+      content: "";
+      position: absolute;
+      background: var(--ink);
+    }
+    .reg-mark::before { width: 100%; height: 2px; top: 50%; left: 0; transform: translateY(-50%); }
+    .reg-mark::after { height: 100%; width: 2px; left: 50%; top: 0; transform: translateX(-50%); }
+    .reg-tl { top: 24px; left: 24px; }
+    .reg-tr { top: 24px; right: 24px; }
+    .reg-bl { bottom: 68px; left: 24px; }
+    .reg-br { bottom: 68px; right: 24px; }
+
+    .bg-giant-type {
+      position: absolute;
+      font-family: 'Anton', sans-serif;
+      font-size: 400px;
+      line-height: 0.8;
+      color: transparent;
+      -webkit-text-stroke: 2px rgba(13, 13, 13, 0.1);
+      top: 190px;
+      left: -20px;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 2;
+      transform: rotate(-3deg);
+    }
+
+    /* ================= TOP UTILITY HEADER BAR ================= */
+    .top-bar {
+      position: relative;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 24px 68px 18px;
+      border-bottom: var(--border-w) solid var(--ink);
+      background: var(--paper);
+    }
+
+    .meta-left {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .tag-solid {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 6px 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .end-square {
+      width: 10px;
+      height: 10px;
+      background: var(--magenta);
+      animation: blinkHard 1.2s steps(2, start) infinite;
+    }
+
+    .brand-center {
+      font-family: 'Anton', sans-serif;
+      font-size: 34px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 24px;
+      background: var(--acid);
+      border: var(--border-w) solid var(--ink);
+      box-shadow: 5px 5px 0 var(--ink);
+      transform: rotate(1deg);
+    }
+
+    .meta-right {
+      justify-self: end;
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .clock-box {
+      border: 2px solid var(--ink);
+      padding: 5px 12px;
+      background: #FFFFFF;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ================= MAIN OUTRO GRID (LEFT: HERO + SOCIALS, RIGHT: FINAL CHAT) ================= */
+    .main-canvas {
+      position: relative;
+      z-index: 8;
+      height: calc(100% - 140px);
+      padding: 36px 68px 34px;
+      display: grid;
+      grid-template-columns: 1fr 560px;
+      gap: 54px;
+    }
+
+    /* ================= LEFT COLUMN: POSTMODERN OUTRO POSTER ================= */
+    .outro-left {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-width: 0;
+    }
+
+    .editorial-kicker-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cutout-pill {
+      background: var(--cobalt);
+      color: #FFFFFF;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 8px 18px;
+      border: var(--border-w) solid var(--ink);
+      box-shadow: 5px 5px 0 var(--ink);
+      transform: rotate(-1.2deg);
+      text-transform: uppercase;
+    }
+
+    .barcode-block {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .barcode-lines {
+      display: flex;
+      height: 32px;
+      gap: 3px;
+      align-items: stretch;
+    }
+    .barcode-lines span { background: var(--ink); display: block; }
+
+    /* Hero Collage */
+    .hero-collage {
+      position: relative;
+      margin: 4px 0;
+    }
+
+    .hero-line-1 {
+      font-family: 'Anton', sans-serif;
+      font-size: 162px;
+      line-height: 0.84;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      color: var(--ink);
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-line-2-wrap {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      margin-top: -10px;
+      position: relative;
+      z-index: 4;
+    }
+
+    .for-sticker {
+      background: var(--vermilion);
+      color: #FFFFFF;
+      font-family: 'Anton', sans-serif;
+      font-size: 48px;
+      line-height: 1;
+      padding: 12px 18px;
+      border: var(--border-w) solid var(--ink);
+      box-shadow: 6px 6px 0 var(--ink);
+      transform: rotate(-6deg);
+      letter-spacing: 0.04em;
+    }
+
+    .hero-line-2 {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-size: 158px;
+      line-height: 0.85;
+      color: var(--cobalt);
+      background: var(--acid);
+      padding: 0 32px 12px 22px;
+      border: var(--border-w) solid var(--ink);
+      box-shadow: 10px 10px 0 var(--ink);
+      transform: rotate(-1.5deg);
+    }
+
+    .hero-vertical-tag {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.18em;
+      border-left: 3px solid var(--ink);
+      padding-left: 10px;
+      height: 126px;
+      text-transform: uppercase;
+    }
+
+    .hero-line-3 {
+      font-family: 'Anton', sans-serif;
+      font-size: 118px;
+      line-height: 0.92;
+      color: transparent;
+      -webkit-text-stroke: 3.5px var(--ink);
+      letter-spacing: 0.02em;
+      margin-left: 68px;
+      margin-top: -2px;
+      position: relative;
+      z-index: 3;
+    }
+
+    .hero-line-3 .fill-soon {
+      color: var(--vermilion);
+      -webkit-text-stroke: 3px var(--ink);
+    }
+
+    /* Bottom Left Grid: 1/1 Social Spotlight + Closing Statements */
+    .outro-bottom-grid {
+      display: grid;
+      grid-template-columns: 440px 1fr;
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    /* 1/1 Social Media Spotlight Card */
+    .social-box {
+      background: var(--ink);
+      color: var(--paper);
+      border: var(--border-w) solid var(--ink);
+      box-shadow: 10px 10px 0 var(--vermilion);
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      min-height: 196px;
+      overflow: hidden;
+    }
+
+    .social-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1.5px solid rgba(242, 239, 233, 0.22);
+      padding-bottom: 8px;
+    }
+
+    .social-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--acid);
+      text-transform: uppercase;
+    }
+
+    .social-index-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .social-dots {
+      display: flex;
+      gap: 5px;
+    }
+
+    .social-dot {
+      width: 12px;
+      height: 6px;
+      background: rgba(242, 239, 233, 0.25);
+      transition: background 0.2s ease, width 0.2s ease;
+    }
+
+    .social-dot.active {
+      width: 22px;
+      background: var(--acid);
+    }
+
+    .social-counter {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--paper);
+    }
+
+    .social-spotlight {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 4px 0;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+
+    .social-spotlight.switching {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    .social-icon-hero {
+      width: 68px;
+      height: 68px;
+      border: 2px solid #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .social-icon-hero.theme-tt {
+      background: var(--acid);
+      color: var(--ink);
+      border-color: var(--acid);
+      box-shadow: 5px 5px 0 var(--magenta);
+    }
+
+    .social-icon-hero.theme-ig {
+      background: var(--magenta);
+      color: #FFFFFF;
+      border-color: #FFFFFF;
+      box-shadow: 5px 5px 0 var(--acid);
+    }
+
+    .social-icon-hero.theme-yt {
+      background: var(--vermilion);
+      color: #FFFFFF;
+      border-color: #FFFFFF;
+      box-shadow: 5px 5px 0 var(--acid);
+    }
+
+    .social-text-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+
+    .social-plat-name {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--acid);
+    }
+
+    .social-handle-big {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 34px;
+      font-weight: 700;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      color: #FFFFFF;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .social-progress-track {
+      width: 100%;
+      height: 5px;
+      background: rgba(242, 239, 233, 0.16);
+      overflow: hidden;
+    }
+
+    .social-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--acid);
+    }
+
+    /* Kinetic Closing Statement Box */
+    .statement-box {
+      position: relative;
+      background: #FFFFFF;
+      border: var(--border-w) solid var(--ink);
+      box-shadow: 10px 10px 0 var(--cobalt);
+      padding: 24px 28px;
+      min-height: 196px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .statement-tag {
+      position: absolute;
+      top: -16px;
+      left: 22px;
+      background: var(--ink);
+      color: #FFFFFF;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      padding: 4px 12px;
+      text-transform: uppercase;
+    }
+
+    .stmt-past {
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      color: #7A7A7A;
+      text-decoration: line-through;
+    }
+
+    .stmt-active {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 34px;
+      font-weight: 700;
+      line-height: 1.14;
+      letter-spacing: -0.025em;
+      color: var(--ink);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .stmt-active .hl {
+      background: var(--acid);
+      padding: 0 7px;
+      border-bottom: 3px solid var(--ink);
+    }
+
+    .stmt-active .hl-italic {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 42px;
+      color: var(--vermilion);
+    }
+
+    .stmt-next {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      color: var(--cobalt);
+      font-weight: 700;
+    }
+
+    .zigzag-svg {
+      position: absolute;
+      right: 16px;
+      bottom: 14px;
+      width: 78px;
+    }
+
+    /* ================= RIGHT COLUMN: FINAL YOUTUBE CHAT + SIGN-OFF ================= */
+    .outro-right {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 22px;
+      min-height: 0;
+    }
+
+    .sticker-badge {
+      position: absolute;
+      top: -18px;
+      right: -18px;
+      z-index: 20;
+      background: var(--magenta);
+      color: #FFFFFF;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      padding: 9px 16px;
+      border: var(--border-w) solid var(--ink);
+      box-shadow: 5px 5px 0 var(--ink);
+      transform: rotate(5deg);
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .yt-play-tri {
+      width: 0;
+      height: 0;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-left: 9px solid #FFFFFF;
+    }
+
+    .chat-zine {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      background: #FFFFFF;
+      border: var(--border-w) solid var(--ink);
+      box-shadow: 12px 12px 0 var(--ink);
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .chat-header-strip {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 14px;
+      border-bottom: var(--border-w) solid var(--ink);
+      padding-bottom: 12px;
+      padding-right: 165px;
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .chat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .yt-tag {
+      background: var(--ink);
+      color: #FFFFFF;
+      padding: 4px 10px;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+    }
+
+    .checker-strip {
+      height: 12px;
+      width: 72px;
+      background-image: conic-gradient(var(--ink) 90deg, transparent 90deg 180deg, var(--ink) 180deg 270deg, transparent 270deg);
+      background-size: 12px 12px;
+      border: 1.5px solid var(--ink);
+    }
+
+    /* 100% Alpha-Transparent Cutout Viewport */
+    .chat-viewport {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      background: transparent !important;
+      border: 2px solid var(--ink);
+    }
+
+    .chat-footer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 2px;
+    }
+
+    .chat-prompt-fake {
+      flex: 1;
+      border: 2px solid var(--ink);
+      background: var(--paper);
+      padding: 8px 12px;
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: #555555;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cursor-block {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: var(--magenta);
+      animation: blinkHard 0.9s steps(2, start) infinite;
+    }
+
+    .yt-status-pill {
+      height: 36px;
+      padding: 0 14px;
+      border: 2px solid var(--ink);
+      background: var(--acid);
+      box-shadow: 3px 3px 0 var(--ink);
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    /* Bottom Right Sign-Off Card */
+    .signoff-card {
+      background: var(--cobalt);
+      color: #FFFFFF;
+      border: var(--border-w) solid var(--ink);
+      box-shadow: 10px 10px 0 var(--ink);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      transform: rotate(-1deg);
+    }
+
+    .signoff-left .so-top {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: var(--acid);
+      text-transform: uppercase;
+    }
+
+    .signoff-left .so-name {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-size: 42px;
+      line-height: 1.02;
+      margin-top: 2px;
+    }
+
+    .signoff-stamp {
+      background: var(--acid);
+      color: var(--ink);
+      border: var(--border-w) solid var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+      padding: 10px 16px;
+      font-family: 'Anton', sans-serif;
+      font-size: 26px;
+      letter-spacing: 0.05em;
+      transform: rotate(3deg);
+      white-space: nowrap;
+    }
+
+    /* ================= BOTTOM RUNNING MARQUEE TICKER ================= */
+    .bottom-ticker {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 52px;
+      background: var(--ink);
+      color: var(--paper);
+      border-top: var(--border-w) solid var(--ink);
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .ticker-track {
+      display: flex;
+      white-space: nowrap;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      animation: marquee 24s linear infinite;
+    }
+
+    .ticker-track span {
+      margin-right: 48px;
+    }
+
+    .ticker-track .t-acid { color: var(--acid); }
+    .ticker-track .t-red { color: var(--vermilion); }
+
+    @keyframes blinkHard {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    @keyframes marquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage-wrapper">
+    <div class="stage" id="stage">
+      <!-- Background Print Layers -->
+      <div class="print-grid"></div>
+      <div class="halftone-left"></div>
+      <div class="halftone-right"></div>
+      <div class="bg-giant-type">GOODBYE</div>
+      <div class="noise-overlay"></div>
+
+      <!-- Registration Marks -->
+      <div class="reg-mark reg-tl"></div>
+      <div class="reg-mark reg-tr"></div>
+      <div class="reg-mark reg-bl"></div>
+      <div class="reg-mark reg-br"></div>
+
+      <!-- Top Editorial Bar -->
+      <header class="top-bar">
+        <div class="meta-left">
+          <div class="tag-solid">
+            <span class="end-square"></span>
+            SIGNING OFF // WRAP UP
+          </div>
+          <span>ISSUE NO. 01 — END</span>
+        </div>
+
+        <div class="brand-center">JADEN BAHTERA</div>
+
+        <div class="meta-right">
+          <span>VOD // ARCHIVE</span>
+          <div class="clock-box" id="localClock">00:00:00</div>
+        </div>
+      </header>
+
+      <!-- Main Outro Layout -->
+      <main class="main-canvas">
+
+        <!-- LEFT: Editorial Outro Poster + 1/1 Socials + Closing Feed -->
+        <section class="outro-left">
+          <div class="editorial-kicker-row">
+            <div class="cutout-pill">STREAM CONCLUDED — CATCH YOU NEXT TIME</div>
+            <div class="barcode-block">
+              <div class="barcode-lines" aria-hidden="true">
+                <span style="width:4px"></span><span style="width:2px"></span><span style="width:6px"></span>
+                <span style="width:2px"></span><span style="width:3px"></span><span style="width:5px"></span>
+                <span style="width:2px"></span><span style="width:4px"></span><span style="width:2px"></span>
+              </div>
+              <span>FIN // 2026</span>
+            </div>
+          </div>
+
+          <div class="hero-collage">
+            <div class="hero-line-1">THANKS</div>
+            <div class="hero-line-2-wrap">
+              <div class="for-sticker">FOR</div>
+              <div class="hero-line-2">Watching</div>
+              <div class="hero-vertical-tag">OUTRO EDITION</div>
+            </div>
+            <div class="hero-line-3">SEE YOU <span class="fill-soon">SOON!</span></div>
+          </div>
+
+          <div class="outro-bottom-grid">
+            <!-- 1/1 Social Media Spotlight -->
+            <div class="social-box">
+              <div class="social-top-row">
+                <span class="social-label">KEEP IN TOUCH</span>
+                <div class="social-index-wrap">
+                  <div class="social-dots">
+                    <span class="social-dot active" id="dot0"></span>
+                    <span class="social-dot" id="dot1"></span>
+                    <span class="social-dot" id="dot2"></span>
+                  </div>
+                  <span class="social-counter" id="socialCounter">01/03</span>
+                </div>
+              </div>
+
+              <div class="social-spotlight" id="socialSpotlight">
+                <div class="social-icon-hero theme-tt" id="socialIconBox"></div>
+                <div class="social-text-col">
+                  <span class="social-plat-name" id="socialPlatform">TIKTOK</span>
+                  <span class="social-handle-big" id="socialHandle">@jadenbahtera</span>
+                </div>
+              </div>
+
+              <div class="social-progress-track">
+                <div class="social-progress-fill" id="socialProgress"></div>
+              </div>
+            </div>
+
+            <!-- Kinetic Closing Statements -->
+            <div class="statement-box">
+              <div class="statement-tag">OUTRO // FINAL NOTES</div>
+              <div class="stmt-past" id="stmtPast">Appreciate everyone who hung out tonight</div>
+              <div class="stmt-active" id="stmtActive">
+                Thanks for <span class="hl">riding along</span> — <span class="hl-italic">rest well!</span>
+              </div>
+              <div class="stmt-next" id="stmtNext">NEXT >> Don't forget to Like &amp; Subscribe</div>
+
+              <svg class="zigzag-svg" viewBox="0 0 100 24" fill="none">
+                <path d="M2 18L16 4L30 18L44 4L58 18L72 4L86 18L98 6" stroke="#FF3B1D" stroke-width="5" stroke-linecap="square"/>
+              </svg>
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT: Final Transparent YouTube Chat + Sign-Off Stamp -->
+        <section class="outro-right">
+          <div class="sticker-badge">
+            <span class="yt-play-tri"></span>
+            Final Chat ★
+          </div>
+
+          <div class="chat-zine">
+            <div class="chat-header-strip">
+              <div class="chat-header-left">
+                <span class="yt-tag">OUTRO CHAT</span>
+                <span>SAY GOODBYE</span>
+              </div>
+              <div class="checker-strip"></div>
+            </div>
+
+            <!-- Transparent Alpha Cutout Viewport -->
+            <div class="chat-viewport" id="chatViewport"></div>
+
+            <div class="chat-footer-bar">
+              <div class="chat-prompt-fake">
+                <span>GGWP IN YOUTUBE CHAT...</span>
+                <span class="cursor-block"></span>
+              </div>
+              <div class="yt-status-pill">● SIGNING OFF</div>
+            </div>
+          </div>
+
+          <div class="signoff-card">
+            <div class="signoff-left">
+              <div class="so-top">SIGNED OFF BY</div>
+              <div class="so-name">Jaden Bahtera</div>
+            </div>
+            <div class="signoff-stamp">GGWP ★</div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Bottom Scrolling Marquee -->
+      <footer class="bottom-ticker">
+        <div class="ticker-track">
+          <span>THANKS FOR WATCHING JADEN BAHTERA</span>
+          <span class="t-acid">/// SEE YOU NEXT STREAM</span>
+          <span>TIKTOK: @JADENBAHTERA</span>
+          <span class="t-red">★ IG: JADENBAHTERA // YT: JADENBAHTERA</span>
+          <span>LIKE, SHARE &amp; SUBSCRIBE</span>
+          <span class="t-acid">/// THANKS FOR WATCHING JADEN BAHTERA</span>
+          <span>SEE YOU NEXT STREAM</span>
+          <span class="t-red">★ TIKTOK: @JADENBAHTERA</span>
+          <span>IG: JADENBAHTERA // YT: JADENBAHTERA</span>
+          <span>LIKE, SHARE &amp; SUBSCRIBE</span>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // 1. Scale Stage 1920x1080 + Punch exact transparent hole for Final YouTube Chat
+    function updateCutoutMask() {
+      const stage = document.getElementById('stage');
+      const vp = document.getElementById('chatViewport');
+      if (!stage || !vp) return;
+
+      const stageRect = stage.getBoundingClientRect();
+      const vpRect = vp.getBoundingClientRect();
+      const scale = stageRect.width / 1920 || 1;
+
+      const border = 2;
+      const x = Math.round((vpRect.left - stageRect.left) / scale) + border;
+      const y = Math.round((vpRect.top - stageRect.top) / scale) + border;
+      const w = Math.round(vpRect.width / scale) - border * 2;
+      const h = Math.round(vpRect.height / scale) - border * 2;
+
+      const maskImg = 'linear-gradient(#fff, #fff), linear-gradient(#fff, #fff)';
+      const maskPos = `0 0, ${x}px ${y}px`;
+      const maskSize = `100% 100%, ${w}px ${h}px`;
+
+      if (CSS.supports('mask-composite', 'exclude')) {
+        stage.style.maskImage = maskImg;
+        stage.style.maskPosition = maskPos;
+        stage.style.maskSize = maskSize;
+        stage.style.maskRepeat = 'no-repeat';
+        stage.style.maskComposite = 'exclude';
+      } else {
+        stage.style.webkitMaskImage = maskImg;
+        stage.style.webkitMaskPosition = maskPos;
+        stage.style.webkitMaskSize = maskSize;
+        stage.style.webkitMaskRepeat = 'no-repeat';
+        stage.style.webkitMaskComposite = 'xor';
+      }
+    }
+
+    function scaleStage() {
+      const stage = document.getElementById('stage');
+      const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+      stage.style.transform = `scale(${scale})`;
+      updateCutoutMask();
+    }
+
+    window.addEventListener('resize', scaleStage);
+    scaleStage();
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(updateCutoutMask);
+    }
+
+    const vpObserver = new ResizeObserver(updateCutoutMask);
+    vpObserver.observe(document.getElementById('chatViewport'));
+
+    // 2. Live Clock
+    function updateClock() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('localClock').textContent = `${hh}:${mm}:${ss}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // 3. 1/1 Social Media Spotlight Rotator
+    const socials = [
+      {
+        platform: 'TIKTOK',
+        handle: '@jadenbahtera',
+        themeClass: 'theme-tt',
+        accent: '#DCFF00',
+        svg: `<svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.74a4.85 4.85 0 0 1-1.01-.05z"/>
+        </svg>`
+      },
+      {
+        platform: 'INSTAGRAM',
+        handle: 'jadenbahtera',
+        themeClass: 'theme-ig',
+        accent: '#FF2E93',
+        svg: `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="currentColor" stroke-width="2.3"/>
+          <circle cx="12" cy="12" r="4.3" stroke="currentColor" stroke-width="2.3"/>
+          <circle cx="17.5" cy="6.5" r="1.4" fill="currentColor"/>
+        </svg>`
+      },
+      {
+        platform: 'YOUTUBE',
+        handle: 'Jadenbahtera',
+        themeClass: 'theme-yt',
+        accent: '#FF3B1D',
+        svg: `<svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+        </svg>`
+      }
+    ];
+
+    const SOCIAL_INTERVAL = 4000;
+    let socialIdx = 0;
+
+    const spotlightEl = document.getElementById('socialSpotlight');
+    const iconBoxEl = document.getElementById('socialIconBox');
+    const platformEl = document.getElementById('socialPlatform');
+    const handleEl = document.getElementById('socialHandle');
+    const counterEl = document.getElementById('socialCounter');
+    const progressEl = document.getElementById('socialProgress');
+    const dots = [
+      document.getElementById('dot0'),
+      document.getElementById('dot1'),
+      document.getElementById('dot2')
+    ];
+
+    function renderSocial(i) {
+      const item = socials[i];
+      iconBoxEl.className = `social-icon-hero ${item.themeClass}`;
+      iconBoxEl.innerHTML = item.svg;
+      platformEl.textContent = item.platform;
+      platformEl.style.color = item.accent;
+      handleEl.textContent = item.handle;
+      counterEl.textContent = `0${i + 1}/0${socials.length}`;
+
+      dots.forEach((d, idx) => {
+        d.classList.toggle('active', idx === i);
+        d.style.background = idx === i ? item.accent : 'rgba(242, 239, 233, 0.25)';
+      });
+
+      progressEl.style.transition = 'none';
+      progressEl.style.width = '0%';
+      progressEl.style.background = item.accent;
+      void progressEl.offsetWidth;
+      progressEl.style.transition = `width ${SOCIAL_INTERVAL}ms linear`;
+      progressEl.style.width = '100%';
+    }
+
+    renderSocial(0);
+
+    setInterval(() => {
+      spotlightEl.classList.add('switching');
+      setTimeout(() => {
+        socialIdx = (socialIdx + 1) % socials.length;
+        renderSocial(socialIdx);
+        spotlightEl.classList.remove('switching');
+      }, 220);
+    }, SOCIAL_INTERVAL);
+
+    // 4. Kinetic Outro Statements Cycling
+    const statements = [
+      {
+        text: 'Appreciate everyone who <span class="hl">hung out</span> <span class="hl-italic">tonight</span>',
+        plain: 'Appreciate everyone who hung out tonight'
+      },
+      {
+        text: 'Thanks for <span class="hl">riding along</span> — <span class="hl-italic">rest well!</span>',
+        plain: 'Thanks for riding along — rest well!'
+      },
+      {
+        text: 'Don’t forget to <span class="hl">Like</span> &amp; <span class="hl-italic">Subscribe</span>',
+        plain: 'Don’t forget to Like & Subscribe'
+      },
+      {
+        text: 'VOD &amp; highlights <span class="hl">dropping</span> <span class="hl-italic">very soon</span>',
+        plain: 'VOD & highlights dropping very soon'
+      }
+    ];
+
+    let idx = 1;
+    const pastEl = document.getElementById('stmtPast');
+    const activeEl = document.getElementById('stmtActive');
+    const nextEl = document.getElementById('stmtNext');
+
+    setInterval(() => {
+      idx = (idx + 1) % statements.length;
+      const prev = (idx - 1 + statements.length) % statements.length;
+      const next = (idx + 1) % statements.length;
+
+      activeEl.style.opacity = '0';
+      activeEl.style.transform = 'translateX(-8px)';
+
+      setTimeout(() => {
+        pastEl.textContent = statements[prev].plain;
+        activeEl.innerHTML = statements[idx].text;
+        nextEl.textContent = `NEXT >> ${statements[next].plain}`;
+        activeEl.style.opacity = '1';
+        activeEl.style.transform = 'translateX(0)';
+      }, 220);
+    }, 4200);
+  </script>
+</body>
+</html>
