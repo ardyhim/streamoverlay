@@ -1,0 +1,226 @@
+@import 
+url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Space+Mono:wght@700&display=swap');
+
+
+body {
+
+  background-color: transparent !important;
+
+  overflow: hidden !important;
+
+}
+
+
+yt-live-chat-renderer,
+
+yt-live-chat-item-list-renderer {
+
+  background: transparent !important;
+
+}
+
+
+yt-live-chat-header-renderer,
+
+yt-live-chat-message-input-renderer,
+
+#ticker {
+
+  display: none !important;
+
+}
+
+
+/* 1. REGULAR USER */
+
+yt-live-chat-text-message-renderer,
+
+yt-live-chat-text-message-renderer[is-highlighted] {
+
+  background: #FFFFFF !important;
+
+  border: 2px solid #0D0D0D !important;
+
+  box-shadow: 4px 4px 0 #0D0D0D !important;
+
+  margin: 0 6px 10px 0 !important;
+
+  padding: 8px 12px !important;
+
+  font-family: 'Space Grotesk', sans-serif !important;
+
+}
+
+
+yt-live-chat-author-chip #author-name {
+
+  background: transparent !important;
+
+  font-family: 'Space Mono', monospace !important;
+
+  font-weight: 700 !important;
+
+  color: #1836FF !important;
+
+}
+
+
+#message {
+
+  color: #0D0D0D !important;
+
+  font-size: 16px !important;
+
+  font-weight: 500 !important;
+
+}
+
+
+/* 2. MEMBERSHIP */
+
+yt-live-chat-text-message-renderer[author-type="member"],
+
+yt-live-chat-text-message-renderer[author-type="member"][is-highlighted],
+
+yt-live-chat-text-message-renderer:has(yt-live-chat-author-chip[is-member]) {
+
+  background: #1836FF !important;
+
+  border: 2px solid #0D0D0D !important;
+
+  border-left: 8px solid #DCFF00 !important;
+
+  box-shadow: 4px 4px 0 #0D0D0D !important;
+
+}
+
+
+yt-live-chat-text-message-renderer[author-type="member"] #author-name,
+
+yt-live-chat-text-message-renderer:has(yt-live-chat-author-chip[is-member]) 
+#author-name {
+
+  color: #DCFF00 !important;
+
+}
+
+
+yt-live-chat-text-message-renderer[author-type="member"] #message,
+
+yt-live-chat-text-message-renderer:has(yt-live-chat-author-chip[is-member]) #message {
+
+  color: #FFFFFF !important;
+
+  font-weight: 700 !important;
+
+}
+
+
+/* 3. MODERATOR */
+
+yt-live-chat-text-message-renderer[author-type="moderator"],
+
+yt-live-chat-text-message-renderer[author-type="moderator"][is-highlighted] {
+
+  background: #FF3366 !important;
+
+  border: 2px solid #0D0D0D !important;
+
+  border-left: 8px solid #0D0D0D !important;
+
+  box-shadow: 4px 4px 0 #0D0D0D !important;
+
+}
+
+
+yt-live-chat-text-message-renderer[author-type="moderator"] #author-name {
+
+  color: #DCFF00 !important;
+
+}
+
+
+yt-live-chat-text-message-renderer[author-type="moderator"] #message {
+
+  color: #FFFFFF !important;
+
+  font-weight: 700 !important;
+
+}
+
+
+/* 4. OWNER */
+
+yt-live-chat-text-message-renderer[author-type="owner"],
+
+yt-live-chat-text-message-renderer[author-type="owner"][is-highlighted] {
+
+  background: #DCFF00 !important;
+
+  border: 2px solid #0D0D0D !important;
+
+  border-left: 8px solid #1836FF !important;
+
+  box-shadow: 4px 4px 0 #0D0D0D !important;
+
+}
+
+
+yt-live-chat-text-message-renderer[author-type="owner"] #author-name {
+
+  color: #0D0D0D !important;
+
+}
+
+
+yt-live-chat-text-message-renderer[author-type="owner"] #message {
+
+  color: #0D0D0D !important;
+
+  font-weight: 700 !important;
+
+}
+
+
+/* 5. NOTIFIKASI JOIN / MILESTONE MEMBERSHIP */
+
+yt-live-chat-membership-item-renderer {
+
+  background: #1836FF !important;
+
+  border: 2px solid #0D0D0D !important;
+
+  box-shadow: 4px 4px 0 #DCFF00 !important;
+
+  margin: 0 6px 10px 0 !important;
+
+  font-family: 'Space Grotesk', sans-serif !important;
+
+}
+
+
+yt-live-chat-membership-item-renderer #card,
+
+yt-live-chat-membership-item-renderer #header {
+
+  background: transparent !important;
+
+}
+
+
+yt-live-chat-membership-item-renderer #header-primary-text,
+
+yt-live-chat-membership-item-renderer #header-subtext,
+
+yt-live-chat-membership-item-renderer #message {
+
+  color: #FFFFFF !important;
+
+}
+
+
+yt-live-chat-membership-item-renderer #author-name {
+
+  color: #DCFF00 !important;
+
+}

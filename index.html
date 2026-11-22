@@ -82,6 +82,31 @@
       border-bottom: 0.14rem dashed var(--ink);
     }
 
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 0.7rem;
+    }
+
+    h3::after {
+      content: "";
+      flex: 1;
+      border-bottom: 0.12rem dashed rgba(17, 17, 17, 0.25);
+    }
+
+    .nested {
+      margin: 1.6rem 0 0 1.1rem;
+      padding-left: 1rem;
+      border-left: 0.16rem solid var(--ink);
+    }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
@@ -125,8 +150,17 @@
       color: var(--muted);
     }
 
+    .card .file {
+      margin-top: 0.6rem;
+      font-size: 0.65rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .card .go {
-      margin-top: 0.75rem;
+      margin-top: 0.65rem;
       font-size: 0.7rem;
       font-weight: 700;
       letter-spacing: 0.1em;
@@ -157,6 +191,13 @@
     footer a {
       color: var(--blue);
     }
+
+    @media (max-width: 34rem) {
+      .nested {
+        margin-left: 0.5rem;
+        padding-left: 0.7rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -170,70 +211,88 @@
       </p>
     </header>
 
-    <h2>Postmodern</h2>
+    <h2>Postmodern/</h2>
     <div class="grid">
       <a class="card" href="Postmodern/starting.html">
         <span class="tag">Scene</span>
         <div class="name">Starting</div>
         <div class="desc">Starting soon + transparent YouTube chat.</div>
+        <div class="file">Postmodern/starting.html</div>
         <div class="go">Buka &rarr;</div>
       </a>
       <a class="card" href="Postmodern/ending.html">
         <span class="tag">Scene</span>
         <div class="name">Ending</div>
         <div class="desc">Ending stream screen.</div>
+        <div class="file">Postmodern/ending.html</div>
         <div class="go">Buka &rarr;</div>
+      </a>
+      <a class="card" href="Postmodern/livechat.css">
+        <span class="tag">CSS</span>
+        <div class="name">Live Chat</div>
+        <div class="desc">Stylesheet YouTube live chat untuk browser source OBS.</div>
+        <div class="file">Postmodern/livechat.css</div>
+        <div class="go">Lihat file &rarr;</div>
       </a>
     </div>
 
-    <h2>Memphis</h2>
+    <section class="nested">
+      <h3>Postmodern/tako/</h3>
+      <div class="grid">
+        <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/Postmodern/tako/alert.html">
+          <span class="tag">Source</span>
+          <div class="name">Alert</div>
+          <div class="desc">Alert donasi dengan tier &amp; badge.</div>
+          <div class="file">Postmodern/tako/alert.html</div>
+          <div class="go">Lihat kode &rarr;</div>
+        </a>
+        <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/Postmodern/tako/milestone.html">
+          <span class="tag">Source</span>
+          <div class="name">Milestone</div>
+          <div class="desc">Progres donasi per langkah.</div>
+          <div class="file">Postmodern/tako/milestone.html</div>
+          <div class="go">Lihat kode &rarr;</div>
+        </a>
+        <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/Postmodern/tako/songshare.html">
+          <span class="tag">Source</span>
+          <div class="name">Song Share</div>
+          <div class="desc">Now playing, progress, dan antrian lagu.</div>
+          <div class="file">Postmodern/tako/songshare.html</div>
+          <div class="go">Lihat kode &rarr;</div>
+        </a>
+      </div>
+    </section>
+
+    <h2>Memphis/</h2>
     <div class="grid">
       <a class="card" href="Memphis/index.html">
         <span class="tag">Scene</span>
         <div class="name">Just Chatting</div>
         <div class="desc">Orologio 1981 — just chatting overlay.</div>
+        <div class="file">Memphis/index.html</div>
         <div class="go">Buka &rarr;</div>
       </a>
       <a class="card" href="Memphis/starting.html">
         <span class="tag">Scene</span>
         <div class="name">Starting Live</div>
         <div class="desc">Starting live / pre-show screen.</div>
+        <div class="file">Memphis/starting.html</div>
         <div class="go">Buka &rarr;</div>
       </a>
       <a class="card" href="Memphis/waiting.html">
         <span class="tag">Scene</span>
         <div class="name">Waiting</div>
         <div class="desc">Waiting screen sebelum mulai.</div>
+        <div class="file">Memphis/waiting.html</div>
         <div class="go">Buka &rarr;</div>
       </a>
     </div>
 
-    <h2>Tako Custom</h2>
-    <div class="grid">
-      <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/Postmodern/tako/alert.html">
-        <span class="tag">Source</span>
-        <div class="name">Alert</div>
-        <div class="desc">Alert donasi dengan tier &amp; badge.</div>
-        <div class="go">Lihat kode &rarr;</div>
-      </a>
-      <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/Postmodern/tako/milestone.html">
-        <span class="tag">Source</span>
-        <div class="name">Milestone</div>
-        <div class="desc">Progres donasi per langkah.</div>
-        <div class="go">Lihat kode &rarr;</div>
-      </a>
-      <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/Postmodern/tako/songshare.html">
-        <span class="tag">Source</span>
-        <div class="name">Song Share</div>
-        <div class="desc">Now playing, progress, dan antrian lagu.</div>
-        <div class="go">Lihat kode &rarr;</div>
-      </a>
-    </div>
-
     <div class="note">
-      <strong>Catatan:</strong> overlay Tako ada di <code>Postmodern/tako/*.html</code> dan tidak di-preview di sini,
-      karena file-nya masih berisi placeholder <code>{{...}}</code> yang hanya diisi oleh Tako.
-      Copy isi file tersebut ke dashboard Tako untuk memakainya.
+      <strong>Catatan:</strong> <code>Postmodern/livechat.css</code> dipakai sebagai stylesheet tambahan
+      di browser source YouTube live chat (OBS), bukan halaman yang dibuka sendiri.
+      Overlay Tako di <code>Postmodern/tako/</code> tidak di-preview karena masih berisi placeholder
+      <code>{{...}}</code> yang hanya diisi oleh Tako — copy isi file-nya ke dashboard Tako.
     </div>
 
     <footer>
