@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stream Overlay — Gallery</title>
+  <style>
+    :root {
+      --ink: #111111;
+      --cream: #f6f1e7;
+      --blue: #2347f5;
+      --yellow: #e9ff32;
+      --pink: #ff3366;
+      --muted: #6f6759;
+      --font-display: "Arial Black", "Segoe UI Black", Impact, Haettenschweiler, sans-serif;
+      --font-mono: "Courier New", Courier, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 2.25rem 1.25rem 3rem;
+      background-color: var(--cream);
+      background-image: radial-gradient(rgba(17, 17, 17, 0.1) 0.05rem, transparent 0.05rem);
+      background-size: 0.7rem 0.7rem;
+      color: var(--ink);
+      font-family: var(--font-mono);
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .wrap {
+      max-width: 62rem;
+      margin: 0 auto;
+    }
+
+    .kicker {
+      display: inline-block;
+      background: var(--pink);
+      color: var(--cream);
+      border: 0.14rem solid var(--ink);
+      padding: 0.15rem 0.5rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 6vw, 3.4rem);
+      line-height: 1;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      margin: 0.75rem 0 0.5rem;
+    }
+
+    .sub {
+      max-width: 42rem;
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin: 2.4rem 0 0.9rem;
+    }
+
+    h2::after {
+      content: "";
+      flex: 1;
+      border-bottom: 0.14rem dashed var(--ink);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+      gap: 0.9rem;
+    }
+
+    .card {
+      position: relative;
+      display: block;
+      background: #ffffff;
+      border: 0.18rem solid var(--ink);
+      box-shadow: 0.22rem 0.22rem 0 var(--ink);
+      padding: 0.9rem 1rem 1rem;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .card:hover {
+      transform: translate(-0.1rem, -0.1rem);
+      box-shadow: 0.32rem 0.32rem 0 var(--blue);
+    }
+
+    .card .tag {
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .card .name {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      text-transform: uppercase;
+      margin: 0.25rem 0 0.15rem;
+    }
+
+    .card .desc {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .card .go {
+      margin-top: 0.75rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--blue);
+    }
+
+    .note {
+      margin-top: 2.5rem;
+      padding: 0.9rem 1rem;
+      background: var(--yellow);
+      border: 0.16rem solid var(--ink);
+      box-shadow: 0.2rem 0.2rem 0 var(--ink);
+      font-size: 0.8rem;
+    }
+
+    .note code {
+      background: rgba(17, 17, 17, 0.08);
+      padding: 0.05rem 0.3rem;
+    }
+
+    footer {
+      margin-top: 2.5rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    footer a {
+      color: var(--blue);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <span class="kicker">Stream Overlay</span>
+      <h1>Overlay Gallery</h1>
+      <p class="sub">
+        Kumpulan overlay HTML untuk OBS / browser source. Semua file statis, tanpa build step —
+        tinggal buka atau copy ke dashboard Tako.
+      </p>
+    </header>
+
+    <h2>Postmodern</h2>
+    <div class="grid">
+      <a class="card" href="Postmodern/starting.html">
+        <span class="tag">Scene</span>
+        <div class="name">Starting</div>
+        <div class="desc">Starting soon + transparent YouTube chat.</div>
+        <div class="go">Buka &rarr;</div>
+      </a>
+      <a class="card" href="Postmodern/ending.html">
+        <span class="tag">Scene</span>
+        <div class="name">Ending</div>
+        <div class="desc">Ending stream screen.</div>
+        <div class="go">Buka &rarr;</div>
+      </a>
+    </div>
+
+    <h2>Memphis</h2>
+    <div class="grid">
+      <a class="card" href="Memphis/index.html">
+        <span class="tag">Scene</span>
+        <div class="name">Just Chatting</div>
+        <div class="desc">Orologio 1981 — just chatting overlay.</div>
+        <div class="go">Buka &rarr;</div>
+      </a>
+      <a class="card" href="Memphis/starting.html">
+        <span class="tag">Scene</span>
+        <div class="name">Starting Live</div>
+        <div class="desc">Starting live / pre-show screen.</div>
+        <div class="go">Buka &rarr;</div>
+      </a>
+      <a class="card" href="Memphis/waiting.html">
+        <span class="tag">Scene</span>
+        <div class="name">Waiting</div>
+        <div class="desc">Waiting screen sebelum mulai.</div>
+        <div class="go">Buka &rarr;</div>
+      </a>
+    </div>
+
+    <h2>Tako Custom</h2>
+    <div class="grid">
+      <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/Postmodern/tako/alert.html">
+        <span class="tag">Source</span>
+        <div class="name">Alert</div>
+        <div class="desc">Alert donasi dengan tier &amp; badge.</div>
+        <div class="go">Lihat kode &rarr;</div>
+      </a>
+      <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/Postmodern/tako/milestone.html">
+        <span class="tag">Source</span>
+        <div class="name">Milestone</div>
+        <div class="desc">Progres donasi per langkah.</div>
+        <div class="go">Lihat kode &rarr;</div>
+      </a>
+      <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/Postmodern/tako/songshare.html">
+        <span class="tag">Source</span>
+        <div class="name">Song Share</div>
+        <div class="desc">Now playing, progress, dan antrian lagu.</div>
+        <div class="go">Lihat kode &rarr;</div>
+      </a>
+    </div>
+
+    <div class="note">
+      <strong>Catatan:</strong> overlay Tako ada di <code>Postmodern/tako/*.html</code> dan tidak di-preview di sini,
+      karena file-nya masih berisi placeholder <code>{{...}}</code> yang hanya diisi oleh Tako.
+      Copy isi file tersebut ke dashboard Tako untuk memakainya.
+    </div>
+
+    <footer>
+      Sumber: <a href="https://github.com/ardyhim/streamoverlay">github.com/ardyhim/streamoverlay</a>
+    </footer>
+  </div>
+</body>
+</html>

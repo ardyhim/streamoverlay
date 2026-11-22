@@ -5,6 +5,7 @@ Kumpulan overlay HTML untuk OBS / browser source, termasuk overlay kustom untuk 
 ## Struktur
 
 ```
+index.html          galeri semua overlay
 Memphis/
   index.html
   starting.html
@@ -18,6 +19,13 @@ Postmodern/
     milestone.html
     songshare.html
 ```
+
+## Preview
+
+https://ardyhim.github.io/streamoverlay/
+
+Overlay Tako tidak di-preview di galeri karena file-nya masih berisi placeholder `{{...}}`
+yang hanya diisi oleh Tako. Isi file `Postmodern/tako/*.html` di-copy langsung ke dashboard Tako.
 
 ## Catatan
 
