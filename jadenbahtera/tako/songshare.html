@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    :root {
+      --bg: #b9bcff;
+      --ink: #000000;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0.3rem 0.45rem 0.45rem 0.3rem;
+      background: transparent;
+      color: var(--ink);
+      font-family: "Helvetica Neue", Helvetica, Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .mono {
+      font-family: "SF Mono", "JetBrains Mono", Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    img[src=""],
+    img[src*="{"] {
+      display: none !important;
+    }
+
+    .player-card,
+    .setlist-card {
+      width: 100%;
+      box-sizing: border-box;
+      background: var(--bg);
+      border: 0.125rem solid var(--ink);
+      box-shadow: 0.3rem 0.3rem 0 0 var(--ink);
+      overflow: hidden;
+    }
+
+    .dither-top {
+      width: 100%;
+      height: 0.35rem;
+      background-image: conic-gradient(
+        var(--ink) 90deg,
+        transparent 90deg 180deg,
+        var(--ink) 180deg 270deg,
+        transparent 270deg
+      );
+      background-size: 0.4rem 0.4rem;
+      border-bottom: 0.125rem solid var(--ink);
+    }
+
+    .track-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.35rem 0.8rem;
+      height: 1.85rem;
+      flex-wrap: nowrap;
+      border-bottom: 0.125rem solid var(--ink);
+    }
+
+    .head-left {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      min-width: 0;
+      flex-wrap: nowrap;
+    }
+
+    .head-square {
+      width: 0.5rem;
+      height: 0.5rem;
+      background: var(--ink);
+      flex-shrink: 0;
+    }
+
+    .head-title {
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .play-state {
+      background: var(--ink);
+      color: var(--bg);
+      border-radius: 999px;
+      padding: 0.1rem 0.55rem;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      line-height: 1.2;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .play-state::after {
+      content: "STANDBY";
+    }
+
+    .play-state[data-playing="true"]::after {
+      content: "PLAYING";
+    }
+
+    .play-state[data-paused="true"]::after {
+      content: "PAUSED";
+    }
+
+    .error-banner {
+      background: var(--ink);
+      color: var(--bg);
+      padding: 0.45rem 0.8rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border-bottom: 0.125rem solid var(--ink);
+    }
+
+    .error-banner[data-error=""],
+    .error-banner[data-error*="{"] {
+      display: none;
+    }
+
+    .gap-banner {
+      display: none;
+      padding: 0.95rem 0.85rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .gap-banner[data-gap="true"] {
+      display: block;
+    }
+
+    .player-body {
+      padding: 0.75rem 0.85rem 0.8rem 0.85rem;
+    }
+
+    .player-body[data-gap="true"] {
+      display: none;
+    }
+
+    .main-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: nowrap;
+    }
+
+    .cover-frame {
+      position: relative;
+      width: 4.5rem;
+      height: 4.5rem;
+      flex-shrink: 0;
+      border: 0.125rem solid var(--ink);
+      background-color: var(--bg);
+      background-image: conic-gradient(
+        var(--ink) 90deg,
+        transparent 90deg 180deg,
+        var(--ink) 180deg 270deg,
+        transparent 270deg
+      );
+      background-size: 0.5rem 0.5rem;
+      overflow: hidden;
+    }
+
+    .cover-img {
+      position: relative;
+      z-index: 2;
+      width: 4.5rem;
+      height: 4.5rem;
+      display: block;
+      object-fit: cover;
+      filter: grayscale(100%) contrast(145%);
+    }
+
+    .track-meta {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.22rem;
+    }
+
+    .song-title {
+      font-size: 1.08rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      height: 1.25rem;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .song-artist {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      height: 1rem;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0.85;
+    }
+
+    .requester {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 0.2rem;
+      height: 1.45rem;
+      flex-wrap: nowrap;
+      overflow: hidden;
+    }
+
+    .req-prefix {
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      flex-shrink: 0;
+    }
+
+    .requester-pic {
+      width: 1.25rem;
+      height: 1.25rem;
+      border-radius: 999px;
+      border: 0.1rem solid var(--ink);
+      object-fit: cover;
+      display: block;
+      flex-shrink: 0;
+      filter: grayscale(100%) contrast(155%);
+    }
+
+    .requester-name {
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .requester-name[data-empty="true"] {
+      display: none;
+    }
+
+    .verified-chip {
+      display: inline-flex;
+      align-items: center;
+      background: var(--ink);
+      color: var(--bg);
+      border-radius: 999px;
+      padding: 0.06rem 0.38rem;
+      font-size: 0.62rem;
+      font-weight: 800;
+      line-height: 1.15;
+      flex-shrink: 0;
+    }
+
+    .verified-chip:not([data-verified="true"]) {
+      display: none;
+    }
+
+    .requester-badges {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      flex-shrink: 0;
+      flex-wrap: nowrap;
+    }
+
+    .badge-icon {
+      width: 0.95rem;
+      height: 0.95rem;
+      object-fit: contain;
+      display: block;
+      filter: grayscale(100%) contrast(155%);
+    }
+
+    .badge-tag {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      border: 0.09rem solid var(--ink);
+      border-radius: 999px;
+      padding: 0.03rem 0.35rem;
+      line-height: 1.15;
+      white-space: nowrap;
+    }
+
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      margin-top: 0.7rem;
+      height: 1.35rem;
+      flex-wrap: nowrap;
+    }
+
+    .bar-bg {
+      flex: 1;
+      height: 0.75rem;
+      border: 0.125rem solid var(--ink);
+      background-color: var(--bg);
+      background-image: radial-gradient(var(--ink) 0.055rem, transparent 0.055rem);
+      background-size: 0.25rem 0.25rem;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: var(--ink);
+    }
+
+    .time {
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Up Next / Queue List */
+    .setlist-card {
+      margin-top: 0.55rem;
+      display: none;
+    }
+
+    .setlist-label {
+      padding: 0.3rem 0.8rem;
+      height: 1.65rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 0.125rem solid var(--ink);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      flex-wrap: nowrap;
+    }
+
+    .setlist-body {
+      padding: 0.4rem 0.8rem 0.45rem 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.32rem;
+    }
+
+    .setlist-row {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      height: 1.35rem;
+      flex-wrap: nowrap;
+      font-size: 0.74rem;
+    }
+
+    .setlist-name {
+      flex: 1;
+      min-width: 0;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+    }
+
+    .setlist-badges {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      flex-shrink: 0;
+    }
+
+    .setlist-badge-icon {
+      width: 0.85rem;
+      height: 0.85rem;
+      object-fit: contain;
+      display: block;
+      filter: grayscale(100%) contrast(155%);
+    }
+
+    .setlist-time {
+      font-weight: 800;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<body>
+  <div class="player-card">
+    <div class="dither-top"></div>
+
+    <div class="track-head mono">
+      <div class="head-left">
+        <span class="head-square"></span>
+        <span class="head-title">SONG_SHARE // 1-BIT</span>
+      </div>
+      <span class="play-state" id="play-state" data-playing="{{isPlaying}}" data-paused="{{isPaused}}"></span>
+    </div>
+
+    <div class="error-banner mono" id="error-banner" data-error="{{error}}">{{error}}</div>
+    <div class="gap-banner mono" id="gap-banner" data-gap="{{isInGap}}">{{gapText}}</div>
+
+    <div class="player-body" id="player-body" data-gap="{{isInGap}}">
+      <div class="main-row">
+        <div class="cover-frame">
+          <img class="cover-img" id="cover-img" src="{{songCoverArtUrl}}" width="72" height="72" alt="" />
+        </div>
+
+        <div class="track-meta">
+          <div class="song-title" id="title-el">{{songTitle}}</div>
+          <div class="song-artist mono" id="artist-el">{{songArtist}}</div>
+
+          <div class="requester mono" id="requester-row">
+            <span class="req-prefix">REQ:</span>
+            <img class="requester-pic" id="requester-pic" src="{{requesterPicture}}" width="20" height="20" alt="" />
+            <span class="requester-name" id="requester-name">{{requesterName}}</span>
+            <span class="verified-chip" id="requester-verified" data-verified="{{isRequesterVerified}}">VERIFIED</span>
+            <span class="requester-badges" id="requester-badges"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-row" id="progress-row">
+        <div class="bar-bg">
+          <div class="bar-fill" id="bar-fill" style="width: {{progressPercent}}%"></div>
+        </div>
+        <div class="time mono" id="time-el" data-elapsed="{{elapsed}}" data-duration="{{duration}}">{{formattedElapsed}} / {{formattedDuration}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="setlist-card" id="setlist">
+    <div class="setlist-label mono">
+      <span id="setlist-label">UP_NEXT</span>
+      <span>[QUEUE]</span>
+    </div>
+    <div class="setlist-body" id="setlist-body"></div>
+  </div>
+
+  <script>
+    (function () {
+      const isInGap = "{{isInGap}}" === "true";
+      const requesterBadgesRaw = "{{requesterBadges}}".trim();
+
+      const BADGE_ICON_URLS = {
+        "Tako Verified Partner": "https://tako.id/images/badges/partnered-creator.png",
+        "Tako Verified Creator": "https://tako.id/images/badges/verified-creator.png",
+        "Rich Rich Club": "https://tako.id/images/badges/king.png",
+        "Charity": "https://tako.id/images/badges/charity.png",
+        "VTuber": "https://tako.id/images/badges/vtuber.png",
+        "Tako Team": "https://tako.id/images/badges/admin.png"
+      };
+
+      const titleEl = document.getElementById("title-el");
+      const artistEl = document.getElementById("artist-el");
+      const requesterRow = document.getElementById("requester-row");
+      const requesterNameEl = document.getElementById("requester-name");
+      const requesterPic = document.getElementById("requester-pic");
+      const requesterBadgesEl = document.getElementById("requester-badges");
+      const progressRow = document.getElementById("progress-row");
+      const gapBanner = document.getElementById("gap-banner");
+      const coverImg = document.getElementById("cover-img");
+      const setlist = document.getElementById("setlist");
+      const setlistLabel = document.getElementById("setlist-label");
+      const setlistBody = document.getElementById("setlist-body");
+
+      coverImg.onerror = function () {
+        coverImg.style.display = "none";
+      };
+
+      requesterPic.onerror = function () {
+        requesterPic.style.display = "none";
+      };
+
+      const titleText = titleEl.textContent.trim();
+      const isIdle = !titleText || titleText === "{{" + "songTitle" + "}}";
+
+      if (isInGap) {
+        const gapVal = gapBanner.textContent.trim();
+        if (!gapVal || gapVal.indexOf("{{") !== -1) {
+          gapBanner.textContent = "PREPARING NEXT TRACK...";
+        }
+      } else if (isIdle) {
+        titleEl.textContent = "NO_TRACK_PLAYING";
+        artistEl.textContent = "WAITING_FOR_REQUEST";
+        requesterRow.style.display = "none";
+        progressRow.style.display = "none";
+      } else {
+        const artistText = artistEl.textContent.trim();
+        if (!artistText || artistText.indexOf("{{") !== -1) {
+          artistEl.textContent = "UNKNOWN_ARTIST";
+        }
+        const reqText = requesterNameEl.textContent.trim();
+        if (!reqText || reqText.indexOf("{{") !== -1) {
+          requesterRow.style.display = "none";
+        }
+      }
+
+      if (requesterBadgesRaw && requesterBadgesRaw.indexOf("{{") === -1) {
+        requesterBadgesRaw.split(",").forEach(function (rawItem) {
+          const entry = rawItem.trim();
+          if (!entry) return;
+
+          const isUrl =
+            entry.indexOf("https://") === 0 ||
+            entry.indexOf("http://") === 0 ||
+            entry.indexOf("/") === 0;
+
+          const iconUrl = isUrl ? entry : BADGE_ICON_URLS[entry];
+
+          if (iconUrl) {
+            const icon = document.createElement("img");
+            icon.className = "badge-icon";
+            icon.width = 16;
+            icon.height = 16;
+            icon.src = iconUrl;
+            icon.alt = isUrl ? "Badge" : entry;
+            icon.title = isUrl ? "" : entry;
+            icon.onerror = function () {
+              icon.remove();
+              if (!isUrl) {
+                const fallbackTag = document.createElement("span");
+                fallbackTag.className = "badge-tag";
+                fallbackTag.textContent = entry;
+                requesterBadgesEl.appendChild(fallbackTag);
+              }
+            };
+            requesterBadgesEl.appendChild(icon);
+          } else {
+            const tag = document.createElement("span");
+            tag.className = "badge-tag";
+            tag.textContent = entry;
+            requesterBadgesEl.appendChild(tag);
+          }
+        });
+      }
+
+      try {
+        const queueData = {{queue}};
+        if (Array.isArray(queueData) && queueData.length > 0) {
+          setlist.style.display = "block";
+          setlistLabel.textContent = "UP_NEXT (" + queueData.length + ")";
+          queueData.forEach(function (song, i) {
+            const row = document.createElement("div");
+            row.className = "setlist-row";
+
+            const name = document.createElement("span");
+            name.className = "setlist-name";
+            const num = i + 1 < 10 ? "0" + (i + 1) : String(i + 1);
+            const artistPart = song.artist ? " — " + song.artist : "";
+            name.textContent = num + ". " + (song.title || "TRACK") + artistPart;
+
+            const badgesWrap = document.createElement("div");
+            badgesWrap.className = "setlist-badges";
+            (song.senderBadgeItems || []).forEach(function (badge) {
+              if (!badge || !badge.url) return;
+              const icon = document.createElement("img");
+              icon.className = "setlist-badge-icon";
+              icon.width = 14;
+              icon.height = 14;
+              icon.src = badge.url;
+              icon.alt = badge.title || "";
+              icon.title = badge.title || "";
+              icon.onerror = function () {
+                icon.remove();
+              };
+              badgesWrap.appendChild(icon);
+            });
+
+            const duration = document.createElement("span");
+            duration.className = "setlist-time mono";
+            duration.textContent = song.formattedDuration || "00:00";
+
+            row.appendChild(name);
+            row.appendChild(badgesWrap);
+            row.appendChild(duration);
+            setlistBody.appendChild(row);
+          });
+        }
+      } catch (e) {}
+    })();
+  </script>
+</body>
+</html>
