@@ -25,7 +25,7 @@ Semua scene memakai latar transparan, font sistem, dan animasi canvas agar aman 
 2. Beri nama, misalnya `STARTING` atau `ENDING`.
 3. Isi **URL** dengan salah satu opsi berikut:
    - **File lokal:** `file:///D:/CODING/streamoverlay/jadenbahtera/starting.html`
-   - **Hosting / GitHub Pages:** `https://<domain>/jadenbahtera/starting.html`
+   - **Hosting / GitHub Pages:** `https://ardyhim.github.io/streamoverlay/jadenbahtera/starting.html`
 4. Atur **Width** dan **Height** sesuai kanvas OBS. Untuk kanvas 1920×1080 gunakan `1920` dan `1080`.
 5. Set **FPS** ke `60` agar animasi dithering dan countdown halus.
 6. Biarkan **Shutdown source when not visible** tidak dicentang jika overlay perlu tetap berjalan saat pindah scene.
