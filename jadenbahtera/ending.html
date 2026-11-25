@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ENDING // Bitmap Dithering Overlay</title>
+  <style>
+    :root {
+      --bg: #b9bcff;
+      --ink: #000000;
+      --chat-bg: var(--bg);
+      --border-w: 0.125rem;
+    }
+
+    html[data-theme="dark"] {
+      --bg: #0b0b10;
+      --ink: #b9bcff;
+    }
+
+    html[data-bg="transparent"] {
+      --bg: transparent;
+    }
+
+    html[data-chat-bg="dark"] {
+      --chat-bg: #0b0b10;
+    }
+
+    html[data-chat-bg="light"] {
+      --chat-bg: #b9bcff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      font-family: "Helvetica Neue", Helvetica, Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .mono {
+      font-family: "SF Mono", "JetBrains Mono", "Cascadia Code", Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    .scene {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      background: var(--bg);
+      color: var(--ink);
+      display: grid;
+      grid-template-columns: 32rem minmax(0, 1fr) 6.5rem;
+      overflow: hidden;
+    }
+
+    /* Saat chatBg=transparent, background utama dipindah ke shadow cutout agar isi chat benar-benar transparan */
+    html[data-chat-cutout="1"] .scene {
+      background: transparent;
+    }
+
+    /* Top & Bottom 1-bit Checkerboard Trim */
+    .dither-trim {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 0.5rem;
+      z-index: 6;
+      pointer-events: none;
+      background-image: conic-gradient(
+        var(--ink) 90deg,
+        transparent 90deg 180deg,
+        var(--ink) 180deg 270deg,
+        transparent 270deg
+      );
+      background-size: 0.5rem 0.5rem;
+    }
+
+    .dither-trim--top {
+      top: 0;
+    }
+
+    .dither-trim--bottom {
+      bottom: 0;
+    }
+
+    /* Left Column: Framed Bitmap Archive Card */
+    .portrait-col {
+      position: relative;
+      padding: 3rem 0 3rem 3rem;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      z-index: 3;
+    }
+
+    .portrait-card {
+      width: 100%;
+      height: 100%;
+      border: var(--border-w) solid var(--ink);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 1rem;
+      border-bottom: var(--border-w) solid var(--ink);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      height: 2.5rem;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+    }
+
+    .portrait-stage {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .reg-mark {
+      position: absolute;
+      font-size: 1.3rem;
+      font-weight: 700;
+      line-height: 1;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .reg-mark--tl {
+      top: 0.85rem;
+      left: 1rem;
+    }
+
+    .reg-mark--tr {
+      top: 0.85rem;
+      right: 1rem;
+    }
+
+    #portrait-canvas {
+      width: 100%;
+      height: auto;
+      max-height: 100%;
+      aspect-ratio: 162 / 315;
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    .card-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 1rem;
+      border-top: var(--border-w) solid var(--ink);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      height: 2.5rem;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* Center Workspace (Top bar + Split Main/Chat Body) */
+    .stage {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: 3rem 2.75rem;
+      min-width: 0;
+      height: 100%;
+      gap: 2rem;
+    }
+
+    .top-bar {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.25rem;
+      height: 2.75rem;
+      flex-wrap: nowrap;
+      border-bottom: var(--border-w) solid var(--ink);
+      padding-bottom: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .status-group {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      flex-wrap: nowrap;
+      min-width: 0;
+    }
+
+    .eof-square {
+      width: 0.875rem;
+      height: 0.875rem;
+      border: var(--border-w) solid var(--ink);
+      background: var(--ink);
+      flex-shrink: 0;
+    }
+
+    .status-label {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .streamer-chip {
+      border: var(--border-w) solid var(--ink);
+      border-radius: 999px;
+      padding: 0.36rem 1.05rem;
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* 2-Column Stage Body: Left Outtro Content + Right Chat Slot */
+    .stage-body {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 25.5rem;
+      gap: 2.25rem;
+      align-items: stretch;
+    }
+
+    .stage-body.no-chat {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .stage-main {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-width: 0;
+      height: 100%;
+      gap: 1.5rem;
+    }
+
+    /* Headline + Animated Bayer Dissolve Wave */
+    .outtro-hero {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      margin: auto 0;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      height: 1.4rem;
+      flex-wrap: nowrap;
+    }
+
+    .headline {
+      margin: 0;
+      font-size: 4.85rem;
+      font-weight: 900;
+      letter-spacing: -0.045em;
+      line-height: 0.9;
+      text-transform: uppercase;
+      word-break: break-word;
+    }
+
+    .stage-body.no-chat .headline {
+      font-size: 6.6rem;
+    }
+
+    .headline.is-long {
+      font-size: 3.9rem;
+      line-height: 0.94;
+    }
+
+    .wave-strip {
+      width: 100%;
+      padding: 0.35rem;
+      border: var(--border-w) solid var(--ink);
+      background: var(--bg);
+    }
+
+    #dither-wave {
+      width: 100%;
+      height: 2.1rem;
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    /* Modular 2-Column Footer Cards */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .mod-card {
+      border: var(--border-w) solid var(--ink);
+      padding: 1.15rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.85rem;
+      min-height: 10.75rem;
+    }
+
+    .mod-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+      height: 1.2rem;
+      flex-wrap: nowrap;
+    }
+
+    .signoff-copy {
+      font-size: 1.18rem;
+      font-weight: 800;
+      letter-spacing: -0.015em;
+      line-height: 1.16;
+      text-transform: uppercase;
+    }
+
+    .osc-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      height: 1.85rem;
+      flex-wrap: nowrap;
+    }
+
+    #osc-canvas {
+      width: 9rem;
+      height: 1.85rem;
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    .shutdown-pill {
+      display: none;
+      align-items: center;
+      background: var(--ink);
+      color: var(--bg);
+      border-radius: 999px;
+      padding: 0.28rem 0.75rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .shutdown-pill.is-active {
+      display: inline-flex;
+    }
+
+    .socials-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border: var(--border-w) solid var(--ink);
+      border-radius: 999px;
+      padding: 0.3rem 0.78rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      height: 1.95rem;
+    }
+
+    .pill--solid {
+      background: var(--ink);
+      color: var(--bg);
+    }
+
+    /* Right Chat Panel (Switchable: YouTube Iframe / OBS Box Chat) */
+    .chat-panel {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+      border: var(--border-w) solid var(--ink);
+    }
+
+    .chat-panel.is-hidden {
+      display: none;
+    }
+
+    .chat-header {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.55rem 0.9rem;
+      border-bottom: var(--border-w) solid var(--ink);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      height: 2.35rem;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+      background: var(--bg);
+    }
+
+    .chat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      min-width: 0;
+      white-space: nowrap;
+    }
+
+    .chat-dot {
+      width: 0.55rem;
+      height: 0.55rem;
+      background: var(--ink);
+      flex-shrink: 0;
+    }
+
+    .chat-mode-tag {
+      border: var(--border-w) solid var(--ink);
+      border-radius: 999px;
+      padding: 0.14rem 0.55rem;
+      font-size: 0.72rem;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+
+    .chat-body {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      background: var(--chat-bg);
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    html[data-chat-cutout="1"] .chat-body {
+      background: transparent;
+      box-shadow: 0 0 0 400rem var(--bg);
+      overflow: visible;
+    }
+
+    .chat-tint-wrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: none;
+      overflow: hidden;
+    }
+
+    .chat-panel[data-mode="iframe"] .chat-tint-wrap {
+      display: block;
+    }
+
+    .chat-iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      background: transparent;
+    }
+
+    html[data-chat-crop="1"] .chat-iframe {
+      height: calc(100% + 7rem);
+      margin-top: -3rem;
+    }
+    html[data-chat-crop="2"] .chat-iframe {
+      height: calc(100% + 9rem);
+      margin-top: -3rem;
+    }
+    html[data-chat-crop="3"] .chat-iframe {
+      height: calc(100% + 11rem);
+      margin-top: -3rem;
+    }
+
+    /* Styling tema 1-bit otomatis untuk YouTube Live Chat iframe */
+    html[data-iframe-tone="light"] .chat-iframe {
+      filter: grayscale(100%) contrast(155%) brightness(106%);
+      mix-blend-mode: multiply;
+    }
+
+    html[data-iframe-tone="dark"] .chat-tint-wrap {
+      isolation: isolate;
+      mix-blend-mode: screen;
+    }
+
+    html[data-iframe-tone="dark"] .chat-iframe {
+      filter: grayscale(100%) contrast(155%) brightness(92%);
+    }
+
+    .chat-tint-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: none;
+    }
+
+    html[data-iframe-tone="dark"] .chat-tint-overlay {
+      display: block;
+      background: #b9bcff;
+      mix-blend-mode: multiply;
+    }
+
+    /* Clean OBS Alignment Corner Marks (hanya saat mode box) */
+    .chat-box-guides {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: none;
+    }
+
+    .chat-panel[data-mode="box"] .chat-box-guides {
+      display: block;
+    }
+
+    .box-mark {
+      position: absolute;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1;
+      opacity: 0.55;
+      user-select: none;
+    }
+
+    .box-mark--tl { top: 0.55rem; left: 0.7rem; }
+    .box-mark--tr { top: 0.55rem; right: 0.7rem; }
+    .box-mark--bl { bottom: 0.55rem; left: 0.7rem; }
+    .box-mark--br { bottom: 0.55rem; right: 0.7rem; }
+
+    .chat-footer {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.45rem 0.9rem;
+      border-top: var(--border-w) solid var(--ink);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      height: 2rem;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+      background: var(--bg);
+    }
+
+    /* Right Mirrored Vertical Editorial Rail */
+    .right-rail {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3rem 1.3rem 3rem 0.75rem;
+      border-left: var(--border-w) solid var(--ink);
+      user-select: none;
+    }
+
+    .rail-pills {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .v-pill {
+      writing-mode: vertical-rl;
+      border: var(--border-w) solid var(--ink);
+      border-radius: 999px;
+      padding: 0.85rem 0.42rem;
+      font-size: 0.86rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .rail-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.4rem;
+    }
+
+    .rail-text {
+      writing-mode: vertical-rl;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      line-height: 1.05;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .rail-plus {
+      font-size: 1.9rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    /* Responsive Fallback for Portrait / Square OBS Canvases */
+    @media (max-aspect-ratio: 5/4) {
+      .scene {
+        grid-template-columns: minmax(0, 1fr) 5.5rem;
+      }
+
+      .portrait-col {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 56%;
+        height: 55%;
+        padding: 0;
+        opacity: 0.2;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      .portrait-card {
+        border: 0;
+      }
+
+      .card-head,
+      .card-foot {
+        display: none;
+      }
+
+      .stage {
+        padding: 2.75rem 2rem;
+      }
+
+      .stage-body {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .chat-panel {
+        height: 18rem;
+      }
+
+      .modules-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="scene" id="scene">
+    <div class="dither-trim dither-trim--top"></div>
+    <div class="dither-trim dither-trim--bottom"></div>
+
+    <!-- Left Column: Framed 1-Bit Portrait Card -->
+    <aside class="portrait-col">
+      <div class="portrait-card">
+        <div class="card-head mono">
+          <span>ARCHIVE_FRAME // 01</span>
+          <span>1-BIT</span>
+        </div>
+
+        <div class="portrait-stage">
+          <span class="reg-mark reg-mark--tl">+</span>
+          <span class="reg-mark reg-mark--tr">+</span>
+          <canvas id="portrait-canvas" width="162" height="285"></canvas>
+        </div>
+
+        <div class="card-foot mono">
+          <span>ATKINSON_DITHER</span>
+          <span id="frame-res">162X200</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Center Workspace -->
+    <main class="stage">
+      <header class="top-bar">
+        <div class="status-group">
+          <span class="eof-square"></span>
+          <span class="status-label mono" id="status-text">TRANSMISSION_COMPLETE // EOF</span>
+        </div>
+        <div class="streamer-chip mono" id="streamer-chip">@BITMAP_STUDIO</div>
+      </header>
+
+      <div class="stage-body" id="stage-body">
+        <!-- Left Sub-Column: Outtro Headline + Cards -->
+        <div class="stage-main">
+          <section class="outtro-hero">
+            <div class="eyebrow mono">
+              <span>+</span>
+              <span id="eyebrow-text">SCENE_03 // STREAM_ENDING</span>
+            </div>
+
+            <h1 class="headline" id="scene-title">THANKS FOR WATCHING</h1>
+
+            <div class="wave-strip">
+              <canvas id="dither-wave" width="240" height="12"></canvas>
+            </div>
+          </section>
+
+          <section class="modules-grid">
+            <div class="mod-card">
+              <div class="mod-head mono">
+                <span>OUTTRO_SIGNAL</span>
+                <span>[DECAY]</span>
+              </div>
+              <div class="signoff-copy" id="signoff-copy">SEE YOU ON THE NEXT BROADCAST.</div>
+              <div class="osc-row">
+                <canvas id="osc-canvas" width="64" height="14"></canvas>
+                <span class="shutdown-pill mono" id="shutdown-pill">EOF: 00:00</span>
+              </div>
+            </div>
+
+            <div class="mod-card">
+              <div class="mod-head mono">
+                <span id="socials-head">FOLLOW_CHANNELS</span>
+                <span>[LINKS]</span>
+              </div>
+              <div class="socials-list mono" id="socials-list"></div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Right Sub-Column: Switchable Chat Slot (Iframe / OBS Box Chat) -->
+        <aside class="chat-panel" id="chat-panel" data-mode="box">
+          <div class="chat-header mono">
+            <div class="chat-header-left">
+              <span class="chat-dot"></span>
+              <span id="chat-title">LIVE_CHAT // FEED</span>
+            </div>
+            <span class="chat-mode-tag" id="chat-mode-tag">OBS_BOX</span>
+          </div>
+
+          <div class="chat-body" id="chat-body">
+            <div class="chat-tint-wrap">
+              <iframe id="chat-iframe" class="chat-iframe" allow="autoplay"></iframe>
+              <div class="chat-tint-overlay" aria-hidden="true"></div>
+            </div>
+            <div class="chat-box-guides mono" aria-hidden="true">
+              <span class="box-mark box-mark--tl">+</span>
+              <span class="box-mark box-mark--tr">+</span>
+              <span class="box-mark box-mark--bl">+</span>
+              <span class="box-mark box-mark--br">+</span>
+            </div>
+          </div>
+
+          <div class="chat-footer mono">
+            <span id="chat-foot-left">SLOT_READY</span>
+            <span id="chat-foot-right">1-BIT_FRAME</span>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <!-- Right Mirrored Vertical Editorial Rail -->
+    <aside class="right-rail">
+      <div class="rail-pills mono">
+        <span class="v-pill">OUTTRO</span>
+        <span class="v-pill">1-BIT</span>
+        <span class="v-pill" id="res-pill">1920X1080</span>
+      </div>
+
+      <div class="rail-stack">
+        <span class="rail-plus">+</span>
+        <span class="rail-text" id="rail-brand">BITMAP_CREATOR</span>
+        <span class="rail-text">END_OF_STREAM</span>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+
+      const theme = (params.get("theme") || "light").toLowerCase();
+      if (theme === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+
+      if ((params.get("bg") || "").toLowerCase() === "transparent") {
+        document.documentElement.setAttribute("data-bg", "transparent");
+      }
+
+      const chatBgParam = (params.get("chatBg") || "").toLowerCase();
+      if (chatBgParam === "dark" || chatBgParam === "light") {
+        document.documentElement.setAttribute("data-chat-bg", chatBgParam);
+      }
+
+      if (params.get("chatCrop") === "1") {
+        document.documentElement.setAttribute("data-chat-crop", "1");
+      }
+      if (params.get("chatCrop") === "2") {
+        document.documentElement.setAttribute("data-chat-crop", "2");
+      }
+      if (params.get("chatCrop") === "3") {
+        document.documentElement.setAttribute("data-chat-crop", "3");
+      }
+
+      const titleParam = (params.get("title") || "THANKS FOR WATCHING").trim().toUpperCase();
+      const streamerParam = (params.get("streamer") || "").trim();
+      const igParam = (params.get("ig") || "").trim().replace(/^@/, "");
+      const ttParam = (params.get("tt") || "").trim().replace(/^@/, "");
+      const ytParam = (params.get("yt") || "").trim().replace(/^@/, "");
+      const chatIdParam = (params.get("chatId") || "").trim();
+      const chatParam = (params.get("chat") || params.get("chatMode") || "").trim().toLowerCase();
+      const imgParam = (params.get("img") || "").trim();
+      const rawMinus = params.get("minus");
+
+      // Responsive root scale using pure rem without vh/vw
+      function updateScale() {
+        const w = window.innerWidth || 1920;
+        const h = window.innerHeight || 1080;
+        const scale = Math.min(w / 1920, h / 1080);
+        const remPx = Math.max(7, 16 * scale);
+        document.documentElement.style.fontSize = remPx.toFixed(2) + "px";
+        const resPill = document.getElementById("res-pill");
+        if (resPill) {
+          resPill.textContent = w + "X" + h;
+        }
+      }
+      updateScale();
+      window.addEventListener("resize", updateScale);
+
+      // Chat Mode Controller: "none" | "box" | "iframe"
+      const stageBody = document.getElementById("stage-body");
+      const chatPanel = document.getElementById("chat-panel");
+      const chatIframe = document.getElementById("chat-iframe");
+      const chatModeTag = document.getElementById("chat-mode-tag");
+      const chatFootLeft = document.getElementById("chat-foot-left");
+
+      let resolvedChatMode = "box";
+      if (chatParam === "none" || chatParam === "off" || chatParam === "hide") {
+        resolvedChatMode = "none";
+      } else if (chatParam === "box") {
+        resolvedChatMode = "box";
+      } else if (chatIdParam) {
+        resolvedChatMode = "iframe";
+      }
+
+      const isDarkChat =
+        (theme === "dark" && chatBgParam !== "light") || chatBgParam === "dark";
+
+      if (resolvedChatMode === "none") {
+        chatPanel.classList.add("is-hidden");
+        stageBody.classList.add("no-chat");
+        document.documentElement.removeAttribute("data-chat-bg");
+        document.documentElement.removeAttribute("data-chat-cutout");
+      } else if (resolvedChatMode === "iframe" && chatIdParam) {
+        chatPanel.setAttribute("data-mode", "iframe");
+        chatModeTag.textContent = "YOUTUBE";
+        chatFootLeft.textContent = "LIVE_EMBED";
+        document.documentElement.setAttribute(
+          "data-iframe-tone",
+          isDarkChat ? "dark" : "light"
+        );
+        const domain = window.location.hostname || "localhost";
+        chatIframe.src =
+          "https://www.youtube.com/live_chat?is_popout=1" +
+          (isDarkChat ? "&dark_theme=1" : "") +
+          "&v=" +
+          encodeURIComponent(chatIdParam) +
+          "&embed_domain=" +
+          encodeURIComponent(domain);
+      } else {
+        chatPanel.setAttribute("data-mode", "box");
+        if (chatBgParam === "transparent") {
+          document.documentElement.setAttribute("data-chat-cutout", "1");
+          chatModeTag.textContent = "OBS_HOLE";
+          chatFootLeft.textContent = "ALPHA_CUTOUT";
+        } else {
+          chatModeTag.textContent = "OBS_BOX";
+          chatFootLeft.textContent = "LAYER_ABOVE";
+        }
+      }
+
+      // Title & Streamer Setup
+      const titleEl = document.getElementById("scene-title");
+      titleEl.textContent = titleParam;
+      if (titleParam.length > 21) {
+        titleEl.classList.add("is-long");
+      }
+
+      const streamerChip = document.getElementById("streamer-chip");
+      const railBrand = document.getElementById("rail-brand");
+      if (streamerParam) {
+        const cleanStreamer = streamerParam.replace(/^@/, "").toUpperCase();
+        streamerChip.textContent = "@" + cleanStreamer;
+        railBrand.textContent = cleanStreamer.replace(/\s+/g, "_");
+      }
+
+      // Socials Card or Clean Editorial Credits
+      const socialsList = document.getElementById("socials-list");
+      const socialsHead = document.getElementById("socials-head");
+      const socials = [];
+      if (igParam) socials.push({ tag: "IG", val: "@" + igParam.toUpperCase() });
+      if (ttParam) socials.push({ tag: "TT", val: "@" + ttParam.toUpperCase() });
+      if (ytParam) socials.push({ tag: "YT", val: "@" + ytParam.toUpperCase() });
+
+      if (socials.length > 0) {
+        socials.forEach(function (s, idx) {
+          const el = document.createElement("span");
+          el.className = idx === 0 ? "pill pill--solid" : "pill";
+          el.textContent = s.tag + " / " + s.val;
+          socialsList.appendChild(el);
+        });
+      } else {
+        socialsHead.textContent = "SESSION_CREDITS";
+        ["THANK_YOU", "CLIP_&_SHARE", "STAY_TUNED", "EOF_1BIT"].forEach(function (label, idx) {
+          const el = document.createElement("span");
+          el.className = idx === 0 ? "pill pill--solid" : "pill";
+          el.textContent = label;
+          socialsList.appendChild(el);
+        });
+      }
+
+      // Optional Shutdown Countdown (hanya aktif jika ?minus= diisi)
+      if (rawMinus !== null && !isNaN(parseFloat(rawMinus))) {
+        const mins = Math.max(0, parseFloat(rawMinus));
+        const totalSec = Math.round(mins * 60);
+        const pill = document.getElementById("shutdown-pill");
+        pill.classList.add("is-active");
+        const startMs = performance.now();
+
+        function tickShutdown() {
+          const elapsed = (performance.now() - startMs) / 1000;
+          const rem = Math.max(0, Math.ceil(totalSec - elapsed));
+          const m = Math.floor(rem / 60);
+          const s = rem % 60;
+          const pad = function (n) { return n < 10 ? "0" + n : String(n); };
+          pill.textContent = rem > 0 ? "OFFLINE: " + pad(m) + ":" + pad(s) : "STREAM_OFFLINE";
+        }
+        tickShutdown();
+        setInterval(tickShutdown, 250);
+      }
+
+      // Theme Ink Helper
+      function getInkRGB() {
+        const cs = getComputedStyle(document.documentElement);
+        const hex = cs.getPropertyValue("--ink").trim();
+        if (hex.startsWith("#") && hex.length === 7) {
+          return [
+            parseInt(hex.slice(1, 3), 16),
+            parseInt(hex.slice(3, 5), 16),
+            parseInt(hex.slice(5, 7), 16)
+          ];
+        }
+        return [0, 0, 0];
+      }
+
+      // 4x4 Ordered Bayer Matrix
+      const BAYER4 = [
+        [ 0,  8,  2, 10],
+        [12,  4, 14,  6],
+        [ 3, 11,  1,  9],
+        [15,  7, 13,  5]
+      ];
+
+      // 1-Bit Bayer Dissolve Wave Canvas
+      const waveCanvas = document.getElementById("dither-wave");
+      const waveCtx = waveCanvas.getContext("2d");
+      waveCtx.imageSmoothingEnabled = false;
+
+      function renderDitherWave(phase) {
+        const w = waveCanvas.width;
+        const h = waveCanvas.height;
+        const ink = getInkRGB();
+        const imgData = waveCtx.createImageData(w, h);
+        const data = imgData.data;
+
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const nx = x / w;
+            const ny = y / h;
+            const ripple = Math.sin(nx * 14 - phase) * 0.14 + Math.cos(ny * 4 + phase * 0.6) * 0.08;
+            const density = Math.max(0, Math.min(1, 1.05 - nx * 1.15 + ripple));
+            const threshold = (BAYER4[y & 3][x & 3] + 0.5) / 16;
+
+            if (density > threshold) {
+              const idx = (y * w + x) * 4;
+              data[idx] = ink[0];
+              data[idx + 1] = ink[1];
+              data[idx + 2] = ink[2];
+              data[idx + 3] = 255;
+            }
+          }
+        }
+        waveCtx.putImageData(imgData, 0, 0);
+      }
+
+      // 1-Bit Decaying Signal Oscilloscope Canvas
+      const oscCanvas = document.getElementById("osc-canvas");
+      const oscCtx = oscCanvas.getContext("2d");
+      oscCtx.imageSmoothingEnabled = false;
+
+      function renderOscilloscope(phase) {
+        const w = oscCanvas.width;
+        const h = oscCanvas.height;
+        const ink = getInkRGB();
+        const imgData = oscCtx.createImageData(w, h);
+        const data = imgData.data;
+
+        for (let x = 0; x < w; x++) {
+          const nx = x / w;
+          const decay = 1 - nx * 0.85;
+          const amp = Math.sin(nx * 18 - phase * 1.3) * decay * (h * 0.42);
+          const cy = Math.round(h * 0.5 + amp);
+
+          for (let dy = -1; dy <= 1; dy++) {
+            const y = cy + dy;
+            if (y >= 0 && y < h) {
+              if (dy === 0 || (x + y) % 2 === 0) {
+                const idx = (y * w + x) * 4;
+                data[idx] = ink[0];
+                data[idx + 1] = ink[1];
+                data[idx + 2] = ink[2];
+                data[idx + 3] = 255;
+              }
+            }
+          }
+        }
+        oscCtx.putImageData(imgData, 0, 0);
+      }
+
+      let animPhase = 0;
+      renderDitherWave(animPhase);
+      renderOscilloscope(animPhase);
+      setInterval(function () {
+        animPhase += 0.22;
+        renderDitherWave(animPhase);
+        renderOscilloscope(animPhase);
+      }, 95);
+
+      // Embedded 162x200 1-bit Dithered Portrait from Reference Artwork
+      const EMBEDDED_PORTRAIT_B64 =
+        "data:image/png;base64," +
+        "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" +
+        "58aj88T6VAAAAABJRU5ErkJggg==";
+
+      const portraitCanvas = document.getElementById("portrait-canvas");
+      const pCtx = portraitCanvas.getContext("2d");
+      pCtx.imageSmoothingEnabled = false;
+      const PW = portraitCanvas.width;
+      const PH = portraitCanvas.height;
+      document.getElementById("frame-res").textContent = PW + "X" + PH;
+
+      const bitMask = new Uint8Array(PW * PH);
+      let sparseEdgeIndices = [];
+
+      function buildEdgeCache() {
+        sparseEdgeIndices = [];
+        for (let y = 1; y < PH - 1; y++) {
+          for (let x = 1; x < PW - 1; x++) {
+            const i = y * PW + x;
+            if (bitMask[i] === 1) {
+              const neighbors =
+                bitMask[i - 1] + bitMask[i + 1] + bitMask[i - PW] + bitMask[i + PW];
+              if (neighbors <= 1) {
+                sparseEdgeIndices.push(i);
+              }
+            }
+          }
+        }
+      }
+
+      function renderPortraitFrame(revealRatio, shimmerTick) {
+        const ink = getInkRGB();
+        const imgData = pCtx.createImageData(PW, PH);
+        const data = imgData.data;
+
+        for (let y = 0; y < PH; y++) {
+          for (let x = 0; x < PW; x++) {
+            const i = y * PW + x;
+            if (bitMask[i] === 1) {
+              if (revealRatio < 1) {
+                const threshold = (BAYER4[y & 3][x & 3] + 0.5) / 16;
+                if (revealRatio <= threshold) continue;
+              }
+              const idx = i * 4;
+              data[idx] = ink[0];
+              data[idx + 1] = ink[1];
+              data[idx + 2] = ink[2];
+              data[idx + 3] = 255;
+            }
+          }
+        }
+
+        if (revealRatio >= 1 && sparseEdgeIndices.length > 0) {
+          const len = sparseEdgeIndices.length;
+          for (let k = 0; k < 24; k++) {
+            const pick = sparseEdgeIndices[(shimmerTick * 41 + k * 89) % len];
+            const idx = pick * 4;
+            data[idx + 3] = 0;
+          }
+        }
+
+        pCtx.putImageData(imgData, 0, 0);
+      }
+
+      function startPortraitAnimation() {
+        buildEdgeCache();
+        const introStart = performance.now();
+        const introDuration = 850;
+        let lastShimmer = 0;
+        let shimmerTick = 0;
+
+        function loop(now) {
+          const elapsed = now - introStart;
+          if (elapsed < introDuration) {
+            renderPortraitFrame(elapsed / introDuration, 0);
+            requestAnimationFrame(loop);
+          } else {
+            if (now - lastShimmer > 200) {
+              lastShimmer = now;
+              shimmerTick++;
+              renderPortraitFrame(1, shimmerTick);
+            }
+            requestAnimationFrame(loop);
+          }
+        }
+        requestAnimationFrame(loop);
+      }
+
+      function loadEmbeddedBitmap() {
+        const img = new Image();
+        img.onload = function () {
+          const off = document.createElement("canvas");
+          off.width = PW;
+          off.height = PH;
+          const oCtx = off.getContext("2d");
+          oCtx.imageSmoothingEnabled = false;
+          oCtx.drawImage(img, 0, 0, PW, PH);
+          const raw = oCtx.getImageData(0, 0, PW, PH).data;
+          for (let i = 0; i < PW * PH; i++) {
+            bitMask[i] = raw[i * 4 + 3] > 127 ? 1 : 0;
+          }
+          startPortraitAnimation();
+        };
+        img.src = EMBEDDED_PORTRAIT_B64;
+      }
+
+      function loadCustomImageDithered(url) {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = function () {
+          try {
+            const off = document.createElement("canvas");
+            off.width = PW;
+            off.height = PH;
+            const oCtx = off.getContext("2d");
+
+            const scale = Math.max(PW / img.width, PH / img.height);
+            const dw = img.width * scale;
+            const dh = img.height * scale;
+            const dx = (PW - dw) / 2;
+            const dy = (PH - dh) / 2;
+
+            oCtx.fillStyle = "#ffffff";
+            oCtx.fillRect(0, 0, PW, PH);
+            oCtx.drawImage(img, dx, dy, dw, dh);
+
+            const pixels = oCtx.getImageData(0, 0, PW, PH).data;
+            const gray = new Float32Array(PW * PH);
+            for (let i = 0; i < PW * PH; i++) {
+              gray[i] =
+                0.299 * pixels[i * 4] +
+                0.587 * pixels[i * 4 + 1] +
+                0.114 * pixels[i * 4 + 2];
+            }
+
+            for (let y = 0; y < PH; y++) {
+              for (let x = 0; x < PW; x++) {
+                const i = y * PW + x;
+                const oldVal = gray[i];
+                const newVal = oldVal < 128 ? 0 : 255;
+                bitMask[i] = newVal === 0 ? 1 : 0;
+                const err = (oldVal - newVal) / 8;
+
+                if (x + 1 < PW) gray[i + 1] += err;
+                if (x + 2 < PW) gray[i + 2] += err;
+                if (y + 1 < PH) {
+                  if (x - 1 >= 0) gray[i + PW - 1] += err;
+                  gray[i + PW] += err;
+                  if (x + 1 < PW) gray[i + PW + 1] += err;
+                }
+                if (y + 2 < PH) {
+                  gray[i + PW * 2] += err;
+                }
+              }
+            }
+            startPortraitAnimation();
+          } catch (e) {
+            loadEmbeddedBitmap();
+          }
+        };
+        img.onerror = loadEmbeddedBitmap;
+        img.src = url;
+      }
+
+      if (imgParam) {
+        loadCustomImageDithered(imgParam);
+      } else {
+        loadEmbeddedBitmap();
+      }
+    })();
+  </script>
+</body>
+</html>
