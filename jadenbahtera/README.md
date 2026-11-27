@@ -82,7 +82,9 @@ Kedua scene menerima parameter yang sama.
 | `chat` | `box`, `off`, `none`, `hide` | `box` | Mode panel chat. |
 | `chatId` | video ID YouTube | kosong | Mengaktifkan mode iframe YouTube Live Chat. |
 | `chatCrop` | `1` | kosong | Memotong bagian atas iframe chat YouTube. |
-| `img` | URL gambar | potret bawaan | Gambar kustom yang akan di-dither menjadi potret 1-bit. |
+| `media` | URL gambar/video/YouTube | potret bawaan | Media kustom di slot potret: gambar, video, atau embed YouTube. |
+| `dither` | `atkinson`, `bayer` | `atkinson` | Algoritma dithering untuk media gambar/video. |
+| `videoFps` | angka `1`–`60` | `18` | Batas FPS proses dithering video. |
 | `minus` | angka (menit) | `5` di starting; opsional di ending | Durasi countdown. |
 
 ### Catatan countdown
@@ -97,6 +99,13 @@ Kedua scene menerima parameter yang sama.
 - Jika `chatId` diisi, mode iframe otomatis aktif kecuali `chat=off` atau `chat=box`.
 - `chatCrop=1` berguna untuk menyembunyikan header dan kolom input chat YouTube.
 - `chatBg=dark` atau `theme=dark` akan memakai tone gelap untuk iframe.
+
+### Catatan media
+
+- `media` menerima **gambar** (`.jpg`, `.png`, `.webp`, `.gif`, `.svg`), **video** (`.mp4`, `.webm`, `.mov`), atau **URL YouTube** (`watch?v=`, `youtu.be/`, `shorts/`).
+- Gambar dan video di-dither ke kanvas potret 1-bit. Video diputar muted + loop, lalu diproses per frame sesuai `videoFps`.
+- URL YouTube dirender sebagai embed yang mengisi penuh slot potret (crop tengah seperti `object-fit: cover`), dengan filter monokrom + overlay halftone agar efek 1-bit tetap terasa. Embed tidak bisa di-dither per piksel karena lintas origin.
+- `img` dan `video` masih diterima sebagai alias lama, tetapi dokumentasi dan kode baru memakai `media`.
 
 ### Contoh URL
 
@@ -113,11 +122,13 @@ ending.html?streamer=JadenBahtera&chatId=VIDEO_ID&chatCrop=1&minus=3
 # Ending: tema gelap, tanpa panel chat
 ending.html?theme=dark&chat=off
 
-# Potret kustom
-starting.html?img=https://example.com/foto.jpg
+# Media: gambar, video, atau YouTube
+starting.html?media=https://example.com/foto.jpg
+starting.html?media=https://example.com/clip.mp4&videoFps=24
+ending.html?media=https://youtu.be/VIDEO_ID
 ```
 
-> `img` diambil dengan `crossOrigin="anonymous"`. Jika server gambar tidak mengizinkan CORS, overlay otomatis kembali ke potret bawaan.
+> Gambar dan video diambil dengan `crossOrigin="anonymous"`. Jika server sumber tidak mengizinkan CORS, overlay otomatis kembali ke potret bawaan.
 
 ---
 

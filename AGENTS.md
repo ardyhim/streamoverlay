@@ -109,7 +109,7 @@ scene seperti `starting` dan `ending`.
 | `chatId` | video ID YouTube | kosong | Mengaktifkan embed YouTube Live Chat. |
 | `chatBg` | `light`, `dark`, `transparent` | ikut `theme` | Warna background chat, atau *cutout* jika `transparent`. |
 | `chatCrop` | `1` | kosong | Memotong header/komposer pada iframe chat YouTube. |
-| `img` | URL gambar | aset bawaan | Gambar kustom untuk scene yang mendukung potret/gambar dinamis. |
+| `media` | URL gambar/video/embed | aset bawaan | Media kustom untuk scene yang mendukung potret/konten dinamis: gambar, video, atau embed YouTube. |
 | `minus` | angka (menit) | `5` untuk countdown utama; opsional untuk scene outtro | Durasi hitung mundur. |
 
 
@@ -138,8 +138,34 @@ scene seperti `starting` dan `ending`.
 - **`minus`**: satuan menit, boleh desimal (`2.5`), diparse dengan `parseFloat`.
   Countdown dimulai ulang saat halaman di-refresh/dimuat.
 
-- **`img`**: gunakan URL yang mengizinkan CORS. Scene wajib menyediakan fallback
-  ke aset bawaan jika gambar gagal dimuat.
+- **`media`**: satu parameter untuk konten visual dinamis, bukan hanya gambar.
+  Scene mendeteksi jenis media dari nilai/URL-nya:
+
+  - **Gambar** (`.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`, `.avif`, `.svg`): render
+    dengan `<img>` biasa atau diolah ke canvas (mis. dithering).
+  - **Video** (`.mp4`, `.webm`, `.mov`, atau URL video langsung): pakai `<video
+    autoplay muted loop playsinline>` tanpa kontrol, dengan `object-fit: cover`.
+  - **Embed YouTube** (`youtube.com/watch?v=`, `youtu.be/`, `youtube.com/shorts/`):
+    normalisasi ke `https://www.youtube.com/embed/<VIDEO_ID>` dan tambahkan
+    `autoplay=1&mute=1&loop=1&playlist=<VIDEO_ID>&controls=0&modestbranding=1&rel=0`.
+    Jangan pernah memperlakukan URL embed sebagai sumber gambar.
+    iframe tidak bisa dibaca pikselnya (lintas origin), jadi efek 1-bit dibuat
+    dengan filter CSS monokrom (grayscale + contrast) plus overlay halftone di
+    atas iframe. iframe wajib mengisi penuh slot media (skala cover, crop tengah),
+    bukan kotak 16:9 berletterbox.
+
+  Nilai yang tidak dikenali diperlakukan sebagai gambar. Media wajib mengisi frame
+  secara `object-fit: cover` (crop terpusat) agar layout scene tidak bergeser saat
+  rasio sumber berbeda.
+
+- **CORS dan fallback `media`**: sumber gambar/video yang diproses canvas wajib
+  mengizinkan CORS. Scene wajib menyediakan fallback ke aset bawaan jika media gagal
+  dimuat, termasuk embed YouTube yang tidak mengizinkan pemutaran (fallback ke
+  potret/aset statis, bukan kotak kosong).
+
+- **`img` bukan nama baku**: `img` hanya alias lama dari `media`. Kode baru wajib
+  membaca `media` lebih dulu, misalnya `params.get("media") || params.get("img")`,
+  dan dokumentasi baru tidak boleh memperkenalkan `img` lagi.
 
 - **`theme`**: scene wajib menurunkan warna background, ink, chat, dan tone iframe
   dari tema yang dipilih. `chatBg` boleh menimpa warna chat saja.
@@ -164,9 +190,9 @@ Jangan membuat atribut baru untuk fungsi yang sudah diwakili atribut di atas.
 
 
 - **Satu fungsi, satu nama.** Jangan membuat nama baru untuk fungsi yang sudah ada.
-  Alias lama seperti `chatMode`, `min`, `minutes`, atau `showChat` hanya boleh
+  Alias lama seperti `chatMode`, `min`, `minutes`, `showChat`, atau `img` hanya boleh
   dipertahankan untuk kompatibilitas; kode dan dokumentasi baru wajib memakai nama
-  baku (`chat`, `minus`, `chatId`, dan seterusnya).
+  baku (`chat`, `minus`, `chatId`, `media`, dan seterusnya).
 
 
 > **Catatan Kreativitas**: Seluruh parameter di atas **bersifat opsional** (*non-strict*). 

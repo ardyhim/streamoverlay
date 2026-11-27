@@ -159,12 +159,133 @@
 
     #portrait-canvas {
       width: 100%;
-      height: auto;
-      max-height: 100%;
-      aspect-ratio: 162 / 315;
+      height: 100%;
+      object-fit: cover;
       display: block;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
+    }
+
+    .portrait-video-wrap {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      overflow: hidden;
+    }
+
+    .portrait-embed-wrap {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .portrait-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: grayscale(100%) contrast(360%) brightness(112%);
+      mix-blend-mode: multiply;
+    }
+
+    .portrait-video-tint {
+      position: absolute;
+      inset: 0;
+      display: none;
+      pointer-events: none;
+    }
+
+    .portrait-embed {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      background: #000000;
+      filter: grayscale(1) contrast(240%) brightness(108%);
+      mix-blend-mode: multiply;
+    }
+
+    .portrait-embed-tint {
+      position: absolute;
+      inset: 0;
+      display: none;
+      pointer-events: none;
+    }
+
+    .portrait-embed-dither {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image: radial-gradient(circle at 50% 50%, var(--ink) 0.7px, transparent 1.1px);
+      background-size: 3px 3px;
+      mix-blend-mode: multiply;
+      opacity: 0.6;
+    }
+
+    html[data-theme="dark"] .portrait-embed {
+      filter: grayscale(1) contrast(240%) brightness(92%);
+      mix-blend-mode: normal;
+    }
+
+    html[data-theme="dark"] .portrait-embed-wrap {
+      isolation: isolate;
+      mix-blend-mode: screen;
+    }
+
+    html[data-theme="dark"] .portrait-embed-tint {
+      display: block;
+      background: #b9bcff;
+      mix-blend-mode: multiply;
+    }
+
+    html[data-theme="dark"] .portrait-embed-dither {
+      background-image: radial-gradient(circle at 50% 50%, var(--bg) 0.7px, transparent 1.1px);
+    }
+
+    html[data-video-fallback="1"] #portrait-canvas,
+    html[data-media-embed="1"] #portrait-canvas {
+      display: none;
+    }
+
+    html[data-video-fallback="1"] .portrait-video-wrap {
+      display: block;
+    }
+
+    html[data-video-fallback="1"][data-theme="dark"] .portrait-video-wrap {
+      isolation: isolate;
+      mix-blend-mode: screen;
+    }
+
+    html[data-video-fallback="1"][data-theme="dark"] .portrait-video {
+      filter: grayscale(100%) contrast(360%) brightness(92%);
+      mix-blend-mode: normal;
+    }
+
+    html[data-video-fallback="1"][data-theme="dark"] .portrait-video-tint {
+      display: block;
+      background: #b9bcff;
+      mix-blend-mode: multiply;
+    }
+
+    html[data-media-embed="1"] .portrait-video-wrap {
+      display: none;
+    }
+
+    html[data-media-embed="1"] .portrait-embed-wrap {
+      display: block;
+    }
+
+    html[data-media-embed="1"] .portrait-stage {
+      align-items: center;
     }
 
     .card-foot {
@@ -708,12 +829,27 @@
       <div class="portrait-card">
         <div class="card-head mono">
           <span>ARCHIVE_FRAME // 01</span>
-          <span>1-BIT</span>
+          <span id="media-pill">1-BIT</span>
         </div>
 
         <div class="portrait-stage">
           <span class="reg-mark reg-mark--tl">+</span>
           <span class="reg-mark reg-mark--tr">+</span>
+          <div class="portrait-video-wrap">
+            <video id="portrait-video" class="portrait-video" muted loop playsinline autoplay></video>
+            <div class="portrait-video-tint"></div>
+          </div>
+          <div class="portrait-embed-wrap">
+            <iframe
+              id="portrait-embed"
+              class="portrait-embed"
+              title="Media embed"
+              allow="autoplay; encrypted-media; picture-in-picture"
+              allowfullscreen
+            ></iframe>
+            <div class="portrait-embed-tint"></div>
+            <div class="portrait-embed-dither"></div>
+          </div>
           <canvas id="portrait-canvas" width="162" height="285"></canvas>
         </div>
 
@@ -855,7 +991,11 @@
       const ytParam = (params.get("yt") || "").trim().replace(/^@/, "");
       const chatIdParam = (params.get("chatId") || "").trim();
       const chatParam = (params.get("chat") || params.get("chatMode") || "").trim().toLowerCase();
-      const imgParam = (params.get("img") || "").trim();
+      const mediaParam = (params.get("media") || params.get("img") || "").trim();
+      const videoParam = (params.get("video") || "").trim();
+      const ditherMode = (params.get("dither") || "atkinson").trim().toLowerCase() === "bayer" ? "bayer" : "atkinson";
+      const rawFps = parseFloat(params.get("videoFps"));
+      const videoFps = !isNaN(rawFps) ? Math.min(60, Math.max(1, rawFps)) : 18;
       const rawMinus = params.get("minus");
 
       // Responsive root scale using pure rem without vh/vw
@@ -1144,6 +1284,7 @@
       document.getElementById("frame-res").textContent = PW + "X" + PH;
 
       const bitMask = new Uint8Array(PW * PH);
+      const grayBuf = new Float32Array(PW * PH);
       let sparseEdgeIndices = [];
 
       function buildEdgeCache() {
@@ -1162,7 +1303,52 @@
         }
       }
 
-      function renderPortraitFrame(revealRatio, shimmerTick) {
+      function applyDitherFromRGBA(pixels) {
+        if (ditherMode === "bayer") {
+          for (let y = 0; y < PH; y++) {
+            for (let x = 0; x < PW; x++) {
+              const i = y * PW + x;
+              const lum =
+                0.299 * pixels[i * 4] +
+                0.587 * pixels[i * 4 + 1] +
+                0.114 * pixels[i * 4 + 2];
+              const threshold = ((BAYER4[y & 3][x & 3] + 0.5) / 16) * 255;
+              bitMask[i] = lum < threshold ? 1 : 0;
+            }
+          }
+          return;
+        }
+
+        for (let i = 0; i < PW * PH; i++) {
+          grayBuf[i] =
+            0.299 * pixels[i * 4] +
+            0.587 * pixels[i * 4 + 1] +
+            0.114 * pixels[i * 4 + 2];
+        }
+
+        for (let y = 0; y < PH; y++) {
+          for (let x = 0; x < PW; x++) {
+            const i = y * PW + x;
+            const oldVal = grayBuf[i];
+            const newVal = oldVal < 128 ? 0 : 255;
+            bitMask[i] = newVal === 0 ? 1 : 0;
+            const err = (oldVal - newVal) / 8;
+
+            if (x + 1 < PW) grayBuf[i + 1] += err;
+            if (x + 2 < PW) grayBuf[i + 2] += err;
+            if (y + 1 < PH) {
+              if (x - 1 >= 0) grayBuf[i + PW - 1] += err;
+              grayBuf[i + PW] += err;
+              if (x + 1 < PW) grayBuf[i + PW + 1] += err;
+            }
+            if (y + 2 < PH) {
+              grayBuf[i + PW * 2] += err;
+            }
+          }
+        }
+      }
+
+      function renderPortraitFrame(revealRatio, shimmerTick, isVideo) {
         const ink = getInkRGB();
         const imgData = pCtx.createImageData(PW, PH);
         const data = imgData.data;
@@ -1184,7 +1370,7 @@
           }
         }
 
-        if (revealRatio >= 1 && sparseEdgeIndices.length > 0) {
+        if (!isVideo && revealRatio >= 1 && sparseEdgeIndices.length > 0) {
           const len = sparseEdgeIndices.length;
           for (let k = 0; k < 24; k++) {
             const pick = sparseEdgeIndices[(shimmerTick * 41 + k * 89) % len];
@@ -1206,13 +1392,13 @@
         function loop(now) {
           const elapsed = now - introStart;
           if (elapsed < introDuration) {
-            renderPortraitFrame(elapsed / introDuration, 0);
+            renderPortraitFrame(elapsed / introDuration, 0, false);
             requestAnimationFrame(loop);
           } else {
             if (now - lastShimmer > 200) {
               lastShimmer = now;
               shimmerTick++;
-              renderPortraitFrame(1, shimmerTick);
+              renderPortraitFrame(1, shimmerTick, false);
             }
             requestAnimationFrame(loop);
           }
@@ -1221,6 +1407,7 @@
       }
 
       function loadEmbeddedBitmap() {
+        document.getElementById("media-pill").textContent = "1-BIT";
         const img = new Image();
         img.onload = function () {
           const off = document.createElement("canvas");
@@ -1239,6 +1426,7 @@
       }
 
       function loadCustomImageDithered(url) {
+        document.getElementById("media-pill").textContent = "IMAGE";
         const img = new Image();
         img.crossOrigin = "anonymous";
         img.onload = function () {
@@ -1259,34 +1447,7 @@
             oCtx.drawImage(img, dx, dy, dw, dh);
 
             const pixels = oCtx.getImageData(0, 0, PW, PH).data;
-            const gray = new Float32Array(PW * PH);
-            for (let i = 0; i < PW * PH; i++) {
-              gray[i] =
-                0.299 * pixels[i * 4] +
-                0.587 * pixels[i * 4 + 1] +
-                0.114 * pixels[i * 4 + 2];
-            }
-
-            for (let y = 0; y < PH; y++) {
-              for (let x = 0; x < PW; x++) {
-                const i = y * PW + x;
-                const oldVal = gray[i];
-                const newVal = oldVal < 128 ? 0 : 255;
-                bitMask[i] = newVal === 0 ? 1 : 0;
-                const err = (oldVal - newVal) / 8;
-
-                if (x + 1 < PW) gray[i + 1] += err;
-                if (x + 2 < PW) gray[i + 2] += err;
-                if (y + 1 < PH) {
-                  if (x - 1 >= 0) gray[i + PW - 1] += err;
-                  gray[i + PW] += err;
-                  if (x + 1 < PW) gray[i + PW + 1] += err;
-                }
-                if (y + 2 < PH) {
-                  gray[i + PW * 2] += err;
-                }
-              }
-            }
+            applyDitherFromRGBA(pixels);
             startPortraitAnimation();
           } catch (e) {
             loadEmbeddedBitmap();
@@ -1296,8 +1457,147 @@
         img.src = url;
       }
 
-      if (imgParam) {
-        loadCustomImageDithered(imgParam);
+      function loadVideoDithered(url) {
+        document.getElementById("media-pill").textContent = "VIDEO";
+        const isRemote = /^https?:\/\//i.test(url);
+        let retriedWithoutCors = false;
+
+        function startPlayback(useAnonymous) {
+          const vid = document.getElementById("portrait-video");
+          vid.muted = true;
+          vid.loop = true;
+          vid.playsInline = true;
+          vid.autoplay = true;
+          if (useAnonymous) {
+            vid.crossOrigin = "anonymous";
+          } else {
+            vid.removeAttribute("crossOrigin");
+          }
+
+          const off = document.createElement("canvas");
+          off.width = PW;
+          off.height = PH;
+          const oCtx = off.getContext("2d", { willReadFrequently: true });
+
+          let running = false;
+          let lastFrameTime = 0;
+          const frameInterval = 1000 / videoFps;
+
+          function ditherVideoFrame(now) {
+            if (!running) return;
+            requestAnimationFrame(ditherVideoFrame);
+            if (now - lastFrameTime < frameInterval) return;
+            if (vid.readyState < 2 || vid.videoWidth === 0) return;
+            lastFrameTime = now;
+
+            try {
+              const vw = vid.videoWidth;
+              const vh = vid.videoHeight;
+              const scale = Math.max(PW / vw, PH / vh);
+              const dw = vw * scale;
+              const dh = vh * scale;
+              const dx = (PW - dw) / 2;
+              const dy = (PH - dh) / 2;
+
+              oCtx.fillStyle = "#ffffff";
+              oCtx.fillRect(0, 0, PW, PH);
+              oCtx.drawImage(vid, dx, dy, dw, dh);
+
+              const pixels = oCtx.getImageData(0, 0, PW, PH).data;
+              applyDitherFromRGBA(pixels);
+              renderPortraitFrame(1, 0, true);
+            } catch (err) {
+              running = false;
+              document.documentElement.setAttribute("data-video-fallback", "1");
+            }
+          }
+
+          vid.onloadeddata = function () {
+            vid.play().catch(function () {});
+            if (!running) {
+              running = true;
+              requestAnimationFrame(ditherVideoFrame);
+            }
+          };
+
+          vid.onerror = function () {
+            running = false;
+            if (useAnonymous && !retriedWithoutCors) {
+              retriedWithoutCors = true;
+              startPlayback(false);
+            } else {
+              document.documentElement.removeAttribute("data-video-fallback");
+              loadEmbeddedBitmap();
+            }
+          };
+
+          vid.src = url;
+          vid.load();
+        }
+
+        startPlayback(isRemote);
+      }
+
+      const YOUTUBE_RE = /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/i;
+
+      function getYouTubeId(url) {
+        const match = url.match(YOUTUBE_RE);
+        return match ? match[1] : "";
+      }
+
+      function fitEmbedCover() {
+        const wrap = document.querySelector(".portrait-embed-wrap");
+        const embed = document.getElementById("portrait-embed");
+        if (!wrap || !embed) return;
+        const cw = wrap.clientWidth;
+        const ch = wrap.clientHeight;
+        if (!cw || !ch) return;
+        const ratio = 16 / 9;
+        let w = cw;
+        let h = cw / ratio;
+        if (h < ch) {
+          h = ch;
+          w = ch * ratio;
+        }
+        embed.style.width = w + "px";
+        embed.style.height = h + "px";
+        embed.style.left = (cw - w) / 2 + "px";
+        embed.style.top = (ch - h) / 2 + "px";
+      }
+
+      window.addEventListener("resize", function () {
+        requestAnimationFrame(fitEmbedCover);
+      });
+
+      if (window.ResizeObserver) {
+        new ResizeObserver(fitEmbedCover).observe(
+          document.querySelector(".portrait-embed-wrap")
+        );
+      }
+
+      function loadYouTubeEmbed(videoId) {
+        document.getElementById("media-pill").textContent = "EMBED";
+        document.documentElement.setAttribute("data-media-embed", "1");
+        const embed = document.getElementById("portrait-embed");
+        embed.onload = fitEmbedCover;
+        embed.src =
+          "https://www.youtube.com/embed/" + videoId +
+          "?autoplay=1&mute=1&loop=1&playlist=" + videoId +
+          "&controls=0&modestbranding=1&rel=0&playsinline=1";
+        fitEmbedCover();
+        requestAnimationFrame(fitEmbedCover);
+      }
+
+      const isVideoExt = /\.(mp4|webm|ogg|mov)(\?.*)?$/i;
+      const youTubeId = getYouTubeId(mediaParam) || getYouTubeId(videoParam);
+      if (youTubeId) {
+        loadYouTubeEmbed(youTubeId);
+      } else if (videoParam) {
+        loadVideoDithered(videoParam);
+      } else if (mediaParam && isVideoExt.test(mediaParam)) {
+        loadVideoDithered(mediaParam);
+      } else if (mediaParam) {
+        loadCustomImageDithered(mediaParam);
       } else {
         loadEmbeddedBitmap();
       }

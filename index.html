@@ -499,8 +499,8 @@
           <input id="p-yt" type="text" placeholder="handle" autocomplete="off" />
         </div>
         <div class="field">
-          <label for="p-img">img</label>
-          <input id="p-img" type="url" placeholder="https://... (CORS)" autocomplete="off" />
+          <label for="p-media">media</label>
+          <input id="p-media" type="text" placeholder="URL gambar/video/YouTube" autocomplete="off" />
         </div>
 
         <div class="field">
@@ -561,7 +561,8 @@
       <p class="builder-hint">
         <code>chatId</code> = video ID saja &middot; <code>chatCrop</code> hanya untuk iframe &middot;
         <code>chatBg=transparent</code> hanya untuk mode <code>box</code> &middot;
-        <code>minus</code> dalam menit, boleh desimal &middot; <code>img</code> harus mengizinkan CORS.
+        <code>minus</code> dalam menit, boleh desimal &middot;
+        <code>media</code> = gambar, video, atau URL YouTube (sumber canvas harus CORS).
       </p>
     </section>
 
@@ -834,7 +835,7 @@
 
       const PARAMS = [
         "streamer", "ig", "tt", "yt", "title", "theme", "bg",
-        "chat", "chatId", "chatBg", "chatCrop", "img", "minus"
+        "chat", "chatId", "chatBg", "chatCrop", "media", "minus"
       ];
 
       const FIELD_IDS = {
@@ -849,7 +850,7 @@
         chatId: "p-chatid",
         chatBg: "p-chatbg",
         chatCrop: "p-chatcrop",
-        img: "p-img",
+        media: "p-media",
         minus: "p-minus"
       };
 
