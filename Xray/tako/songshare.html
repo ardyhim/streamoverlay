@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0.45rem;
+      width: 100%;
+      background: transparent;
+      overflow: hidden;
+      font-family: "Bahnschrift", "Segoe UI", system-ui, -apple-system, sans-serif;
+      color: #eef6ff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    img[src=""], img[src*="{"] {
+      display: none !important;
+    }
+
+    .player-card {
+      position: relative;
+      width: 100%;
+      box-sizing: border-box;
+      background: linear-gradient(135deg, rgba(8, 30, 140, 0.94) 0%, rgba(2, 8, 41, 0.96) 100%);
+      border: 1.5px solid rgba(0, 240, 255, 0.48);
+      box-shadow:
+        0 0.5rem 1.8rem rgba(2, 8, 41, 0.65),
+        inset 0 0 1.4rem rgba(0, 240, 255, 0.12);
+      padding: 0.85rem 1rem 0.9rem 1.3rem;
+    }
+
+    .accent-rail {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0.32rem;
+      background: #dcff00;
+      box-shadow: 0 0 0.7rem rgba(220, 255, 0, 0.6);
+    }
+
+    .crop-mark {
+      position: absolute;
+      width: 0.6rem;
+      height: 0.6rem;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .crop-mark::before,
+    .crop-mark::after {
+      content: "";
+      position: absolute;
+      background: #dcff00;
+    }
+
+    .crop-mark::before {
+      top: 0.25rem;
+      left: 0;
+      right: 0;
+      height: 1.5px;
+    }
+
+    .crop-mark::after {
+      left: 0.25rem;
+      top: 0;
+      bottom: 0;
+      width: 1.5px;
+    }
+
+    .crop-mark.tl { top: -0.3rem; left: -0.3rem; }
+    .crop-mark.tr { top: -0.3rem; right: -0.3rem; }
+    .crop-mark.bl { bottom: -0.3rem; left: -0.3rem; }
+    .crop-mark.br { bottom: -0.3rem; right: -0.3rem; }
+
+    .row-head {
+      height: 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.6rem;
+      flex-wrap: nowrap;
+      font-family: "Consolas", "SFMono-Regular", ui-monospace, monospace;
+    }
+
+    .deck-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #00f0ff;
+      white-space: nowrap;
+    }
+
+    .status-pill {
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 0.12rem 0.45rem;
+      background: #dcff00;
+      color: #030a2e;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .status-pill.is-paused {
+      background: #ff8c1a;
+      color: #030a2e;
+    }
+
+    .status-pill.is-gap,
+    .status-pill.is-buffering {
+      background: #00f0ff;
+      color: #030a2e;
+    }
+
+    .status-pill.is-idle {
+      background: rgba(238, 246, 255, 0.16);
+      color: #eef6ff;
+    }
+
+    .error-banner {
+      font-family: "Consolas", ui-monospace, monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      background: rgba(255, 46, 68, 0.22);
+      border-left: 3px solid #ff2e44;
+      color: #ffdbe0;
+      padding: 0.35rem 0.55rem;
+      margin-bottom: 0.55rem;
+      display: none;
+    }
+
+    .gap-banner {
+      font-family: "Consolas", ui-monospace, monospace;
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #00f0ff;
+      background: rgba(0, 240, 255, 0.08);
+      border-left: 2px solid #00f0ff;
+      padding: 0.55rem 0.7rem;
+      display: none;
+    }
+
+    .now-playing {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      flex-wrap: nowrap;
+    }
+
+    .cover-box {
+      position: relative;
+      width: 4.35rem;
+      height: 4.35rem;
+      flex: 0 0 4.35rem;
+      border: 2px solid #00f0ff;
+      background: rgba(17, 46, 255, 0.32);
+      box-shadow: 0 0 0.85rem rgba(0, 240, 255, 0.25);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cover-fallback {
+      position: relative;
+      z-index: 1;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #dcff00;
+      line-height: 1;
+    }
+
+    .cover-img {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .info {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .song-title {
+      height: 1.45rem;
+      line-height: 1.45rem;
+      font-size: 1.12rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: #eef6ff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .song-title.is-idle {
+      font-weight: 600;
+      color: rgba(238, 246, 255, 0.62);
+    }
+
+    .song-artist {
+      height: 1.2rem;
+      line-height: 1.2rem;
+      font-size: 0.86rem;
+      color: #9dc2ff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 0.28rem;
+    }
+
+    .requester-row {
+      height: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: nowrap;
+      overflow: hidden;
+      margin-bottom: 0.42rem;
+      font-size: 0.78rem;
+      color: rgba(238, 246, 255, 0.85);
+    }
+
+    .req-prefix {
+      font-family: "Consolas", ui-monospace, monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #00f0ff;
+      flex-shrink: 0;
+    }
+
+    .requester-pic-wrap {
+      position: relative;
+      width: 1.15rem;
+      height: 1.15rem;
+      flex: 0 0 1.15rem;
+      border-radius: 50%;
+      border: 1px solid #00f0ff;
+      background: rgba(17, 46, 255, 0.45);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .requester-pic {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .requester-name {
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    .verified-mark {
+      display: none;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      font-family: "Consolas", ui-monospace, monospace;
+      font-size: 0.66rem;
+      font-weight: 700;
+      color: #030a2e;
+      background: #00f0ff;
+      padding: 0.04rem 0.26rem;
+      line-height: 1.05;
+    }
+
+    .verified-mark[data-verified="true"] {
+      display: inline-flex;
+    }
+
+    .requester-badges {
+      height: 1.15rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.24rem;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .badge-icon {
+      height: 0.95rem;
+      width: auto;
+      display: block;
+    }
+
+    .badge-tag {
+      font-family: "Consolas", ui-monospace, monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #00f0ff;
+      border: 1px solid rgba(0, 240, 255, 0.45);
+      background: rgba(0, 240, 255, 0.1);
+      padding: 0.03rem 0.3rem;
+      white-space: nowrap;
+    }
+
+    .progress-row {
+      height: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      flex-wrap: nowrap;
+    }
+
+    .bar-bg {
+      flex: 1 1 auto;
+      height: 0.42rem;
+      background: rgba(238, 246, 255, 0.14);
+      border: 1px solid rgba(0, 240, 255, 0.38);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: #dcff00;
+      box-shadow: 0 0 0.55rem rgba(220, 255, 0, 0.65);
+    }
+
+    .time {
+      font-family: "Consolas", ui-monospace, monospace;
+      font-size: 0.74rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: rgba(238, 246, 255, 0.84);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .setlist-divider {
+      border-top: 1px dashed rgba(0, 240, 255, 0.32);
+      margin: 0.7rem 0 0.5rem;
+      display: none;
+    }
+
+    .setlist {
+      display: none;
+    }
+
+    .setlist-label {
+      font-family: "Consolas", ui-monospace, monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #dcff00;
+      margin-bottom: 0.35rem;
+    }
+
+    .setlist-row {
+      height: 1.45rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: nowrap;
+      font-size: 0.8rem;
+      color: rgba(238, 246, 255, 0.88);
+    }
+
+    .setlist-idx {
+      font-family: "Consolas", ui-monospace, monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #00f0ff;
+      flex-shrink: 0;
+    }
+
+    .setlist-name {
+      flex: 1 1 auto;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .setlist-badges {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      flex-shrink: 0;
+    }
+
+    .setlist-badge-icon {
+      height: 0.85rem;
+      width: auto;
+      display: block;
+    }
+
+    .setlist-time {
+      font-family: "Consolas", ui-monospace, monospace;
+      font-size: 0.72rem;
+      color: rgba(238, 246, 255, 0.6);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="player-card">
+    <div class="accent-rail"></div>
+    <span class="crop-mark tl"></span>
+    <span class="crop-mark tr"></span>
+    <span class="crop-mark bl"></span>
+    <span class="crop-mark br"></span>
+
+    <div class="row-head">
+      <span class="deck-label">X-RAY // AUDIO DECK</span>
+      <span class="status-pill" id="status-el">NOW PLAYING</span>
+    </div>
+
+    <div class="error-banner" id="error-banner"></div>
+    <div class="gap-banner" id="gap-banner"></div>
+
+    <div id="player-body">
+      <div class="now-playing">
+        <div class="cover-box">
+          <span class="cover-fallback">♪</span>
+          <img class="cover-img" id="cover-img" src="{{songCoverArtUrl}}" alt="" onerror="this.style.display='none'" />
+        </div>
+
+        <div class="info">
+          <div class="song-title" id="title-el">{{songTitle}}</div>
+          <div class="song-artist" id="artist-el">{{songArtist}}</div>
+
+          <div class="requester-row" id="requester-row">
+            <span class="req-prefix">REQ</span>
+            <div class="requester-pic-wrap" id="requester-pic-wrap">
+              <img class="requester-pic" id="requester-pic" src="{{requesterPicture}}" alt="" onerror="this.style.display='none'" />
+            </div>
+            <span class="requester-name" id="requester-name">{{requesterName}}</span>
+            <span class="verified-mark" data-verified="{{isRequesterVerified}}">✓</span>
+            <span class="requester-badges" id="requester-badges"></span>
+          </div>
+
+          <div class="progress-row" id="progress-row">
+            <div class="bar-bg">
+              <div class="bar-fill" id="bar-fill" style="width: {{progressPercent}}%"></div>
+            </div>
+            <div class="time" id="time-el" data-elapsed="{{elapsed}}" data-duration="{{duration}}">{{formattedElapsed}} / {{formattedDuration}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="setlist-divider" id="setlist-divider"></div>
+    <div class="setlist" id="setlist">
+      <div class="setlist-label" id="setlist-label">UP NEXT</div>
+      <div id="setlist-body"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var isPlaying = "{{isPlaying}}" === "true";
+      var isPaused = "{{isPaused}}" === "true";
+      var isInGap = "{{isInGap}}" === "true";
+      var gapText = "{{gapText}}".trim();
+      var errorText = "{{error}}".trim();
+      var requesterPicture = "{{requesterPicture}}".trim();
+      var requesterBadges = "{{requesterBadges}}".trim();
+
+      var BADGE_ICON_URLS = {
+        "Tako Verified Partner": "https://tako.id/images/badges/partnered-creator.png",
+        "Tako Verified Creator": "https://tako.id/images/badges/verified-creator.png",
+        "Rich Rich Club": "https://tako.id/images/badges/king.png",
+        "Charity": "https://tako.id/images/badges/charity.png",
+        "VTuber": "https://tako.id/images/badges/vtuber.png",
+        "Tako Team": "https://tako.id/images/badges/admin.png"
+      };
+
+      var titleEl = document.getElementById("title-el");
+      var artistEl = document.getElementById("artist-el");
+      var statusEl = document.getElementById("status-el");
+      var errorBanner = document.getElementById("error-banner");
+      var gapBanner = document.getElementById("gap-banner");
+      var playerBody = document.getElementById("player-body");
+      var requesterRow = document.getElementById("requester-row");
+      var requesterPicWrap = document.getElementById("requester-pic-wrap");
+      var requesterBadgesEl = document.getElementById("requester-badges");
+      var progressRow = document.getElementById("progress-row");
+      var setlistDivider = document.getElementById("setlist-divider");
+      var setlist = document.getElementById("setlist");
+      var setlistLabel = document.getElementById("setlist-label");
+      var setlistBody = document.getElementById("setlist-body");
+
+      var titleText = titleEl.textContent.trim();
+      var isIdle = !titleText || titleText.indexOf("{{") !== -1;
+
+      if (errorText && errorText.indexOf("{{") === -1) {
+        errorBanner.textContent = "! " + errorText;
+        errorBanner.style.display = "block";
+      }
+
+      if (isInGap) {
+        playerBody.style.display = "none";
+        gapBanner.textContent = gapText && gapText.indexOf("{{") === -1 ? gapText : "Menyiapkan lagu berikutnya...";
+        gapBanner.style.display = "block";
+        statusEl.textContent = "NEXT TRACK";
+        statusEl.className = "status-pill is-gap";
+      } else if (isIdle) {
+        titleEl.textContent = "Belum ada lagu diputar";
+        titleEl.classList.add("is-idle");
+        artistEl.textContent = "Kirim Song Share untuk memutar musik";
+        requesterRow.style.display = "none";
+        progressRow.style.display = "none";
+        statusEl.textContent = "IDLE";
+        statusEl.className = "status-pill is-idle";
+      } else {
+        if (isPaused) {
+          statusEl.textContent = "PAUSED";
+          statusEl.className = "status-pill is-paused";
+        } else if (isPlaying) {
+          statusEl.textContent = "NOW PLAYING";
+          statusEl.className = "status-pill";
+        } else {
+          statusEl.textContent = "BUFFERING";
+          statusEl.className = "status-pill is-buffering";
+        }
+
+        if (!requesterPicture || requesterPicture.indexOf("{{") !== -1) {
+          requesterPicWrap.style.display = "none";
+        }
+
+        function appendBadgeTag(label) {
+          var tag = document.createElement("span");
+          tag.className = "badge-tag";
+          tag.textContent = label;
+          requesterBadgesEl.appendChild(tag);
+        }
+
+        if (requesterBadges && requesterBadges.indexOf("{{") === -1) {
+          requesterBadges.split(",").forEach(function (item) {
+            var badge = item.trim();
+            if (!badge) return;
+            var isDirectUrl =
+              badge.indexOf("https://") === 0 ||
+              badge.indexOf("http://") === 0 ||
+              badge.indexOf("/") === 0;
+            var resolvedUrl = isDirectUrl ? badge : BADGE_ICON_URLS[badge];
+            if (resolvedUrl) {
+              var icon = document.createElement("img");
+              icon.className = "badge-icon";
+              icon.src = resolvedUrl;
+              icon.alt = isDirectUrl ? "Badge" : badge;
+              icon.title = isDirectUrl ? "" : badge;
+              icon.onerror = function () {
+                icon.style.display = "none";
+                if (!isDirectUrl) appendBadgeTag(badge);
+              };
+              requesterBadgesEl.appendChild(icon);
+            } else {
+              appendBadgeTag(badge);
+            }
+          });
+        }
+      }
+
+      function formatDur(sec) {
+        var n = Math.max(0, Math.floor(Number(sec) || 0));
+        var m = Math.floor(n / 60);
+        var s = n % 60;
+        return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+      }
+
+      try {
+        var queueData = {{queue}};
+        if (Array.isArray(queueData) && queueData.length > 0) {
+          setlistDivider.style.display = "block";
+          setlist.style.display = "block";
+          setlistLabel.textContent = "UP NEXT (" + queueData.length + ")";
+
+          queueData.forEach(function (song, i) {
+            var row = document.createElement("div");
+            row.className = "setlist-row";
+
+            var idx = document.createElement("span");
+            idx.className = "setlist-idx";
+            idx.textContent = String(i + 1).padStart(2, "0");
+
+            var name = document.createElement("span");
+            name.className = "setlist-name";
+            name.textContent = (song.title || "Untitled") + " — " + (song.artist || "Unknown");
+
+            var badgesEl = document.createElement("div");
+            badgesEl.className = "setlist-badges";
+            (song.senderBadgeItems || []).forEach(function (b) {
+              if (!b || !b.url) return;
+              var icon = document.createElement("img");
+              icon.className = "setlist-badge-icon";
+              icon.src = b.url;
+              icon.alt = b.title || "";
+              icon.title = b.title || "";
+              icon.onerror = function () { icon.style.display = "none"; };
+              badgesEl.appendChild(icon);
+            });
+
+            var dur = document.createElement("span");
+            dur.className = "setlist-time";
+            dur.textContent = song.formattedDuration || formatDur(song.duration);
+
+            row.appendChild(idx);
+            row.appendChild(name);
+            row.appendChild(badgesEl);
+            row.appendChild(dur);
+            setlistBody.appendChild(row);
+          });
+        }
+      } catch (e) {}
+    })();
+  </script>
+</body>
+</html>

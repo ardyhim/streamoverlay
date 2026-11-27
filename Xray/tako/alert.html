@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0.45rem;
+      width: 100%;
+      background: transparent;
+      overflow: hidden;
+      font-family: "Bahnschrift", "Segoe UI", system-ui, -apple-system, sans-serif;
+      color: #eef6ff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    img[src=""], img[src*="{"] {
+      display: none !important;
+    }
+
+    .alert-card {
+      position: relative;
+      width: 100%;
+      box-sizing: border-box;
+      background: linear-gradient(135deg, rgba(8, 30, 140, 0.94) 0%, rgba(2, 8, 41, 0.96) 100%);
+      border: 1.5px solid rgba(0, 240, 255, 0.48);
+      box-shadow:
+        0 0.5rem 1.8rem rgba(2, 8, 41, 0.65),
+        inset 0 0 1.4rem rgba(0, 240, 255, 0.12);
+      padding: 0.95rem 1.1rem 0.95rem 1.35rem;
+      animation: cardEnter 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .alert-card.is-high-tier {
+      border-color: rgba(255, 46, 68, 0.78);
+      box-shadow:
+        0 0.5rem 2rem rgba(255, 46, 68, 0.28),
+        inset 0 0 1.6rem rgba(220, 255, 0, 0.14);
+    }
+
+    .accent-rail {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0.32rem;
+      background: #dcff00;
+      box-shadow: 0 0 0.75rem rgba(220, 255, 0, 0.65);
+    }
+
+    .alert-card.is-high-tier .accent-rail {
+      background: linear-gradient(180deg, #ff2e44 0%, #dcff00 100%);
+      box-shadow: 0 0 0.85rem rgba(255, 46, 68, 0.75);
+    }
+
+    .scan-sheen {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .scan-sheen::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: -35%;
+      width: 35%;
+      background: linear-gradient(90deg, rgba(0, 240, 255, 0) 0%, rgba(220, 255, 0, 0.16) 50%, rgba(0, 240, 255, 0) 100%);
+      animation: scanSweep 1.35s ease-out 0.15s forwards;
+    }
+
+    .crop-mark {
+      position: absolute;
+      width: 0.62rem;
+      height: 0.62rem;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .crop-mark::before,
+    .crop-mark::after {
+      content: "";
+      position: absolute;
+      background: #dcff00;
+    }
+
+    .crop-mark::before {
+      top: 0.26rem;
+      left: 0;
+      right: 0;
+      height: 1.5px;
+    }
+
+    .crop-mark::after {
+      left: 0.26rem;
+      top: 0;
+      bottom: 0;
+      width: 1.5px;
+    }
+
+    .crop-mark.tl { top: -0.31rem; left: -0.31rem; }
+    .crop-mark.tr { top: -0.31rem; right: -0.31rem; }
+    .crop-mark.bl { bottom: -0.31rem; left: -0.31rem; }
+    .crop-mark.br { bottom: -0.31rem; right: -0.31rem; }
+
+    .top-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.65rem;
+      font-family: "Consolas", "SFMono-Regular", ui-monospace, monospace;
+      flex-wrap: nowrap;
+    }
+
+    .signal-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: #dcff00;
+      color: #030a2e;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 0.14rem 0.48rem;
+      white-space: nowrap;
+    }
+
+    .alert-card.is-high-tier .signal-pill {
+      background: #ff2e44;
+      color: #ffffff;
+    }
+
+    .signal-dot {
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .meta-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      color: rgba(238, 246, 255, 0.72);
+      white-space: nowrap;
+    }
+
+    .media-tag {
+      border: 1px solid rgba(0, 240, 255, 0.45);
+      color: #00f0ff;
+      padding: 0.08rem 0.35rem;
+      font-weight: 700;
+    }
+
+    .gifter-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: nowrap;
+    }
+
+    .avatar-box {
+      position: relative;
+      width: 3.1rem;
+      height: 3.1rem;
+      flex: 0 0 3.1rem;
+      border: 2px solid #00f0ff;
+      background: rgba(17, 46, 255, 0.35);
+      box-shadow: 0 0 0.75rem rgba(0, 240, 255, 0.28);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .avatar-fallback {
+      font-family: "Consolas", ui-monospace, monospace;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #dcff00;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gifter-info {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .gifter-name-row {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      min-width: 0;
+    }
+
+    .gifter-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #eef6ff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .verified-mark {
+      display: none;
+      flex-shrink: 0;
+      font-family: "Consolas", ui-monospace, monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #030a2e;
+      background: #00f0ff;
+      padding: 0.05rem 0.3rem;
+      line-height: 1.1;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.3rem;
+      margin-top: 0.25rem;
+    }
+
+    .badge-icon {
+      height: 1.05rem;
+      width: auto;
+      display: block;
+    }
+
+    .badge-tag {
+      font-family: "Consolas", ui-monospace, monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #00f0ff;
+      border: 1px solid rgba(0, 240, 255, 0.45);
+      background: rgba(0, 240, 255, 0.1);
+      padding: 0.06rem 0.36rem;
+      white-space: nowrap;
+    }
+
+    .amount-box {
+      flex-shrink: 0;
+      text-align: right;
+    }
+
+    .amount {
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      font-variant-numeric: tabular-nums;
+      color: #dcff00;
+      text-shadow: 0 0 0.85rem rgba(220, 255, 0, 0.35);
+      line-height: 1;
+    }
+
+    .message-box {
+      margin-top: 0.72rem;
+      padding: 0.55rem 0.75rem;
+      background: rgba(0, 240, 255, 0.08);
+      border-left: 2px solid #00f0ff;
+      font-size: 0.96rem;
+      line-height: 1.42;
+      color: #eef6ff;
+      word-break: break-word;
+    }
+
+    .stamp {
+      margin-top: 0.55rem;
+      text-align: right;
+      font-family: "Consolas", ui-monospace, monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      color: rgba(238, 246, 255, 0.58);
+    }
+
+    @keyframes cardEnter {
+      0% {
+        opacity: 0;
+        transform: translateY(0.75rem) scale(0.97);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes scanSweep {
+      0% {
+        left: -35%;
+      }
+      100% {
+        left: 115%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="alert-card" id="alert-card">
+    <div class="accent-rail"></div>
+    <div class="scan-sheen"></div>
+    <span class="crop-mark tl"></span>
+    <span class="crop-mark tr"></span>
+    <span class="crop-mark bl"></span>
+    <span class="crop-mark br"></span>
+
+    <div class="top-meta">
+      <div class="signal-pill">
+        <span class="signal-dot"></span>
+        <span id="signal-label">X-RAY // GIFT</span>
+      </div>
+      <div class="meta-right">
+        <span class="media-tag" id="media-tag"></span>
+        <span>NEG-ALERT</span>
+      </div>
+    </div>
+
+    <div class="gifter-row">
+      <div class="avatar-box">
+        <img class="avatar" id="avatar" alt="" />
+        <span class="avatar-fallback" id="avatar-fallback">⚡</span>
+      </div>
+
+      <div class="gifter-info">
+        <div class="gifter-name-row">
+          <div class="gifter-name" id="gifter-name">{{gifterName}}</div>
+          <span class="verified-mark" id="verified-mark">✓</span>
+        </div>
+        <div class="badges" id="badges"></div>
+      </div>
+
+      <div class="amount-box">
+        <div class="amount" id="amount-el">{{formattedAmount}}</div>
+      </div>
+    </div>
+
+    <div class="message-box" id="message-el">{{message}}</div>
+    <div class="stamp" id="stamp-el">{{timestamp}}</div>
+  </div>
+
+  <script>
+    (function () {
+      var card = document.getElementById("alert-card");
+      var signalLabel = document.getElementById("signal-label");
+      var avatar = document.getElementById("avatar");
+      var avatarFallback = document.getElementById("avatar-fallback");
+      var verifiedMark = document.getElementById("verified-mark");
+      var badgesEl = document.getElementById("badges");
+      var messageEl = document.getElementById("message-el");
+      var mediaTag = document.getElementById("media-tag");
+      var stampEl = document.getElementById("stamp-el");
+
+      var rawAmount = "{{amount}}".trim();
+      var picture = "{{gifterPicture}}".trim();
+      var badgesRaw = "{{gifterBadges}}".trim();
+      var isVerified = "{{isGifterVerified}}" === "true";
+      var mediaDuration = "{{mediaDuration}}".trim();
+      var showTimestamp = "{{showTimestamp}}" === "true";
+
+      var BADGE_ICON_URLS = {
+        "Tako Verified Partner": "https://tako.id/images/badges/partnered-creator.png",
+        "Tako Verified Creator": "https://tako.id/images/badges/verified-creator.png",
+        "Rich Rich Club": "https://tako.id/images/badges/king.png",
+        "Charity": "https://tako.id/images/badges/charity.png",
+        "VTuber": "https://tako.id/images/badges/vtuber.png",
+        "Tako Team": "https://tako.id/images/badges/admin.png"
+      };
+
+      var numAmount = Number(rawAmount);
+      if (!isNaN(numAmount) && numAmount >= 100000) {
+        card.classList.add("is-high-tier");
+        signalLabel.textContent = "X-RAY // HIGH PULSE";
+      }
+
+      if (picture && picture.indexOf("{{") === -1) {
+        avatar.src = picture;
+        avatar.style.display = "block";
+        avatarFallback.style.display = "none";
+        avatar.onerror = function () {
+          avatar.style.display = "none";
+          avatarFallback.style.display = "flex";
+        };
+      }
+
+      if (isVerified) {
+        verifiedMark.style.display = "inline-block";
+      }
+
+      function appendBadgeTag(label) {
+        var tag = document.createElement("span");
+        tag.className = "badge-tag";
+        tag.textContent = label;
+        badgesEl.appendChild(tag);
+      }
+
+      if (badgesRaw && badgesRaw.indexOf("{{") === -1) {
+        badgesRaw.split(",").forEach(function (item) {
+          var badge = item.trim();
+          if (!badge) return;
+          var isDirectUrl =
+            badge.indexOf("https://") === 0 ||
+            badge.indexOf("http://") === 0 ||
+            badge.indexOf("/") === 0;
+          var resolvedUrl = isDirectUrl ? badge : BADGE_ICON_URLS[badge];
+          if (resolvedUrl) {
+            var icon = document.createElement("img");
+            icon.className = "badge-icon";
+            icon.src = resolvedUrl;
+            icon.alt = isDirectUrl ? "Badge" : badge;
+            icon.title = isDirectUrl ? "" : badge;
+            icon.onerror = function () {
+              icon.style.display = "none";
+              if (!isDirectUrl) appendBadgeTag(badge);
+            };
+            badgesEl.appendChild(icon);
+          } else {
+            appendBadgeTag(badge);
+          }
+        });
+      }
+
+      if (!badgesEl.children.length) {
+        badgesEl.style.display = "none";
+      }
+
+      var msgText = messageEl.textContent.trim();
+      if (!msgText || msgText.indexOf("{{") !== -1) {
+        messageEl.style.display = "none";
+      }
+
+      if (mediaDuration && mediaDuration.indexOf("{{") === -1 && Number(mediaDuration) > 0) {
+        mediaTag.textContent = mediaDuration + "S";
+      } else {
+        mediaTag.style.display = "none";
+      }
+
+      var stampText = stampEl.textContent.trim();
+      if (!showTimestamp || !stampText || stampText.indexOf("{{") !== -1) {
+        stampEl.style.display = "none";
+      }
+    })();
+  </script>
+</body>
+</html>
