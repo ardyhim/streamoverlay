@@ -22,7 +22,7 @@
 
     body {
       margin: 0;
-      padding: 2.25rem 1.25rem 3rem;
+      padding: 1.75rem 1.25rem 3rem;
       background-color: var(--cream);
       background-image: radial-gradient(rgba(17, 17, 17, 0.1) 0.05rem, transparent 0.05rem);
       background-size: 0.7rem 0.7rem;
@@ -33,7 +33,7 @@
     }
 
     .wrap {
-      max-width: 62rem;
+      max-width: 68rem;
       margin: 0 auto;
     }
 
@@ -51,18 +51,18 @@
 
     h1 {
       font-family: var(--font-display);
-      font-size: clamp(2rem, 6vw, 3.4rem);
+      font-size: clamp(1.9rem, 5.5vw, 3.1rem);
       line-height: 1;
       letter-spacing: -0.02em;
       text-transform: uppercase;
-      margin: 0.75rem 0 0.5rem;
+      margin: 0.6rem 0 0.4rem;
     }
 
     .sub {
-      max-width: 42rem;
+      max-width: 44rem;
       margin: 0;
       color: var(--muted);
-      font-size: 0.95rem;
+      font-size: 0.9rem;
     }
 
     h2 {
@@ -73,7 +73,7 @@
       font-size: 1rem;
       letter-spacing: 0.04em;
       text-transform: uppercase;
-      margin: 2.4rem 0 0.9rem;
+      margin: 2rem 0 0.7rem;
     }
 
     h2::after {
@@ -82,55 +82,43 @@
       border-bottom: 0.14rem dashed var(--ink);
     }
 
-    h3 {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin: 0 0 0.7rem;
+    /* ---------- Params Builder ---------- */
+
+    .builder-intro {
+      margin: 0 0 0.8rem;
     }
 
-    h3::after {
-      content: "";
-      flex: 1;
-      border-bottom: 0.12rem dashed rgba(17, 17, 17, 0.25);
-    }
-
-    .nested {
-      margin: 1.6rem 0 0 1.1rem;
-      padding-left: 1rem;
-      border-left: 0.16rem solid var(--ink);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-      gap: 0.9rem;
-    }
-
-    .card {
-      position: relative;
-      display: block;
-      background: #ffffff;
+    .builder {
       border: 0.18rem solid var(--ink);
-      box-shadow: 0.22rem 0.22rem 0 var(--ink);
-      padding: 0.9rem 1rem 1rem;
-      text-decoration: none;
-      color: inherit;
-      transition: transform 0.12s ease, box-shadow 0.12s ease;
+      background: #ffffff;
+      box-shadow: 0.3rem 0.3rem 0 var(--ink);
+      padding: 0.85rem;
     }
 
-    .card:hover {
-      transform: translate(-0.1rem, -0.1rem);
-      box-shadow: 0.32rem 0.32rem 0 var(--blue);
+    .builder-bar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
     }
 
-    .card .tag {
+    .pickers {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .picker {
+      display: flex;
+      flex-direction: column;
+      gap: 0.18rem;
+      min-width: 9.5rem;
+    }
+
+    .picker span {
       font-size: 0.6rem;
       font-weight: 700;
       letter-spacing: 0.14em;
@@ -138,98 +126,42 @@
       color: var(--muted);
     }
 
-    .card .name {
-      font-family: var(--font-display);
-      font-size: 1.05rem;
-      text-transform: uppercase;
-      margin: 0.25rem 0 0.15rem;
-    }
-
-    .card .desc {
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
-
-    .card .file {
-      margin-top: 0.6rem;
-      font-size: 0.65rem;
-      color: var(--muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .card .go {
-      margin-top: 0.65rem;
-      font-size: 0.7rem;
+    .picker select {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
       font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--blue);
+      letter-spacing: 0.04em;
+      padding: 0.4rem 1.4rem 0.4rem 0.45rem;
+      border: 0.14rem solid var(--ink);
+      border-radius: 0;
+      background-color: var(--cream);
+      color: var(--ink);
+      appearance: none;
+      -webkit-appearance: none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--ink) 50%),
+        linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+      background-position: calc(100% - 0.8rem) 50%, calc(100% - 0.5rem) 50%;
+      background-size: 0.3rem 0.3rem, 0.3rem 0.3rem;
+      background-repeat: no-repeat;
+      cursor: pointer;
     }
 
-    .note {
-      margin-top: 2.5rem;
-      padding: 0.9rem 1rem;
-      background: var(--yellow);
-      border: 0.16rem solid var(--ink);
-      box-shadow: 0.2rem 0.2rem 0 var(--ink);
-      font-size: 0.8rem;
-    }
-
-    .note code {
-      background: rgba(17, 17, 17, 0.08);
-      padding: 0.05rem 0.3rem;
-    }
-
-    footer {
-      margin-top: 2.5rem;
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
-
-    footer a {
-      color: var(--blue);
-    }
-
-    /* Params Builder */
-    .builder-intro {
-      margin: 0 0 0.9rem;
-    }
-
-    .builder {
-      border: 0.18rem solid var(--ink);
-      background: #ffffff;
-      box-shadow: 0.3rem 0.3rem 0 var(--ink);
-      padding: 1rem;
-    }
-
-    .builder-bar {
+    .builder-actions {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 0.6rem;
-      flex-wrap: wrap;
-      margin-bottom: 0.85rem;
-    }
-
-    .scene-tabs,
-    .builder-actions,
-    .preset-row {
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
+      gap: 0.4rem;
       flex-wrap: wrap;
     }
 
     .btn {
       font-family: var(--font-mono);
-      font-size: 0.68rem;
+      font-size: 0.66rem;
       font-weight: 700;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       line-height: 1;
-      padding: 0.45rem 0.72rem;
+      padding: 0.44rem 0.66rem;
       border: 0.14rem solid var(--ink);
       background: #ffffff;
       color: var(--ink);
@@ -248,11 +180,6 @@
     .btn:active {
       transform: translate(0.12rem, 0.12rem);
       box-shadow: none;
-    }
-
-    .btn.is-active {
-      background: var(--ink);
-      color: var(--cream);
     }
 
     .btn--primary {
@@ -291,38 +218,38 @@
     }
 
     .url-out {
-      margin-top: 0.7rem;
+      margin-top: 0.6rem;
     }
 
     .url-out code {
       display: block;
       background: var(--ink);
       color: var(--cream);
-      padding: 0.5rem 0.65rem;
-      font-size: 0.72rem;
+      padding: 0.45rem 0.6rem;
+      font-size: 0.7rem;
       white-space: nowrap;
       overflow-x: auto;
       user-select: all;
     }
 
     .builder-note {
-      margin: 0.55rem 0 0;
-      min-height: 1.2rem;
-      font-size: 0.72rem;
+      margin: 0.45rem 0 0;
+      min-height: 1.1rem;
+      font-size: 0.7rem;
       color: var(--muted);
     }
 
     .fields {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 0.6rem;
-      margin-top: 0.85rem;
+      gap: 0.55rem;
+      margin-top: 0.75rem;
     }
 
     .field {
       display: flex;
       flex-direction: column;
-      gap: 0.22rem;
+      gap: 0.2rem;
       min-width: 0;
     }
 
@@ -331,7 +258,7 @@
     }
 
     .field label {
-      font-size: 0.62rem;
+      font-size: 0.6rem;
       font-weight: 700;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -343,8 +270,8 @@
       width: 100%;
       min-width: 0;
       font-family: var(--font-mono);
-      font-size: 0.78rem;
-      padding: 0.42rem 0.5rem;
+      font-size: 0.76rem;
+      padding: 0.4rem 0.45rem;
       border: 0.14rem solid var(--ink);
       border-radius: 0;
       background: var(--cream);
@@ -364,19 +291,25 @@
     }
 
     .field input:focus,
-    .field select:focus {
+    .field select:focus,
+    .picker select:focus,
+    .search input:focus {
       outline: 0.14rem solid var(--blue);
       outline-offset: 0.1rem;
     }
 
     .preset-row {
-      margin-top: 0.85rem;
-      padding-top: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+      padding-top: 0.65rem;
       border-top: 0.12rem dashed rgba(17, 17, 17, 0.25);
     }
 
     .preset-label {
-      font-size: 0.62rem;
+      font-size: 0.6rem;
       font-weight: 700;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -384,17 +317,231 @@
     }
 
     .builder-hint {
-      margin: 0.65rem 0 0;
-      font-size: 0.7rem;
+      margin: 0.6rem 0 0;
+      font-size: 0.68rem;
       color: var(--muted);
     }
 
-    .builder-hint code {
+    .builder-hint code,
+    .note code {
       background: rgba(17, 17, 17, 0.08);
       padding: 0.05rem 0.25rem;
     }
 
-    @media (max-width: 44rem) {
+    /* ---------- Gallery ---------- */
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      margin: 0 -0.25rem;
+      padding: 0.6rem 0.25rem 0.55rem;
+      background: var(--cream);
+      border-bottom: 0.14rem solid var(--ink);
+    }
+
+    .toolbar-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .search {
+      position: relative;
+      flex: 1 1 15rem;
+      min-width: 10rem;
+    }
+
+    .search input {
+      width: 100%;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      padding: 0.5rem 2.2rem 0.5rem 0.65rem;
+      border: 0.14rem solid var(--ink);
+      border-radius: 0;
+      background: #ffffff;
+      color: var(--ink);
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .search input::-webkit-search-cancel-button {
+      -webkit-appearance: none;
+    }
+
+    .search .hint {
+      position: absolute;
+      right: 0.55rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.62rem;
+      color: var(--muted);
+      border: 0.1rem solid rgba(17, 17, 17, 0.3);
+      padding: 0.05rem 0.28rem;
+      pointer-events: none;
+    }
+
+    .count {
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .chips {
+      display: flex;
+      align-items: center;
+      gap: 0.32rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+
+    .chip {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.28rem 0.45rem;
+      border: 0.12rem solid var(--ink);
+      background: #ffffff;
+      color: var(--ink);
+      cursor: pointer;
+      box-shadow: 0.1rem 0.1rem 0 var(--ink);
+    }
+
+    .chip:hover {
+      background: var(--yellow);
+    }
+
+    .chip.is-active {
+      background: var(--ink);
+      color: var(--cream);
+    }
+
+    .chip .n {
+      opacity: 0.55;
+      margin-left: 0.15rem;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.8rem;
+    }
+
+    .card {
+      display: block;
+      position: relative;
+      padding: 0.5rem 0.6rem 0.55rem;
+      background: #ffffff;
+      border: 0.12rem solid var(--ink);
+      box-shadow: 0.14rem 0.14rem 0 var(--ink);
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .card:hover {
+      transform: translate(-0.06rem, -0.06rem);
+      box-shadow: 0.22rem 0.22rem 0 var(--blue);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.35rem;
+    }
+
+    .tag {
+      font-size: 0.52rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.1rem 0.28rem;
+      border: 0.1rem solid var(--ink);
+      line-height: 1.2;
+    }
+
+    .tag--scene {
+      background: var(--blue);
+      color: #ffffff;
+    }
+
+    .tag--css {
+      background: var(--yellow);
+      color: var(--ink);
+    }
+
+    .tag--source {
+      background: var(--pink);
+      color: var(--cream);
+    }
+
+    .folder {
+      font-size: 0.56rem;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card .name {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 0.86rem;
+      line-height: 1.1;
+      text-transform: uppercase;
+      margin: 0.22rem 0 0.1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card .file {
+      display: block;
+      font-size: 0.6rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .empty {
+      margin: 1.2rem 0 0;
+      padding: 1rem;
+      border: 0.14rem dashed var(--ink);
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .note {
+      margin-top: 2rem;
+      padding: 0.8rem 0.9rem;
+      background: var(--yellow);
+      border: 0.16rem solid var(--ink);
+      box-shadow: 0.2rem 0.2rem 0 var(--ink);
+      font-size: 0.76rem;
+    }
+
+    footer {
+      margin-top: 2rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    footer a {
+      color: var(--blue);
+    }
+
+    @media (max-width: 46rem) {
       .fields {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
@@ -406,6 +553,10 @@
       .preview-stage iframe {
         pointer-events: none;
       }
+
+      .picker {
+        flex: 1 1 8rem;
+      }
     }
 
     @media (max-width: 26rem) {
@@ -415,13 +566,6 @@
 
       .field.span-2 {
         grid-column: span 1;
-      }
-    }
-
-    @media (max-width: 34rem) {
-      .nested {
-        margin-left: 0.5rem;
-        padding-left: 0.7rem;
       }
     }
   </style>
@@ -439,16 +583,22 @@
 
     <h2>Params Builder</h2>
     <p class="sub builder-intro">
-      Rakit URL scene <code>jadenbahtera/starting.html</code> atau <code>ending.html</code>,
-      lalu lihat hasilnya langsung di preview 1920&times;1080. Nama parameter mengikuti
-      aturan baku di <code>AGENTS.md</code>.
+      Pilih tema dan scene, rakit parameter, lalu lihat hasilnya langsung di preview
+      1920&times;1080. Nama parameter mengikuti aturan baku di <code>AGENTS.md</code>;
+      parameter yang tidak dipakai sebuah scene akan diabaikan.
     </p>
 
     <section class="builder">
       <div class="builder-bar">
-        <div class="scene-tabs" role="group" aria-label="Pilih scene">
-          <button class="btn is-active" type="button" data-scene="jadenbahtera/starting.html">Starting</button>
-          <button class="btn" type="button" data-scene="jadenbahtera/ending.html">Ending</button>
+        <div class="pickers">
+          <label class="picker">
+            <span>Tema / folder</span>
+            <select id="b-folder"></select>
+          </label>
+          <label class="picker">
+            <span>Scene</span>
+            <select id="b-scene"></select>
+          </label>
         </div>
         <div class="builder-actions">
           <button class="btn" type="button" id="btn-refresh">Refresh</button>
@@ -462,7 +612,7 @@
           id="preview-frame"
           src="jadenbahtera/starting.html"
           title="Preview overlay"
-          allow="autoplay"
+          allow="autoplay; encrypted-media"
         ></iframe>
       </div>
 
@@ -566,245 +716,26 @@
       </p>
     </section>
 
-    <h2>Postmodern/</h2>
-    <div class="grid">
-      <a class="card" href="Postmodern/starting.html">
-        <span class="tag">Scene</span>
-        <div class="name">Starting</div>
-        <div class="desc">Starting soon + transparent YouTube chat.</div>
-        <div class="file">Postmodern/starting.html</div>
-        <div class="go">Buka &rarr;</div>
-      </a>
-      <a class="card" href="Postmodern/ending.html">
-        <span class="tag">Scene</span>
-        <div class="name">Ending</div>
-        <div class="desc">Ending stream screen.</div>
-        <div class="file">Postmodern/ending.html</div>
-        <div class="go">Buka &rarr;</div>
-      </a>
-      <a class="card" href="Postmodern/livechat.css">
-        <span class="tag">CSS</span>
-        <div class="name">Live Chat</div>
-        <div class="desc">Stylesheet YouTube live chat untuk browser source OBS.</div>
-        <div class="file">Postmodern/livechat.css</div>
-        <div class="go">Lihat file &rarr;</div>
-      </a>
-    </div>
-
-    <section class="nested">
-      <h3>Postmodern/tako/</h3>
-      <div class="grid">
-        <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/Postmodern/tako/alert.html">
-          <span class="tag">Source</span>
-          <div class="name">Alert</div>
-          <div class="desc">Alert donasi dengan tier &amp; badge.</div>
-          <div class="file">Postmodern/tako/alert.html</div>
-          <div class="go">Lihat kode &rarr;</div>
-        </a>
-        <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/Postmodern/tako/milestone.html">
-          <span class="tag">Source</span>
-          <div class="name">Milestone</div>
-          <div class="desc">Progres donasi per langkah.</div>
-          <div class="file">Postmodern/tako/milestone.html</div>
-          <div class="go">Lihat kode &rarr;</div>
-        </a>
-        <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/Postmodern/tako/songshare.html">
-          <span class="tag">Source</span>
-          <div class="name">Song Share</div>
-          <div class="desc">Now playing, progress, dan antrian lagu.</div>
-          <div class="file">Postmodern/tako/songshare.html</div>
-          <div class="go">Lihat kode &rarr;</div>
-        </a>
+    <h2>Gallery</h2>
+    <div class="toolbar">
+      <div class="toolbar-row">
+        <div class="search">
+          <input
+            id="search"
+            type="search"
+            placeholder="Cari folder, scene, atau file…"
+            aria-label="Cari overlay"
+            autocomplete="off"
+          />
+          <span class="hint">/</span>
+        </div>
+        <div class="count" id="result-count"></div>
       </div>
-    </section>
-
-    <h2>Brutalism/</h2>
-    <div class="grid">
-      <a class="card" href="Brutalism/starting.html">
-        <span class="tag">Scene</span>
-        <div class="name">Starting Soon</div>
-        <div class="desc">Brutalism &amp; zine collage — countdown, ransom type, transparent YouTube chat.</div>
-        <div class="file">Brutalism/starting.html</div>
-        <div class="go">Buka &rarr;</div>
-      </a>
+      <div class="chips" id="chips" role="group" aria-label="Filter folder"></div>
     </div>
 
-    <section class="nested">
-      <h3>Brutalism/tako/</h3>
-      <div class="grid">
-        <a class="card" href="Brutalism/tako/alert.html?demo=1">
-          <span class="tag">Demo</span>
-          <div class="name">Alert</div>
-          <div class="desc">Alert donasi brutalism — tier, badge, media, dan timestamp.</div>
-          <div class="file">Brutalism/tako/alert.html</div>
-          <div class="go">Buka demo &rarr;</div>
-        </a>
-      </div>
-    </section>
-
-    <h2>Bitmap/</h2>
-    <div class="grid">
-      <a class="card" href="Bitmap/starting.html">
-        <span class="tag">Scene</span>
-        <div class="name">Starting</div>
-        <div class="desc">1-bit bitmap dithering — countdown dan YouTube chat.</div>
-        <div class="file">Bitmap/starting.html</div>
-        <div class="go">Buka &rarr;</div>
-      </a>
-      <a class="card" href="Bitmap/ending.html">
-        <span class="tag">Scene</span>
-        <div class="name">Ending</div>
-        <div class="desc">Layar penutup bitmap dithering.</div>
-        <div class="file">Bitmap/ending.html</div>
-        <div class="go">Buka &rarr;</div>
-      </a>
-    </div>
-
-    <section class="nested">
-      <h3>Bitmap/tako/</h3>
-      <div class="grid">
-        <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/Bitmap/tako/alert.html">
-          <span class="tag">Source</span>
-          <div class="name">Alert</div>
-          <div class="desc">Alert donasi bitmap.</div>
-          <div class="file">Bitmap/tako/alert.html</div>
-          <div class="go">Lihat kode &rarr;</div>
-        </a>
-        <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/Bitmap/tako/songshare.html">
-          <span class="tag">Source</span>
-          <div class="name">Song Share</div>
-          <div class="desc">Now playing dan antrian lagu.</div>
-          <div class="file">Bitmap/tako/songshare.html</div>
-          <div class="go">Lihat kode &rarr;</div>
-        </a>
-      </div>
-    </section>
-
-    <h2>RetroCR/</h2>
-    <div class="grid">
-      <a class="card" href="RetroCR/starting.html">
-        <span class="tag">Scene</span>
-        <div class="name">Starting</div>
-        <div class="desc">CRT/VHS starting — countdown, jam, dan YouTube chat.</div>
-        <div class="file">RetroCR/starting.html</div>
-        <div class="go">Buka &rarr;</div>
-      </a>
-      <a class="card" href="RetroCR/ending.html">
-        <span class="tag">Scene</span>
-        <div class="name">Ending</div>
-        <div class="desc">CRT/VHS sign-off dengan kredit dan tape counter.</div>
-        <div class="file">RetroCR/ending.html</div>
-        <div class="go">Buka &rarr;</div>
-      </a>
-    </div>
-
-    <section class="nested">
-      <h3>RetroCR/tako/</h3>
-      <div class="grid">
-        <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/RetroCR/tako/alert.html">
-          <span class="tag">Source</span>
-          <div class="name">Alert</div>
-          <div class="desc">Alert donasi bergaya CRT.</div>
-          <div class="file">RetroCR/tako/alert.html</div>
-          <div class="go">Lihat kode &rarr;</div>
-        </a>
-        <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/RetroCR/tako/songshare.html">
-          <span class="tag">Source</span>
-          <div class="name">Song Share</div>
-          <div class="desc">Now playing bergaya CRT.</div>
-          <div class="file">RetroCR/tako/songshare.html</div>
-          <div class="go">Lihat kode &rarr;</div>
-        </a>
-      </div>
-    </section>
-
-    <h2>StreetArt/</h2>
-    <div class="grid">
-      <a class="card" href="StreetArt/starting.html">
-        <span class="tag">Scene</span>
-        <div class="name">Starting</div>
-        <div class="desc">Neo-expressionist street art — countdown dan YouTube chat.</div>
-        <div class="file">StreetArt/starting.html</div>
-        <div class="go">Buka &rarr;</div>
-      </a>
-      <a class="card" href="StreetArt/ending.html">
-        <span class="tag">Scene</span>
-        <div class="name">Ending</div>
-        <div class="desc">Street art sign-off dengan marquee.</div>
-        <div class="file">StreetArt/ending.html</div>
-        <div class="go">Buka &rarr;</div>
-      </a>
-    </div>
-
-    <h2>Memphis/</h2>
-    <div class="grid">
-      <a class="card" href="Memphis/index.html">
-        <span class="tag">Scene</span>
-        <div class="name">Just Chatting</div>
-        <div class="desc">Orologio 1981 — just chatting overlay.</div>
-        <div class="file">Memphis/index.html</div>
-        <div class="go">Buka &rarr;</div>
-      </a>
-      <a class="card" href="Memphis/starting.html">
-        <span class="tag">Scene</span>
-        <div class="name">Starting Live</div>
-        <div class="desc">Starting live / pre-show screen.</div>
-        <div class="file">Memphis/starting.html</div>
-        <div class="go">Buka &rarr;</div>
-      </a>
-      <a class="card" href="Memphis/waiting.html">
-        <span class="tag">Scene</span>
-        <div class="name">Waiting</div>
-        <div class="desc">Waiting screen sebelum mulai.</div>
-        <div class="file">Memphis/waiting.html</div>
-        <div class="go">Buka &rarr;</div>
-      </a>
-    </div>
-
-    <h2>jadenbahtera/</h2>
-    <div class="grid">
-      <a class="card" href="jadenbahtera/starting.html">
-        <span class="tag">Scene</span>
-        <div class="name">Starting</div>
-        <div class="desc">1-bit bitmap starting — countdown, sosial media, dan slot YouTube chat.</div>
-        <div class="file">jadenbahtera/starting.html</div>
-        <div class="go">Buka &rarr;</div>
-      </a>
-      <a class="card" href="jadenbahtera/ending.html">
-        <span class="tag">Scene</span>
-        <div class="name">Ending</div>
-        <div class="desc">Sign-off 1-bit dengan pill countdown offline opsional.</div>
-        <div class="file">jadenbahtera/ending.html</div>
-        <div class="go">Buka &rarr;</div>
-      </a>
-      <a class="card" href="jadenbahtera/livechat.css">
-        <span class="tag">CSS</span>
-        <div class="name">Live Chat</div>
-        <div class="desc">Stylesheet YouTube live chat untuk browser source OBS.</div>
-        <div class="file">jadenbahtera/livechat.css</div>
-        <div class="go">Lihat file &rarr;</div>
-      </a>
-    </div>
-
-    <section class="nested">
-      <h3>jadenbahtera/tako/</h3>
-      <div class="grid">
-        <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/jadenbahtera/tako/alert.html">
-          <span class="tag">Source</span>
-          <div class="name">Alert</div>
-          <div class="desc">Alert donasi 1-bit — tier, badge, dan media.</div>
-          <div class="file">jadenbahtera/tako/alert.html</div>
-          <div class="go">Lihat kode &rarr;</div>
-        </a>
-        <a class="card" href="https://github.com/ardyhim/streamoverlay/blob/main/jadenbahtera/tako/songshare.html">
-          <span class="tag">Source</span>
-          <div class="name">Song Share</div>
-          <div class="desc">Now playing, progress, dan antrian lagu.</div>
-          <div class="file">jadenbahtera/tako/songshare.html</div>
-          <div class="go">Lihat kode &rarr;</div>
-        </a>
-      </div>
-    </section>
+    <div class="cards" id="gallery"></div>
+    <p class="empty" id="empty" hidden>Tidak ada overlay yang cocok. Coba kata kunci lain.</p>
 
     <div class="note">
       <strong>Catatan:</strong> stylesheet tambahan (misalnya untuk YouTube live chat) dipasang di
@@ -820,18 +751,250 @@
 
   <script>
     (function () {
-      const SCENES = {
-        "jadenbahtera/starting.html": {
-          title: "STARTING",
-          minusPlaceholder: "5",
-          isEnding: false
+      // Satu sumber data untuk galeri + params builder.
+      // Tambah folder baru cukup dengan menambah objek di array ini.
+      const THEMES = [
+        {
+          id: "Bitmap",
+          scenes: [
+            { file: "starting.html", label: "Starting", desc: "1-bit bitmap dithering — countdown dan YouTube chat." },
+            { file: "ending.html", label: "Ending", desc: "Layar penutup bitmap dithering." }
+          ],
+          extras: [
+            { kind: "css", label: "Live Chat", file: "livechat.css", desc: "Stylesheet YouTube live chat untuk browser source OBS." },
+            { kind: "source", label: "Alert", file: "tako/alert.html", desc: "Alert donasi bitmap." },
+            { kind: "source", label: "Song Share", file: "tako/songshare.html", desc: "Now playing dan antrian lagu." }
+          ]
         },
-        "jadenbahtera/ending.html": {
-          title: "THANKS FOR WATCHING",
-          minusPlaceholder: "kosong",
-          isEnding: true
+        {
+          id: "Brutalism",
+          scenes: [
+            { file: "starting.html", label: "Starting", desc: "Brutalism & zine collage — countdown, ransom type, transparent YouTube chat." }
+          ],
+          extras: [
+            { kind: "source", label: "Alert", file: "tako/alert.html", desc: "Alert donasi brutalism — tier, badge, media, dan timestamp." }
+          ]
+        },
+        {
+          id: "jadenbahtera",
+          scenes: [
+            { file: "starting.html", label: "Starting", desc: "1-bit bitmap starting — countdown, sosial media, dan slot YouTube chat." },
+            { file: "ending.html", label: "Ending", desc: "Sign-off 1-bit dengan pill countdown offline opsional." }
+          ],
+          extras: [
+            { kind: "css", label: "Live Chat", file: "livechat.css", desc: "Stylesheet YouTube live chat untuk browser source OBS." },
+            { kind: "source", label: "Alert", file: "tako/alert.html", desc: "Alert donasi 1-bit — tier, badge, dan media." },
+            { kind: "source", label: "Song Share", file: "tako/songshare.html", desc: "Now playing, progress, dan antrian lagu." }
+          ]
+        },
+        {
+          id: "Memphis",
+          scenes: [
+            { file: "index.html", label: "Just Chatting", desc: "Orologio 1981 — just chatting overlay." },
+            { file: "starting.html", label: "Starting Live", desc: "Starting live / pre-show screen." },
+            { file: "waiting.html", label: "Waiting", desc: "Waiting screen sebelum mulai." }
+          ]
+        },
+        {
+          id: "Postmodern",
+          scenes: [
+            { file: "starting.html", label: "Starting", desc: "Starting soon + transparent YouTube chat." },
+            { file: "ending.html", label: "Ending", desc: "Ending stream screen." }
+          ],
+          extras: [
+            { kind: "css", label: "Live Chat", file: "livechat.css", desc: "Stylesheet YouTube live chat untuk browser source OBS." },
+            { kind: "source", label: "Alert", file: "tako/alert.html", desc: "Alert donasi dengan tier & badge." },
+            { kind: "source", label: "Milestone", file: "tako/milestone.html", desc: "Progres donasi per langkah." },
+            { kind: "source", label: "Song Share", file: "tako/songshare.html", desc: "Now playing, progress, dan antrian lagu." }
+          ]
+        },
+        {
+          id: "RetroCR",
+          scenes: [
+            { file: "starting.html", label: "Starting", desc: "CRT/VHS starting — countdown, jam, dan YouTube chat." },
+            { file: "ending.html", label: "Ending", desc: "CRT/VHS sign-off dengan kredit dan tape counter." }
+          ],
+          extras: [
+            { kind: "source", label: "Alert", file: "tako/alert.html", desc: "Alert donasi bergaya CRT." },
+            { kind: "source", label: "Song Share", file: "tako/songshare.html", desc: "Now playing bergaya CRT." }
+          ]
+        },
+        {
+          id: "StreetArt",
+          scenes: [
+            { file: "starting.html", label: "Starting", desc: "Neo-expressionist street art — countdown dan YouTube chat." },
+            { file: "ending.html", label: "Ending", desc: "Street art sign-off dengan marquee." }
+          ]
+        },
+        {
+          id: "Sumi-eZen",
+          scenes: [
+            { file: "starting.html", label: "Starting", desc: "Bleeding sumi starting scene." },
+            { file: "ending.html", label: "Ending", desc: "Bleeding sumi ending scene." },
+            { file: "justchatiing.html", label: "Just Chatting", desc: "Sumi-e zen ink brush just chatting overlay." }
+          ],
+          extras: [
+            { kind: "css", label: "Live Chat", file: "livechat.css", desc: "Stylesheet YouTube live chat untuk browser source OBS." }
+          ]
+        },
+        {
+          id: "Xray",
+          scenes: [
+            { file: "starting.html", label: "Starting", desc: "X-Ray negative broadcast — countdown dengan backdrop media." },
+            { file: "ending.html", label: "Ending", desc: "X-Ray sign-off dengan kartu sosial dan timer opsional." }
+          ],
+          extras: [
+            { kind: "source", label: "Alert", file: "tako/alert.html", desc: "Alert donasi bergaya X-Ray." },
+            { kind: "source", label: "Song Share", file: "tako/songshare.html", desc: "Now playing bergaya X-Ray." }
+          ]
         }
-      };
+      ];
+
+      const GITHUB_BLOB = "https://github.com/ardyhim/streamoverlay/blob/main/";
+
+      // ---------- Helpers ----------
+
+      function itemsOf(theme) {
+        const items = theme.scenes.map(function (scene) {
+          return {
+            kind: "scene",
+            label: scene.label,
+            file: scene.file,
+            desc: scene.desc,
+            href: theme.id + "/" + scene.file
+          };
+        });
+        (theme.extras || []).forEach(function (extra) {
+          items.push({
+            kind: extra.kind,
+            label: extra.label,
+            file: extra.file,
+            desc: extra.desc,
+            href: extra.kind === "source" ? GITHUB_BLOB + theme.id + "/" + extra.file : theme.id + "/" + extra.file
+          });
+        });
+        return items;
+      }
+
+      function findTheme(id) {
+        for (let i = 0; i < THEMES.length; i++) {
+          if (THEMES[i].id === id) return THEMES[i];
+        }
+        return THEMES[0];
+      }
+
+      function isEnding(file) {
+        return /ending/i.test(file);
+      }
+
+      // ---------- Gallery ----------
+
+      const galleryEl = document.getElementById("gallery");
+      const chipsEl = document.getElementById("chips");
+      const searchEl = document.getElementById("search");
+      const countEl = document.getElementById("result-count");
+      const emptyEl = document.getElementById("empty");
+
+      let activeFolder = "all";
+
+      function renderChips() {
+        chipsEl.innerHTML = "";
+        const list = [{ id: "all", label: "Semua", count: THEMES.reduce(function (n, t) { return n + itemsOf(t).length; }, 0) }];
+        THEMES.forEach(function (theme) {
+          list.push({ id: theme.id, label: theme.id, count: itemsOf(theme).length });
+        });
+        list.forEach(function (entry) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "chip" + (entry.id === activeFolder ? " is-active" : "");
+          btn.setAttribute("data-folder", entry.id);
+          btn.setAttribute("aria-pressed", entry.id === activeFolder ? "true" : "false");
+          btn.innerHTML = entry.label + '<span class="n">' + entry.count + "</span>";
+          btn.addEventListener("click", function () {
+            activeFolder = entry.id;
+            renderChips();
+            renderGallery();
+          });
+          chipsEl.appendChild(btn);
+        });
+      }
+
+      function buildCard(theme, item) {
+        const card = document.createElement("a");
+        card.className = "card";
+        card.href = item.href;
+        card.target = "_blank";
+        card.rel = "noopener";
+        card.title = item.desc || item.file;
+        card.setAttribute("data-folder", theme.id);
+        card.setAttribute("data-search", [theme.id, item.label, item.file, item.desc].join(" ").toLowerCase());
+
+        const top = document.createElement("span");
+        top.className = "card-top";
+        const tag = document.createElement("span");
+        tag.className = "tag tag--" + item.kind;
+        tag.textContent = item.kind;
+        const folder = document.createElement("span");
+        folder.className = "folder";
+        folder.textContent = theme.id + "/";
+        top.appendChild(tag);
+        top.appendChild(folder);
+
+        const name = document.createElement("span");
+        name.className = "name";
+        name.textContent = item.label;
+
+        const file = document.createElement("span");
+        file.className = "file";
+        file.textContent = item.file;
+
+        card.appendChild(top);
+        card.appendChild(name);
+        card.appendChild(file);
+        return card;
+      }
+
+      function renderGallery() {
+        const query = searchEl.value.trim().toLowerCase();
+        const frag = document.createDocumentFragment();
+        let shown = 0;
+        let scope = 0;
+
+        THEMES.forEach(function (theme) {
+          if (activeFolder !== "all" && theme.id !== activeFolder) return;
+          itemsOf(theme).forEach(function (item) {
+            scope += 1;
+            const haystack = (theme.id + " " + item.label + " " + item.file + " " + item.desc).toLowerCase();
+            if (query && haystack.indexOf(query) === -1) return;
+            frag.appendChild(buildCard(theme, item));
+            shown += 1;
+          });
+        });
+
+        galleryEl.innerHTML = "";
+        galleryEl.appendChild(frag);
+        emptyEl.hidden = shown > 0;
+        countEl.textContent = shown + " / " + scope + " overlay";
+      }
+
+      searchEl.addEventListener("input", renderGallery);
+
+      document.addEventListener("keydown", function (event) {
+        const tag = (event.target && event.target.tagName) || "";
+        const typing = tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA";
+        if (event.key === "/" && !typing) {
+          event.preventDefault();
+          searchEl.focus();
+          searchEl.select();
+        }
+        if (event.key === "Escape" && document.activeElement === searchEl) {
+          searchEl.value = "";
+          renderGallery();
+          searchEl.blur();
+        }
+      });
+
+      // ---------- Params Builder ----------
 
       const PARAMS = [
         "streamer", "ig", "tt", "yt", "title", "theme", "bg",
@@ -865,12 +1028,45 @@
       const noteEl = document.getElementById("builder-note");
       const openLink = document.getElementById("btn-open");
       const copyBtn = document.getElementById("btn-copy");
-      const sceneButtons = Array.prototype.slice.call(document.querySelectorAll("[data-scene]"));
+      const folderSelect = document.getElementById("b-folder");
+      const sceneSelect = document.getElementById("b-scene");
       const presetButtons = Array.prototype.slice.call(document.querySelectorAll("[data-preset]"));
 
       let activeScene = "jadenbahtera/starting.html";
       let previewTimer = null;
       let lastPreviewUrl = "";
+
+      function populateFolders() {
+        folderSelect.innerHTML = "";
+        THEMES.forEach(function (theme) {
+          const option = document.createElement("option");
+          option.value = theme.id;
+          option.textContent = theme.id + "/";
+          folderSelect.appendChild(option);
+        });
+      }
+
+      function populateScenes(themeId, selectedFile) {
+        const theme = findTheme(themeId);
+        sceneSelect.innerHTML = "";
+        theme.scenes.forEach(function (scene) {
+          const option = document.createElement("option");
+          option.value = scene.file;
+          option.textContent = scene.label + " — " + scene.file;
+          sceneSelect.appendChild(option);
+        });
+        if (selectedFile) sceneSelect.value = selectedFile;
+      }
+
+      function currentSceneMeta() {
+        const parts = activeScene.split("/");
+        const theme = findTheme(parts[0]);
+        const file = parts.slice(1).join("/");
+        for (let i = 0; i < theme.scenes.length; i++) {
+          if (theme.scenes[i].file === file) return theme.scenes[i];
+        }
+        return null;
+      }
 
       function readValue(key) {
         let value = (inputs[key].value || "").trim();
@@ -934,7 +1130,7 @@
         if (theme === "dark" && !chatBg && mode !== "hidden") {
           notes.push("Tema gelap otomatis memakai tone chat gelap.");
         }
-        if (SCENES[activeScene].isEnding && !readValue("minus")) {
+        if (isEnding(activeScene) && !readValue("minus")) {
           notes.push("Ending tanpa minus tidak menampilkan pill countdown offline.");
         }
 
@@ -971,14 +1167,18 @@
         }
       }
 
-      function setScene(scene, options) {
-        if (!SCENES[scene]) return;
-        activeScene = scene;
-        sceneButtons.forEach(function (btn) {
-          btn.classList.toggle("is-active", btn.getAttribute("data-scene") === scene);
-        });
-        inputs.title.placeholder = SCENES[scene].title;
-        inputs.minus.placeholder = SCENES[scene].minusPlaceholder;
+      function setScene(folder, file, options) {
+        const theme = findTheme(folder);
+        const match = theme.scenes.some(function (scene) { return scene.file === file; });
+        const sceneFile = match ? file : theme.scenes[0].file;
+
+        folderSelect.value = theme.id;
+        populateScenes(theme.id, sceneFile);
+        activeScene = theme.id + "/" + sceneFile;
+
+        const meta = currentSceneMeta();
+        inputs.title.placeholder = meta ? meta.label.toUpperCase() : "TITLE";
+        inputs.minus.placeholder = isEnding(sceneFile) ? "kosong" : "5";
         update(options);
       }
 
@@ -991,10 +1191,12 @@
         });
       });
 
-      sceneButtons.forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          setScene(btn.getAttribute("data-scene"), { immediate: true });
-        });
+      folderSelect.addEventListener("change", function () {
+        setScene(folderSelect.value, "", { immediate: true });
+      });
+
+      sceneSelect.addEventListener("change", function () {
+        setScene(folderSelect.value, sceneSelect.value, { immediate: true });
       });
 
       document.getElementById("btn-refresh").addEventListener("click", function () {
@@ -1041,7 +1243,8 @@
 
       const PRESETS = {
         countdown: {
-          scene: "jadenbahtera/starting.html",
+          folder: "jadenbahtera",
+          file: "starting.html",
           values: {
             streamer: "JadenBahtera",
             ig: "jadenbahtera",
@@ -1051,7 +1254,8 @@
           }
         },
         cutout: {
-          scene: "jadenbahtera/starting.html",
+          folder: "jadenbahtera",
+          file: "starting.html",
           values: {
             streamer: "JadenBahtera",
             chat: "box",
@@ -1059,7 +1263,8 @@
           }
         },
         youtube: {
-          scene: "jadenbahtera/starting.html",
+          folder: "jadenbahtera",
+          file: "starting.html",
           values: {
             streamer: "JadenBahtera",
             chatCrop: "1"
@@ -1067,7 +1272,8 @@
           focus: "chatId"
         },
         outtro: {
-          scene: "jadenbahtera/ending.html",
+          folder: "jadenbahtera",
+          file: "ending.html",
           values: {
             streamer: "JadenBahtera",
             theme: "dark",
@@ -1087,7 +1293,7 @@
           Object.keys(preset.values).forEach(function (key) {
             inputs[key].value = preset.values[key];
           });
-          setScene(preset.scene, { immediate: true });
+          setScene(preset.folder, preset.file, { immediate: true });
           if (preset.focus) {
             inputs[preset.focus].focus();
           }
@@ -1106,7 +1312,10 @@
         window.addEventListener("resize", fitPreview);
       }
 
-      setScene(activeScene, { immediate: true });
+      populateFolders();
+      renderChips();
+      renderGallery();
+      setScene("jadenbahtera", "starting.html", { immediate: true });
     })();
   </script>
 </body>

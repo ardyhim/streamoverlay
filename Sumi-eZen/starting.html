@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ardyhim — Bleeding Sumi Starting Scene</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Shippori+Mincho:wght@700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --washi-base: #e7e2d8;
+      --washi-light: #f1ede4;
+      --washi-shadow: #d5cec0;
+      --sumi-black: #151412;
+      --sumi-soft: #262421;
+      --sumi-muted: #545049;
+      --hanko-red: #a73a35;
+
+      --font-brush: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif;
+      --font-serif: "Cormorant Garamond", Georgia, serif;
+      --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    /* Aturan wajib OBS Browser Source */
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      overflow: hidden;
+      color: var(--sumi-black);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    /* Kontainer utama transparan (tanpa max-width tetap) */
+    .starting-scene {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: transparent;
+      visibility: hidden;
+    }
+
+    /* Lapisan kertas Washi terpisah agar bisa dilubangi tepat di area chatbox */
+    .washi-bg-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 22% 24%, rgba(255, 255, 255, 0.35), transparent 48%),
+        radial-gradient(circle at 80% 35%, rgba(21, 20, 18, 0.06), transparent 44%),
+        radial-gradient(circle at 16% 78%, rgba(21, 20, 18, 0.07), transparent 40%),
+        linear-gradient(155deg, var(--washi-light) 0%, var(--washi-base) 56%, var(--washi-shadow) 100%);
+    }
+
+    .washi-texture-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.45;
+      background-image:
+        radial-gradient(rgba(21, 20, 18, 0.14) 0.65px, transparent 0.65px),
+        radial-gradient(rgba(21, 20, 18, 0.08) 0.8px, transparent 0.8px);
+      background-size: 22px 22px, 37px 37px;
+      background-position: 0 0, 11px 13px;
+    }
+
+    .starting-scene.bg-transparent .washi-bg-layer {
+      display: none;
+    }
+
+    #sumi-petals-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    /* ============================================================
+       AREA KONTEN UTAMA (GRID 3 KOLOM)
+    ============================================================ */
+    .main-stage {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 36px 56px 22px 56px;
+      display: grid;
+      grid-template-columns: 1.05fr 1.08fr 0.68fr;
+      gap: 28px;
+      min-height: 0;
+      background: transparent;
+    }
+
+    /* ---------------- KOLOM KIRI ---------------- */
+    .col-left {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 0;
+    }
+
+    .hero-header {
+      position: relative;
+      z-index: 6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding-top: 6px;
+    }
+
+    .brush-ribbon-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 56px;
+      margin-bottom: 10px;
+    }
+
+    .brush-ribbon-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      overflow: visible;
+    }
+
+    .ribbon-text {
+      position: relative;
+      z-index: 1;
+      font-family: var(--font-sans);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.42em;
+      text-indent: 0.42em;
+      color: var(--washi-light);
+      text-transform: uppercase;
+    }
+
+    .title-block {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .big-brush-title {
+      margin: 0;
+      font-family: var(--font-brush);
+      font-size: clamp(62px, 5.4vw, 94px);
+      font-weight: 800;
+      line-height: 0.94;
+      letter-spacing: 0.05em;
+      color: var(--sumi-black);
+      text-transform: uppercase;
+      filter: url(#bleed-ink-text);
+    }
+
+    .big-brush-title .line-2 {
+      display: block;
+      margin-top: 4px;
+    }
+
+    .hanko-vertical {
+      position: absolute;
+      left: -46px;
+      bottom: 8px;
+      width: 34px;
+      padding: 7px 4px;
+      background: var(--hanko-red);
+      border-radius: 3px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: var(--washi-light);
+      font-family: var(--font-brush);
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1;
+      box-shadow: 0 3px 10px rgba(167, 58, 53, 0.35);
+      filter: url(#bleed-edge-soft);
+    }
+
+    .subtitle-divider {
+      margin-top: 16px;
+      width: 92%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .subtitle-line {
+      flex: 1;
+      height: 1.5px;
+      background: var(--sumi-soft);
+      opacity: 0.75;
+    }
+
+    .subtitle-label {
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      text-indent: 0.28em;
+      color: var(--sumi-black);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .tagline-serif {
+      margin: 12px 0 0 0;
+      font-family: var(--font-serif);
+      font-size: 22px;
+      font-weight: 500;
+      line-height: 1.32;
+      color: var(--sumi-soft);
+    }
+
+    .left-ink-illustration {
+      position: relative;
+      width: 100%;
+      height: 340px;
+      margin-left: -34px;
+      margin-bottom: -22px;
+      pointer-events: none;
+    }
+
+    .left-ink-illustration svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    /* ---------------- KOLOM TENGAH ---------------- */
+    .col-center {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 8px 10px 4px 10px;
+      min-height: 0;
+      background: transparent;
+    }
+
+    .social-rotator-card {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      background: rgba(241, 237, 228, 0.72);
+      border: 1.5px solid rgba(21, 20, 18, 0.22);
+      border-bottom: 2.5px solid var(--sumi-black);
+      border-radius: 6px;
+      box-shadow: 0 8px 22px rgba(21, 20, 18, 0.08);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .social-rotator-main {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .ink-icon-badge {
+      position: relative;
+      width: 54px;
+      height: 54px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ink-blob-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      fill: var(--sumi-black);
+      filter: url(#bleed-edge-soft);
+    }
+
+    .feature-svg-icon {
+      position: relative;
+      z-index: 1;
+      width: 23px;
+      height: 23px;
+      fill: var(--washi-light);
+    }
+
+    .social-copy {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .social-title {
+      font-family: var(--font-sans);
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sumi-black);
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .social-desc {
+      margin-top: 3px;
+      font-family: var(--font-serif);
+      font-size: 19px;
+      font-weight: 500;
+      color: var(--sumi-muted);
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .social-dots {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+      padding-left: 6px;
+    }
+
+    .social-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(21, 20, 18, 0.24);
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+
+    .social-dot.is-active {
+      background: var(--hanko-red);
+      transform: scale(1.35);
+    }
+
+    /* Bingkai Chatbox: area dalam tembus transparan sampai body */
+    .livechat-box {
+      position: relative;
+      flex: 1;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      background: transparent;
+      border: 2px solid var(--sumi-black);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .livechat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: var(--sumi-black);
+      color: var(--washi-light);
+      flex-shrink: 0;
+    }
+
+    .livechat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .chat-hanko-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #e04a42;
+      box-shadow: 0 0 8px rgba(224, 74, 66, 0.85);
+    }
+
+    .livechat-title {
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .livechat-sub {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      font-style: italic;
+      color: rgba(241, 237, 228, 0.78);
+    }
+
+    .livechat-iframe-wrap {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      background: transparent;
+    }
+
+    .livechat-iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: transparent;
+    }
+
+    /* Kartu Hitam Timer / Brush Preview */
+    .dark-brush-card {
+      position: relative;
+      flex-shrink: 0;
+      padding: 18px 24px 16px 24px;
+      background: var(--sumi-black);
+      border-radius: 10px;
+      color: var(--washi-light);
+      box-shadow: 0 14px 32px rgba(21, 20, 18, 0.22);
+      overflow: hidden;
+    }
+
+    .dark-card-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .dark-card-title {
+      font-family: var(--font-sans);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      color: var(--washi-light);
+    }
+
+    .countdown-readout {
+      font-family: var(--font-brush);
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: var(--washi-base);
+    }
+
+    .white-brush-bar-wrap {
+      position: relative;
+      width: 100%;
+      height: 28px;
+      margin: 10px 0 8px 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .white-brush-bar-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .dark-card-meta {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(241, 237, 228, 0.82);
+      letter-spacing: 0.04em;
+    }
+
+    /* ---------------- KOLOM KANAN ---------------- */
+    .col-right {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .top-right-ink-badge {
+      position: relative;
+      z-index: 8;
+      width: 172px;
+      height: 172px;
+      margin-top: -6px;
+      margin-right: -8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .ink-circle-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      fill: var(--sumi-black);
+      filter: url(#bleed-edge-strong);
+    }
+
+    .ink-circle-text {
+      position: relative;
+      z-index: 1;
+      padding: 18px;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.45;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--washi-light);
+    }
+
+    .plum-branch-wrap {
+      position: absolute;
+      top: -48px;
+      right: -56px;
+      width: 500px;
+      height: 980px;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .plum-branch-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    /* ============================================================
+       FOOTER STRIP HITAM BAWAH
+    ============================================================ */
+    .bottom-footer-strip {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      min-height: 102px;
+      box-sizing: border-box;
+      padding: 16px 56px;
+      background: var(--sumi-black);
+      color: var(--washi-light);
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1.05fr;
+      align-items: center;
+      gap: 28px;
+      flex-shrink: 0;
+    }
+
+    .footer-rough-edge {
+      position: absolute;
+      top: -12px;
+      left: 0;
+      width: 100%;
+      height: 16px;
+      fill: var(--sumi-black);
+      filter: url(#bleed-edge-soft);
+      pointer-events: none;
+    }
+
+    .footer-col {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .footer-ring-icon {
+      width: 54px;
+      height: 54px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: rgba(241, 237, 228, 0.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 4px rgba(241, 237, 228, 0.15);
+      filter: url(#bleed-edge-soft);
+    }
+
+    .footer-ring-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: var(--sumi-black);
+    }
+
+    .footer-col-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .footer-col-title {
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--washi-light);
+      line-height: 1.25;
+    }
+
+    .footer-col-sub {
+      margin-top: 2px;
+      font-family: var(--font-serif);
+      font-size: 18px;
+      color: rgba(241, 237, 228, 0.82);
+      line-height: 1.2;
+    }
+
+    .footer-vline {
+      width: 1px;
+      height: 54px;
+      background: rgba(241, 237, 228, 0.25);
+    }
+
+    .footer-cta-brush {
+      position: relative;
+      justify-self: end;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 15px 40px;
+    }
+
+    .cta-brush-svg {
+      position: absolute;
+      inset: -6px -14px;
+      width: calc(100% + 28px);
+      height: calc(100% + 12px);
+      z-index: 0;
+      overflow: visible;
+    }
+
+    .cta-brush-text {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      font-family: var(--font-sans);
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      line-height: 1.25;
+      text-transform: uppercase;
+      color: var(--sumi-black);
+    }
+  </style>
+</head>
+<body>
+  <div class="starting-scene" id="starting-scene">
+    <svg width="0" height="0" style="position:absolute;visibility:hidden;" aria-hidden="true">
+      <defs>
+        <filter id="bleed-ink-text" x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.065" numOctaves="3" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.2" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+        <filter id="bleed-edge-soft" x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.5" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+        <filter id="bleed-edge-strong" x="-15%" y="-15%" width="130%" height="130%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="4" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </defs>
+    </svg>
+
+    <!-- Background Kertas Washi yang akan dipotong berlubang di area chatbox -->
+    <div class="washi-bg-layer" id="washi-bg-layer" aria-hidden="true">
+      <div class="washi-texture-layer"></div>
+    </div>
+
+    <canvas id="sumi-petals-canvas"></canvas>
+
+    <main class="main-stage">
+      <!-- KOLOM KIRI -->
+      <section class="col-left">
+        <div class="hero-header">
+          <div class="brush-ribbon-wrap" id="hero-ribbon">
+            <svg class="brush-ribbon-svg" viewBox="0 0 460 56" preserveAspectRatio="none" aria-hidden="true">
+              <path filter="url(#bleed-edge-strong)"
+                d="M 14 26 Q 110 10 230 14 T 444 18 L 452 38 Q 330 46 215 44 T 10 40 Z"
+                fill="#151412" />
+            </svg>
+            <span class="ribbon-text" id="ribbon-text">ARDYHIM PRESENTS</span>
+          </div>
+
+          <div class="title-block" id="title-block">
+            <div class="hanko-vertical" id="hanko-vertical" aria-hidden="true">
+              <span>墨</span>
+              <span>絵</span>
+            </div>
+            <h1 class="big-brush-title" id="main-title">
+              <span class="line-1">STREAM</span>
+              <span class="line-2">STARTING</span>
+            </h1>
+          </div>
+
+          <div class="subtitle-divider" id="subtitle-divider">
+            <span class="subtitle-line"></span>
+            <span class="subtitle-label" id="subtitle-label">ZEN INK BROADCAST</span>
+            <span class="subtitle-line"></span>
+          </div>
+
+          <p class="tagline-serif" id="tagline-serif">
+            Authentic Sumi-e atmosphere.<br />
+            Grab a drink, relax, we begin shortly.
+          </p>
+        </div>
+
+        <div class="left-ink-illustration" aria-hidden="true">
+          <svg viewBox="0 0 520 360">
+            <defs>
+              <radialGradient id="inkWashPool" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#151412" stop-opacity="0.28" />
+                <stop offset="68%" stop-color="#151412" stop-opacity="0.11" />
+                <stop offset="100%" stop-color="#151412" stop-opacity="0" />
+              </radialGradient>
+            </defs>
+
+            <ellipse class="ink-wash-blob" cx="205" cy="195" rx="125" ry="96" fill="url(#inkWashPool)" />
+            <ellipse class="ink-wash-blob" cx="315" cy="142" rx="95" ry="52" transform="rotate(-18 315 142)" fill="url(#inkWashPool)" />
+            <ellipse class="ink-wash-blob" cx="275" cy="250" rx="110" ry="44" transform="rotate(14 275 250)" fill="url(#inkWashPool)" />
+
+            <circle class="ink-wash-blob" cx="176" cy="202" r="24" fill="#151412" opacity="0.92" filter="url(#bleed-edge-soft)" />
+            <path class="ink-wash-blob" d="M 248 278 Q 305 268 352 294 Q 304 316 242 296 Z" fill="#151412" opacity="0.88" filter="url(#bleed-edge-soft)" />
+
+            <path class="sumi-sketch-stroke" filter="url(#bleed-edge-soft)"
+              d="M 18 -10 Q 52 38 118 48 Q 210 62 325 26"
+              fill="none" stroke="#151412" stroke-width="5.5" stroke-linecap="round" />
+            <path class="sumi-sketch-stroke" filter="url(#bleed-edge-soft)"
+              d="M 32 108 Q 145 28 310 56 Q 405 74 475 135"
+              fill="none" stroke="#151412" stroke-width="4" stroke-linecap="round" />
+            <path class="sumi-sketch-stroke" filter="url(#bleed-edge-soft)"
+              d="M 105 162 Q 168 88 265 112 Q 332 130 375 225"
+              fill="none" stroke="#151412" stroke-width="4.5" stroke-linecap="round" />
+            <path class="sumi-sketch-stroke" filter="url(#bleed-edge-soft)"
+              d="M 135 282 Q 186 244 222 268 Q 254 290 218 336 Q 178 375 95 344"
+              fill="none" stroke="#151412" stroke-width="3.8" stroke-linecap="round" opacity="0.85" />
+            <path class="sumi-sketch-stroke" filter="url(#bleed-edge-soft)"
+              d="M 255 150 Q 345 118 438 188"
+              fill="none" stroke="#151412" stroke-width="3.2" stroke-linecap="round" opacity="0.78" />
+            <path class="sumi-sketch-stroke" filter="url(#bleed-edge-soft)"
+              d="M 285 206 Q 370 198 446 254"
+              fill="none" stroke="#151412" stroke-width="2.6" stroke-linecap="round" opacity="0.68" />
+          </svg>
+        </div>
+      </section>
+
+      <!-- KOLOM TENGAH -->
+      <section class="col-center">
+        <div class="social-rotator-card" id="social-rotator-card">
+          <div class="social-rotator-main" id="social-rotator-main">
+            <div class="ink-icon-badge" id="social-icon-badge">
+              <svg class="ink-blob-bg" viewBox="0 0 60 60" aria-hidden="true">
+                <path d="M30 4 C45 3, 56 14, 56 29 C57 45, 45 56, 30 56 C14 57, 4 46, 4 30 C3 14, 15 5, 30 4 Z" />
+              </svg>
+              <svg class="feature-svg-icon" id="social-svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path id="social-svg-path" d="M23.5 6.2a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.51A3.02 3.02 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3.02 3.02 0 0 0 2.12 2.14c1.88.51 9.38.51 9.38.51s7.5 0 9.38-.51a3.02 3.02 0 0 0 2.12-2.14C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.6 15.57V8.43L15.82 12 9.6 15.57z"/>
+              </svg>
+            </div>
+            <div class="social-copy">
+              <span class="social-title" id="social-title">YOUTUBE : ARDYHIM</span>
+              <span class="social-desc" id="social-desc">Subscribe for streams, highlights &amp; videos</span>
+            </div>
+          </div>
+
+          <div class="social-dots" id="social-dots" aria-hidden="true">
+            <span class="social-dot is-active"></span>
+            <span class="social-dot"></span>
+            <span class="social-dot"></span>
+          </div>
+        </div>
+
+        <!-- Bingkai Chatbox: isi berlubang tembus pandang hingga body -->
+        <div class="livechat-box" id="livechat-box">
+          <div class="livechat-header">
+            <div class="livechat-header-left">
+              <span class="chat-hanko-dot" aria-hidden="true"></span>
+              <span class="livechat-title">YOUTUBE LIVE CHAT</span>
+            </div>
+            <span class="livechat-sub">Say hello in chat</span>
+          </div>
+          <div class="livechat-iframe-wrap" id="livechat-slot"></div>
+        </div>
+
+        <div class="dark-brush-card" id="dark-brush-card">
+          <div class="dark-card-top">
+            <span class="dark-card-title">Preparing Canvas</span>
+            <span class="countdown-readout" id="countdown-readout">05:00</span>
+          </div>
+
+          <div class="white-brush-bar-wrap">
+            <svg class="white-brush-bar-svg" viewBox="0 0 480 34" preserveAspectRatio="none">
+              <path filter="url(#bleed-edge-soft)"
+                d="M 10 18 Q 160 11 260 16 T 470 15"
+                fill="none" stroke="rgba(241,237,228,0.18)" stroke-width="11" stroke-linecap="round" />
+              <path id="white-brush-progress" filter="url(#bleed-edge-soft)"
+                d="M 10 18 Q 160 11 260 16 T 470 15"
+                fill="none" stroke="#f1ede4" stroke-width="11" stroke-linecap="round" />
+            </svg>
+          </div>
+
+          <div class="dark-card-meta">
+            Realistic ink flow &nbsp;•&nbsp; Cozy stream &nbsp;•&nbsp; Be right there
+          </div>
+        </div>
+      </section>
+
+      <!-- KOLOM KANAN -->
+      <section class="col-right">
+        <div class="top-right-ink-badge" id="top-right-badge">
+          <svg class="ink-circle-svg" viewBox="0 0 180 180" aria-hidden="true">
+            <path d="M90 12 C136 10, 168 44, 166 90 C168 136, 134 168, 88 166 C42 168, 12 134, 14 88 C12 42, 46 12, 90 12 Z" />
+          </svg>
+          <span class="ink-circle-text" id="ink-circle-text">
+            CHILL<br />STREAMING<br />STARTING<br />SOON
+          </span>
+        </div>
+
+        <div class="plum-branch-wrap" aria-hidden="true">
+          <svg class="plum-branch-svg" viewBox="0 0 520 980">
+            <g class="plum-wash-group" opacity="0.22">
+              <circle cx="290" cy="240" r="65" fill="#151412" filter="url(#bleed-edge-strong)" />
+              <circle cx="215" cy="410" r="56" fill="#151412" filter="url(#bleed-edge-strong)" />
+              <circle cx="330" cy="540" r="70" fill="#151412" filter="url(#bleed-edge-strong)" />
+              <circle cx="265" cy="720" r="58" fill="#151412" filter="url(#bleed-edge-strong)" />
+            </g>
+
+            <g class="plum-branches" filter="url(#bleed-edge-soft)">
+              <path class="branch-stroke" d="M 415 -20 Q 370 140 385 310 Q 395 450 320 620 Q 260 760 285 975"
+                fill="none" stroke="#151412" stroke-width="18" stroke-linecap="round" />
+              <path class="branch-stroke" d="M 378 180 Q 275 190 220 110 Q 190 60 198 -10"
+                fill="none" stroke="#151412" stroke-width="10" stroke-linecap="round" />
+              <path class="branch-stroke" d="M 382 325 Q 270 355 185 450"
+                fill="none" stroke="#151412" stroke-width="8" stroke-linecap="round" />
+              <path class="branch-stroke" d="M 332 590 Q 220 620 165 735"
+                fill="none" stroke="#151412" stroke-width="7" stroke-linecap="round" />
+              <path class="branch-stroke" d="M 455 170 Q 430 330 455 520 Q 475 680 420 840"
+                fill="none" stroke="#151412" stroke-width="11" stroke-linecap="round" opacity="0.72" />
+            </g>
+
+            <g id="plum-blossoms"></g>
+          </svg>
+        </div>
+      </section>
+    </main>
+
+    <!-- FOOTER STRIP HITAM BAWAH -->
+    <footer class="bottom-footer-strip" id="bottom-footer-strip">
+      <svg class="footer-rough-edge" viewBox="0 0 1920 16" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0,16 L0,6 Q320,2 640,8 T1280,5 T1920,7 L1920,16 Z" />
+      </svg>
+
+      <div class="footer-col">
+        <div class="footer-ring-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 11H8v-2h3V6h2z"/>
+          </svg>
+        </div>
+        <div class="footer-col-text">
+          <span class="footer-col-title">SIT BACK &amp; RELAX</span>
+          <span class="footer-col-sub">Stream starts in just a few moments</span>
+        </div>
+      </div>
+
+      <span class="footer-vline" aria-hidden="true"></span>
+
+      <div class="footer-col">
+        <div class="footer-ring-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
+        <div class="footer-col-text">
+          <span class="footer-col-title">MADE WITH PASSION</span>
+          <span class="footer-col-sub">Follow @ardyhim across all socials</span>
+        </div>
+      </div>
+
+      <div class="footer-cta-brush" id="footer-cta-brush">
+        <svg class="cta-brush-svg" viewBox="0 0 360 76" preserveAspectRatio="none" aria-hidden="true">
+          <path filter="url(#bleed-edge-strong)"
+            d="M 24 14 Q 170 6 334 14 L 342 60 Q 175 68 20 62 Z"
+            fill="#f1ede4" />
+          <g class="cta-sparks" stroke="#f1ede4" stroke-width="3" stroke-linecap="round">
+            <line x1="8" y1="22" x2="-6" y2="16" />
+            <line x1="6" y1="38" x2="-10" y2="38" />
+            <line x1="10" y1="54" x2="-4" y2="62" />
+            <line x1="352" y1="20" x2="366" y2="14" />
+            <line x1="354" y1="38" x2="370" y2="38" />
+            <line x1="350" y1="56" x2="364" y2="63" />
+          </g>
+        </svg>
+        <span class="cta-brush-text" id="footer-cta-text">STARTING VERY<br />SOON!</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const sceneEl = document.getElementById("starting-scene");
+
+      if ((params.get("bg") || "").toLowerCase() === "transparent") {
+        sceneEl.classList.add("bg-transparent");
+      }
+
+      if (params.get("title")) {
+        const parts = params.get("title").split(" ");
+        const l1 = document.querySelector(".line-1");
+        const l2 = document.querySelector(".line-2");
+        if (parts.length > 1) {
+          l1.textContent = parts.slice(0, Math.ceil(parts.length / 2)).join(" ");
+          l2.textContent = parts.slice(Math.ceil(parts.length / 2)).join(" ");
+        } else {
+          l1.textContent = parts[0];
+          l2.textContent = "";
+        }
+      }
+
+      if (params.get("sub")) {
+        document.getElementById("subtitle-label").textContent = params.get("sub");
+      }
+
+      // 1. Lubangi lapisan kertas Washi tepat di area #livechat-slot agar tembus hingga body
+      function updateChatCutout() {
+        const bgLayer = document.getElementById("washi-bg-layer");
+        const slotEl = document.getElementById("livechat-slot");
+        if (!bgLayer || !slotEl) return;
+
+        const sceneRect = sceneEl.getBoundingClientRect();
+        const slotRect = slotEl.getBoundingClientRect();
+        if (!sceneRect.width || !sceneRect.height || !slotRect.width || !slotRect.height) return;
+
+        const w = sceneRect.width;
+        const h = sceneRect.height;
+        const l = Math.round(slotRect.left - sceneRect.left);
+        const t = Math.round(slotRect.top - sceneRect.top);
+        const r = Math.round(slotRect.right - sceneRect.left);
+        const b = Math.round(slotRect.bottom - sceneRect.top);
+        const c = 4; // Bevel sudut bawah mengikuti border-radius
+
+        bgLayer.style.clipPath =
+          `polygon(evenodd, 0px 0px, ${w}px 0px, ${w}px ${h}px, 0px ${h}px, 0px 0px, ` +
+          `${l}px ${t}px, ${r}px ${t}px, ${r}px ${b - c}px, ${r - c}px ${b}px, ${l + c}px ${b}px, ${l}px ${b - c}px, ${l}px ${t}px)`;
+      }
+
+      window.addEventListener("resize", updateChatCutout);
+      if (typeof ResizeObserver === "function") {
+        const ro = new ResizeObserver(updateChatCutout);
+        ro.observe(document.getElementById("livechat-slot"));
+        ro.observe(sceneEl);
+      }
+
+      // 2. Munculkan iframe YouTube Live Chat HANYA jika parameter ?chatId=... diisi
+      const chatId = (params.get("chatId") || "").trim();
+      if (chatId) {
+        const slot = document.getElementById("livechat-slot");
+        const iframe = document.createElement("iframe");
+        const embedDomain = params.get("domain") || window.location.hostname || "localhost";
+        const darkParam = params.get("chatdark") === "0" ? "" : "&dark_theme=1";
+        iframe.className = "livechat-iframe";
+        iframe.title = "YouTube Live Chat";
+        iframe.referrerPolicy = "origin";
+        iframe.allow = "autoplay; encrypted-media";
+        iframe.src =
+          "https://www.youtube.com/live_chat?v=" +
+          encodeURIComponent(chatId) +
+          "&embed_domain=" +
+          encodeURIComponent(embedDomain) +
+          darkParam;
+        slot.appendChild(iframe);
+      }
+
+      // 3. Social Media Rotator
+      const socials = [
+        {
+          title: "YOUTUBE : ARDYHIM",
+          desc: "Subscribe for streams, highlights & videos",
+          path: "M23.5 6.2a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.51A3.02 3.02 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3.02 3.02 0 0 0 2.12 2.14c1.88.51 9.38.51 9.38.51s7.5 0 9.38-.51a3.02 3.02 0 0 0 2.12-2.14C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.6 15.57V8.43L15.82 12 9.6 15.57z"
+        },
+        {
+          title: "INSTAGRAM : ARDYHIM",
+          desc: "Daily updates, clips & behind the scenes",
+          path: "M7.75 2h8.5A5.76 5.76 0 0 1 22 7.75v8.5A5.76 5.76 0 0 1 16.25 22h-8.5A5.76 5.76 0 0 1 2 16.25v-8.5A5.76 5.76 0 0 1 7.75 2zm0 1.8A3.95 3.95 0 0 0 3.8 7.75v8.5a3.95 3.95 0 0 0 3.95 3.95h8.5a3.95 3.95 0 0 0 3.95-3.95v-8.5a3.95 3.95 0 0 0-3.95-3.95h-8.5zm9.15 1.45a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 1.8a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4z"
+        },
+        {
+          title: "TIKTOK : ARDYHIM",
+          desc: "Short moments & creative highlights",
+          path: "M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"
+        }
+      ];
+
+      let currentSocialIdx = 0;
+
+      function rotateNextSocial() {
+        currentSocialIdx = (currentSocialIdx + 1) % socials.length;
+        const next = socials[currentSocialIdx];
+        const mainWrap = document.getElementById("social-rotator-main");
+        const badge = document.getElementById("social-icon-badge");
+        const dots = document.querySelectorAll("#social-dots .social-dot");
+
+        const switchTl = gsap.timeline();
+        switchTl
+          .to(mainWrap, {
+            y: -12,
+            opacity: 0,
+            duration: 0.32,
+            ease: "power2.in",
+            onComplete: () => {
+              document.getElementById("social-title").textContent = next.title;
+              document.getElementById("social-desc").textContent = next.desc;
+              document.getElementById("social-svg-path").setAttribute("d", next.path);
+              dots.forEach((d, idx) => d.classList.toggle("is-active", idx === currentSocialIdx));
+            }
+          })
+          .set(mainWrap, { y: 14 })
+          .to(mainWrap, {
+            y: 0,
+            opacity: 1,
+            duration: 0.45,
+            ease: "power3.out"
+          })
+          .fromTo(badge,
+            { scale: 0.85, rotate: -6 },
+            { scale: 1, rotate: 0, duration: 0.4, ease: "back.out(1.6)" },
+            "<"
+          );
+      }
+
+      // 4. Bunga Sakura/Plum Sumi-e
+      function renderSumiBlossoms() {
+        const container = document.getElementById("plum-blossoms");
+        const ns = "http://www.w3.org/2000/svg";
+        const blossoms = [
+          { x: 225, y: 112, s: 1.05, r: 12 },
+          { x: 280, y: 78,  s: 0.85, r: -18 },
+          { x: 185, y: 42,  s: 0.92, r: 28 },
+          { x: 350, y: 162, s: 1.12, r: -8 },
+          { x: 268, y: 215, s: 0.98, r: 35 },
+          { x: 392, y: 270, s: 1.18, r: 14 },
+          { x: 315, y: 310, s: 0.90, r: -25 },
+          { x: 235, y: 378, s: 1.08, r: 20 },
+          { x: 175, y: 448, s: 0.96, r: -14 },
+          { x: 382, y: 428, s: 1.02, r: 42 },
+          { x: 325, y: 515, s: 1.15, r: -10 },
+          { x: 432, y: 565, s: 0.94, r: 16 },
+          { x: 245, y: 615, s: 1.06, r: -30 },
+          { x: 176, y: 710, s: 0.92, r: 24 },
+          { x: 300, y: 695, s: 1.10, r: 8 },
+          { x: 425, y: 760, s: 0.88, r: -22 },
+          { x: 272, y: 830, s: 1.04, r: 30 }
+        ];
+
+        blossoms.forEach((b) => {
+          const g = document.createElementNS(ns, "g");
+          g.setAttribute("class", "plum-flower");
+          g.setAttribute("transform", `translate(${b.x}, ${b.y}) scale(${b.s}) rotate(${b.r})`);
+
+          for (let i = 0; i < 5; i++) {
+            const angle = i * 72;
+            const petal = document.createElementNS(ns, "path");
+            petal.setAttribute("d", "M 0,-4 C -11,-14 -14,-28 0,-32 C 14,-28 11,-14 0,-4 Z");
+            petal.setAttribute("transform", `rotate(${angle})`);
+            petal.setAttribute("fill", i % 2 === 0 ? "rgba(241,237,228,0.82)" : "rgba(21,20,18,0.22)");
+            petal.setAttribute("stroke", "#151412");
+            petal.setAttribute("stroke-width", "3.2");
+            petal.setAttribute("stroke-linejoin", "round");
+            g.appendChild(petal);
+          }
+
+          const center = document.createElementNS(ns, "circle");
+          center.setAttribute("cx", "0");
+          center.setAttribute("cy", "0");
+          center.setAttribute("r", "6");
+          center.setAttribute("fill", "#151412");
+          g.appendChild(center);
+
+          container.appendChild(g);
+        });
+      }
+
+      renderSumiBlossoms();
+
+      const drawPaths = document.querySelectorAll(".branch-stroke, .sumi-sketch-stroke");
+      drawPaths.forEach((p) => {
+        const len = p.getTotalLength();
+        p.style.strokeDasharray = len;
+        p.style.strokeDashoffset = len;
+      });
+
+      // 5. Countdown Timer & Progress Sapuan Kuas Putih
+      const minutesParam = params.has("min") ? parseFloat(params.get("min")) : 5;
+      const readoutEl = document.getElementById("countdown-readout");
+      const brushProgressPath = document.getElementById("white-brush-progress");
+      const brushLen = brushProgressPath.getTotalLength();
+      brushProgressPath.style.strokeDasharray = brushLen;
+
+      if (!isNaN(minutesParam) && minutesParam > 0) {
+        const totalSeconds = Math.round(minutesParam * 60);
+        let remaining = totalSeconds;
+
+        function updateTimerDisplay() {
+          const mins = String(Math.floor(remaining / 60)).padStart(2, "0");
+          const secs = String(remaining % 60).padStart(2, "0");
+          readoutEl.textContent = `${mins}:${secs}`;
+
+          const elapsedRatio = (totalSeconds - remaining) / totalSeconds;
+          const visibleRatio = Math.max(0.12, elapsedRatio);
+          gsap.to(brushProgressPath, {
+            strokeDashoffset: brushLen * (1 - visibleRatio),
+            duration: 0.85,
+            ease: "power2.out"
+          });
+        }
+
+        updateTimerDisplay();
+        const timerInterval = setInterval(() => {
+          if (remaining > 0) {
+            remaining -= 1;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerInterval);
+            readoutEl.textContent = "LIVE NOW";
+            document.getElementById("footer-cta-text").innerHTML = "WE ARE<br/>LIVE NOW!";
+          }
+        }, 1000);
+      } else {
+        readoutEl.textContent = "SOON";
+        brushProgressPath.style.strokeDashoffset = 0;
+        gsap.to(brushProgressPath, {
+          opacity: 0.55,
+          duration: 1.8,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut"
+        });
+      }
+
+      // 6. Kanvas Kelopak Tinta Melayang
+      function initPetalParticles() {
+        const canvas = document.getElementById("sumi-petals-canvas");
+        const ctx = canvas.getContext("2d");
+        let w = 0;
+        let h = 0;
+        const petals = [];
+
+        function resize() {
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          w = window.innerWidth;
+          h = window.innerHeight;
+          canvas.width = w * dpr;
+          canvas.height = h * dpr;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function spawn(randomY) {
+          return {
+            x: w * (0.45 + Math.random() * 0.6),
+            y: randomY ? Math.random() * h : -20,
+            vx: -0.35 - Math.random() * 0.45,
+            vy: 0.45 + Math.random() * 0.65,
+            size: 4 + Math.random() * 5,
+            rot: Math.random() * Math.PI * 2,
+            vRot: (Math.random() - 0.5) * 0.025,
+            sway: Math.random() * Math.PI * 2,
+            alpha: 0.16 + Math.random() * 0.28
+          };
+        }
+
+        resize();
+        window.addEventListener("resize", resize);
+        for (let i = 0; i < 18; i++) petals.push(spawn(true));
+
+        gsap.ticker.add(() => {
+          ctx.clearRect(0, 0, w, h);
+          for (let i = 0; i < petals.length; i++) {
+            const p = petals[i];
+            p.sway += 0.02;
+            p.x += p.vx + Math.sin(p.sway) * 0.35;
+            p.y += p.vy;
+            p.rot += p.vRot;
+
+            if (p.y > h + 24 || p.x < -30) {
+              petals[i] = spawn(false);
+              continue;
+            }
+
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot);
+            ctx.globalAlpha = p.alpha;
+            ctx.fillStyle = "#151412";
+            ctx.beginPath();
+            ctx.ellipse(0, 0, p.size * 1.4, p.size * 0.65, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          }
+        });
+      }
+
+      // 7. Animasi GSAP
+      function startAnimations() {
+        initPetalParticles();
+        gsap.set(sceneEl, { autoAlpha: 1 });
+        updateChatCutout();
+
+        const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+
+        tl.from("#hero-ribbon", { x: -45, opacity: 0, duration: 0.7 })
+          .from("#main-title .line-1", { y: 24, opacity: 0, duration: 0.65 }, "-=0.4")
+          .from("#main-title .line-2", { y: 24, opacity: 0, duration: 0.65 }, "-=0.45")
+          .from("#hanko-vertical", { scale: 1.65, opacity: 0, duration: 0.42, ease: "back.out(1.8)" }, "-=0.35")
+          .from(["#subtitle-divider", "#tagline-serif"], { y: 14, opacity: 0, duration: 0.6, stagger: 0.12 }, "-=0.3")
+          .to(".sumi-sketch-stroke", {
+            strokeDashoffset: 0,
+            duration: 1.4,
+            stagger: 0.12,
+            ease: "power2.inOut"
+          }, 0.25)
+          .from(".ink-wash-blob", {
+            scale: 0.72,
+            opacity: 0,
+            duration: 1.1,
+            stagger: 0.1,
+            transformOrigin: "center center"
+          }, 0.4)
+          .to(".branch-stroke", {
+            strokeDashoffset: 0,
+            duration: 1.5,
+            stagger: 0.14,
+            ease: "power2.out"
+          }, 0.15)
+          .from(".plum-flower", {
+            scale: 0,
+            opacity: 0,
+            duration: 0.55,
+            stagger: { amount: 0.9, from: "start" },
+            ease: "back.out(1.5)"
+          }, 0.75)
+          .from("#top-right-badge", { scale: 0.75, opacity: 0, rotation: -10, duration: 0.7 }, 0.45)
+          .from("#social-rotator-card", { y: -20, opacity: 0, duration: 0.6 }, 0.45)
+          .from("#livechat-box", {
+            scale: 0.96,
+            opacity: 0,
+            duration: 0.7,
+            onUpdate: updateChatCutout,
+            onComplete: updateChatCutout
+          }, 0.6)
+          .from("#dark-brush-card", { y: 24, opacity: 0, duration: 0.7 }, 0.75)
+          .from("#bottom-footer-strip", { y: 40, opacity: 0, duration: 0.75 }, 0.55)
+          .from("#footer-cta-brush", { scale: 0.88, opacity: 0, duration: 0.6, ease: "back.out(1.4)" }, 0.95);
+
+        gsap.to(".plum-branch-wrap", {
+          rotation: 1.2,
+          transformOrigin: "top right",
+          duration: 4.5,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut"
+        });
+
+        gsap.to("#top-right-badge", {
+          rotation: 3,
+          y: 4,
+          duration: 3.8,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut"
+        });
+
+        gsap.to(".cta-sparks", {
+          scale: 1.07,
+          opacity: 0.65,
+          transformOrigin: "center center",
+          duration: 1.2,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut"
+        });
+
+        setInterval(rotateNextSocial, 4200);
+      }
+
+      let started = false;
+      function safeRun() {
+        if (started) return;
+        started = true;
+        startAnimations();
+      }
+
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(safeRun);
+        setTimeout(safeRun, 450);
+      } else {
+        window.addEventListener("load", safeRun);
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -95,6 +95,12 @@ scene seperti `starting` dan `ending`.
 
 ### 4.1 Nama Parameter Baku
 
+> **Catatan Kreativitas**: Seluruh parameter di bawah **bersifat opsional** (*non-strict*). 
+Jangan terlalu terpaku untuk selalu memakai atau menampilkan semuanya apabila hal 
+tersebut justru membatasi kreativitas desain, komposisi visual, atau konsep artistik 
+overlay yang sedang dibuat. Gunakan hanya parameter yang relevan dengan kebutuhan 
+scene, dengan nilai *default* yang tetap tampil estetis saat tidak ada parameter yang 
+dikirim.
 
 | Parameter | Nilai | Default | Fungsi |
 | --- | --- | --- | --- |
@@ -194,10 +200,3 @@ Jangan membuat atribut baru untuk fungsi yang sudah diwakili atribut di atas.
   dipertahankan untuk kompatibilitas; kode dan dokumentasi baru wajib memakai nama
   baku (`chat`, `minus`, `chatId`, `media`, dan seterusnya).
 
-
-> **Catatan Kreativitas**: Seluruh parameter di atas **bersifat opsional** (*non-strict*). 
-Jangan terlalu terpaku untuk selalu memakai atau menampilkan semuanya apabila hal 
-tersebut justru membatasi kreativitas desain, komposisi visual, atau konsep artistik 
-overlay yang sedang dibuat. Gunakan hanya parameter yang relevan dengan kebutuhan 
-scene, dengan nilai *default* yang tetap tampil estetis saat tidak ada parameter yang 
-dikirim.

@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARDYHIM — Stream Ending (Bitmap Dithering)</title>
+  <style>
+    :root {
+      --ink: #0c0c0c;
+      --paper: #dfdedc;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      font-family: ui-monospace, "Cascadia Mono", "Consolas", "Liberation Mono", Menlo, monospace;
+      color: var(--ink);
+      -webkit-font-smoothing: none;
+      user-select: none;
+    }
+
+    .scene {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      background-color: var(--paper);
+      overflow: hidden;
+    }
+
+    .scene.is-transparent {
+      background-color: transparent;
+    }
+
+    #paper-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.9;
+    }
+
+    .scene.is-transparent #paper-canvas,
+    .scene.is-transparent .fold-line-v,
+    .scene.is-transparent .fold-line-h {
+      display: none;
+    }
+
+    .fold-line-v {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 58.2%;
+      width: 0.14rem;
+      background: linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0.08),
+        rgba(255, 255, 255, 0.25),
+        rgba(0, 0, 0, 0.04)
+      );
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .fold-line-h {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 0.14rem;
+      background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.07),
+        rgba(255, 255, 255, 0.22),
+        rgba(0, 0, 0, 0.03)
+      );
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .sphere-wrap {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .sphere-left {
+      left: -13rem;
+      width: 56rem;
+      height: 56rem;
+    }
+
+    .sphere-right {
+      right: -13rem;
+      width: 60rem;
+      height: 60rem;
+    }
+
+    .dither-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    .center-editorial {
+      position: relative;
+      z-index: 5;
+      width: 44rem;
+      height: 100%;
+      margin: 0 auto;
+      padding: 2.8rem 1.5rem;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .top-cluster {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .tag-row {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1.8rem;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .streamer-plate {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.9rem;
+      width: 100%;
+    }
+
+    .plate-rule {
+      flex: 1;
+      height: 0.16rem;
+      background: var(--ink);
+      opacity: 0.85;
+    }
+
+    .plate-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 0.36rem 1.15rem;
+      font-family: "Bahnschrift", "DIN Condensed", "Arial Narrow", system-ui, sans-serif;
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      line-height: 1.05;
+      white-space: nowrap;
+    }
+
+    .scene.is-transparent .plate-box {
+      color: #ffffff;
+    }
+
+    .plate-prefix {
+      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      opacity: 0.8;
+    }
+
+    .core-stage {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2.1rem;
+    }
+
+    .meta-column {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: space-between;
+      height: 36.5rem;
+      width: 15.5rem;
+      flex-shrink: 0;
+    }
+
+    .stack-list {
+      font-size: 1.4rem;
+      line-height: 1.35;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+
+    .stack-list .dot-eof {
+      display: inline-block;
+      width: 0.65rem;
+      height: 0.65rem;
+      border: 0.14rem solid var(--ink);
+      box-sizing: border-box;
+      margin-right: 0.45rem;
+      animation: pulse-eof 1.6s steps(2, start) infinite;
+    }
+
+    .signoff-block {
+      width: 100%;
+      border-top: 0.16rem solid var(--ink);
+      border-bottom: 0.16rem solid var(--ink);
+      padding: 1rem 0;
+    }
+
+    .signoff-label {
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.11em;
+      margin-bottom: 0.4rem;
+      opacity: 0.82;
+    }
+
+    .signoff-headline {
+      font-family: "Bahnschrift", "DIN Condensed", "Arial Narrow", system-ui, sans-serif;
+      font-size: 2.15rem;
+      font-weight: 800;
+      line-height: 0.96;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .signoff-sub {
+      margin-top: 0.45rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      opacity: 0.9;
+    }
+
+    .wave-bar {
+      margin-top: 0.75rem;
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      align-items: end;
+      gap: 0.22rem;
+      width: 100%;
+      height: 1.4rem;
+    }
+
+    .wave-cell {
+      background: var(--ink);
+      height: 0.25rem;
+      transition: none;
+    }
+
+    .status-readout {
+      font-size: 0.92rem;
+      font-weight: 700;
+      line-height: 1.5;
+      letter-spacing: 0.08em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .title-column {
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      height: 39.5rem;
+    }
+
+    .title-glitch-box {
+      position: relative;
+      height: 39.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .title-svg {
+      height: 38.5rem;
+      width: auto;
+      display: block;
+      fill: var(--ink);
+    }
+
+    .title-svg-glitch {
+      position: absolute;
+      top: 0.5rem;
+      left: 0;
+      height: 38.5rem;
+      width: auto;
+      fill: var(--ink);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .title-glitch-box.glitching .title-svg-glitch {
+      opacity: 1;
+      animation: slice-glitch 0.22s steps(3, end) 1;
+    }
+
+    .custom-vertical-title {
+      writing-mode: vertical-rl;
+      font-family: "Bahnschrift", "DIN Condensed", "Arial Narrow", Impact, system-ui, sans-serif;
+      font-size: 8.6rem;
+      font-weight: 900;
+      line-height: 0.88;
+      letter-spacing: 0.04em;
+      text-transform: lowercase;
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    .badge-wrap {
+      position: relative;
+      margin-left: 1.1rem;
+      margin-bottom: 1.5rem;
+      width: 8.2rem;
+      height: 8.2rem;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .badge-orbit {
+      position: absolute;
+      inset: -0.6rem;
+      border-radius: 50%;
+      border: 0.16rem dashed var(--ink);
+      opacity: 0.65;
+      animation: orbit-spin 26s linear infinite reverse;
+    }
+
+    .badge-circle {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--paper);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Bahnschrift", "DIN Alternate", system-ui, -apple-system, sans-serif;
+      font-size: 2.15rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      font-variant-numeric: tabular-nums;
+      box-sizing: border-box;
+    }
+
+    .scene.is-transparent .badge-circle {
+      color: #ffffff;
+    }
+
+    .bottom-cluster {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .social-strip {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border: 0.16rem solid var(--ink);
+      box-sizing: border-box;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .social-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.55rem 0.65rem;
+      border-right: 0.16rem solid var(--ink);
+      box-sizing: border-box;
+      white-space: nowrap;
+    }
+
+    .social-item:last-child {
+      border-right: none;
+    }
+
+    .social-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      flex-shrink: 0;
+      color: var(--ink);
+    }
+
+    .social-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .social-platform {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      opacity: 0.72;
+      text-transform: uppercase;
+    }
+
+    .social-handle {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: lowercase;
+    }
+
+    .reg-mark {
+      position: absolute;
+      font-size: 1.15rem;
+      font-weight: 700;
+      opacity: 0.55;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .reg-tl { top: 2rem; left: 2.2rem; }
+    .reg-tr { top: 2rem; right: 2.2rem; }
+    .reg-bl { bottom: 2rem; left: 2.2rem; }
+    .reg-br { bottom: 2rem; right: 2.2rem; }
+
+    @keyframes pulse-eof {
+      0%, 49% { background: var(--ink); }
+      50%, 100% { background: transparent; }
+    }
+
+    @keyframes orbit-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes slice-glitch {
+      0% {
+        clip-path: inset(16% 0 66% 0);
+        transform: translateX(0.45rem);
+      }
+      50% {
+        clip-path: inset(54% 0 24% 0);
+        transform: translateX(-0.55rem);
+      }
+      100% {
+        clip-path: inset(32% 0 48% 0);
+        transform: translateX(0.25rem);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="scene" id="scene">
+    <canvas id="paper-canvas" width="480" height="270"></canvas>
+    <div class="fold-line-v"></div>
+    <div class="fold-line-h"></div>
+
+    <div class="reg-mark reg-tl">+ 02</div>
+    <div class="reg-mark reg-tr">1-BIT // EOF</div>
+    <div class="reg-mark reg-bl">ARCHIVE</div>
+    <div class="reg-mark reg-br">+ END</div>
+
+    <div class="sphere-wrap sphere-left">
+      <canvas id="canvas-left" class="dither-canvas" width="112" height="112"></canvas>
+    </div>
+
+    <div class="sphere-wrap sphere-right">
+      <canvas id="canvas-right" class="dither-canvas" width="260" height="260"></canvas>
+    </div>
+
+    <main class="center-editorial">
+      <header class="top-cluster">
+        <div class="tag-row">
+          <span>#OFFLINE</span>
+          <span>#BRUTAL</span>
+          <span>#ARCHIVE</span>
+        </div>
+
+        <div class="streamer-plate">
+          <div class="plate-rule"></div>
+          <div class="plate-box">
+            <span class="plate-prefix">HOST //</span>
+            <span id="streamer-name-el">ARDYHIM</span>
+          </div>
+          <div class="plate-rule"></div>
+        </div>
+      </header>
+
+      <section class="core-stage">
+        <div class="meta-column">
+          <div class="stack-list">
+            <div><span class="dot-eof"></span>.OBS</div>
+            <div>.EOF</div>
+            <div>.END</div>
+          </div>
+
+          <div class="signoff-block">
+            <div class="signoff-label">SIGNAL // CLOSED</div>
+            <div class="signoff-headline" id="headline-el">THANKS FOR<br />WATCHING</div>
+            <div class="signoff-sub" id="subline-el">SEE YOU NEXT STREAM</div>
+            <div class="wave-bar" id="wave-bar"></div>
+          </div>
+
+          <div class="status-readout" id="status-readout">
+            HOST: ARDYHIM<br />
+            CLOCK: 00:00:00<br />
+            SCENE: ENDING
+          </div>
+        </div>
+
+        <div class="title-column">
+          <div class="title-glitch-box" id="title-box">
+            <svg class="title-svg" viewBox="0 0 132 372" aria-label="ending">
+              <g transform="translate(132, 0) rotate(90)">
+                <path transform="translate(8,0)" fill-rule="evenodd" d="M 8 24 L 46 24 L 54 32 L 54 67 L 18 67 L 18 85 L 36 85 L 36 79 L 54 79 L 54 92 L 46 100 L 8 100 L 0 92 L 0 32 Z M 18 39 L 18 54 L 36 54 L 36 39 Z" />
+                <path transform="translate(73,0)" d="M 0 24 L 18 24 L 18 31 L 26 24 L 46 24 L 54 32 L 54 100 L 36 100 L 36 40 L 18 40 L 18 100 L 0 100 Z" />
+                <path transform="translate(138,0)" fill-rule="evenodd" d="M 36 0 L 54 0 L 54 100 L 36 100 L 36 93 L 28 100 L 8 100 L 0 92 L 0 32 L 8 24 L 28 24 L 36 31 Z M 18 39 L 18 85 L 36 85 L 36 39 Z" />
+                <path transform="translate(203,0)" d="M 6 0 L 16 0 L 21 5 L 21 13 L 16 18 L 6 18 L 1 13 L 1 5 Z M 2 24 L 20 24 L 20 100 L 2 100 Z" />
+                <path transform="translate(236,0)" d="M 0 24 L 18 24 L 18 31 L 26 24 L 46 24 L 54 32 L 54 100 L 36 100 L 36 40 L 18 40 L 18 100 L 0 100 Z" />
+                <path transform="translate(301,0)" fill-rule="evenodd" d="M 8 24 L 46 24 L 54 32 L 54 116 L 46 124 L 8 124 L 0 116 L 0 106 L 18 106 L 18 109 L 36 109 L 36 93 L 28 100 L 8 100 L 0 92 L 0 32 Z M 18 39 L 18 85 L 36 85 L 36 39 Z" />
+              </g>
+            </svg>
+
+            <svg class="title-svg-glitch" viewBox="0 0 132 372" aria-hidden="true">
+              <g transform="translate(132, 0) rotate(90)">
+                <path transform="translate(8,0)" fill-rule="evenodd" d="M 8 24 L 46 24 L 54 32 L 54 67 L 18 67 L 18 85 L 36 85 L 36 79 L 54 79 L 54 92 L 46 100 L 8 100 L 0 92 L 0 32 Z M 18 39 L 18 54 L 36 54 L 36 39 Z" />
+                <path transform="translate(73,0)" d="M 0 24 L 18 24 L 18 31 L 26 24 L 46 24 L 54 32 L 54 100 L 36 100 L 36 40 L 18 40 L 18 100 L 0 100 Z" />
+                <path transform="translate(138,0)" fill-rule="evenodd" d="M 36 0 L 54 0 L 54 100 L 36 100 L 36 93 L 28 100 L 8 100 L 0 92 L 0 32 L 8 24 L 28 24 L 36 31 Z M 18 39 L 18 85 L 36 85 L 36 39 Z" />
+                <path transform="translate(203,0)" d="M 6 0 L 16 0 L 21 5 L 21 13 L 16 18 L 6 18 L 1 13 L 1 5 Z M 2 24 L 20 24 L 20 100 L 2 100 Z" />
+                <path transform="translate(236,0)" d="M 0 24 L 18 24 L 18 31 L 26 24 L 46 24 L 54 32 L 54 100 L 36 100 L 36 40 L 18 40 L 18 100 L 0 100 Z" />
+                <path transform="translate(301,0)" fill-rule="evenodd" d="M 8 24 L 46 24 L 54 32 L 54 116 L 46 124 L 8 124 L 0 116 L 0 106 L 18 106 L 18 109 L 36 109 L 36 93 L 28 100 L 8 100 L 0 92 L 0 32 Z M 18 39 L 18 85 L 36 85 L 36 39 Z" />
+              </g>
+            </svg>
+          </div>
+
+          <div class="badge-wrap">
+            <div class="badge-orbit"></div>
+            <div class="badge-circle" id="badge-el">EOF</div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="bottom-cluster">
+        <div class="social-strip">
+          <div class="social-item">
+            <svg class="social-icon" viewBox="0 0 16 16" aria-hidden="true">
+              <rect x="2" y="2" width="12" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.8" />
+              <circle cx="8" cy="8" r="2.7" fill="none" stroke="currentColor" stroke-width="1.8" />
+              <circle cx="11.5" cy="4.5" r="1" fill="currentColor" />
+            </svg>
+            <div class="social-text">
+              <span class="social-platform">INSTAGRAM</span>
+              <span class="social-handle" id="ig-handle">ardyhim</span>
+            </div>
+          </div>
+
+          <div class="social-item">
+            <svg class="social-icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M 9.5 2 H 11.6 C 11.8 3.6 12.8 4.7 14.3 5 V 7.1 C 13.3 7.1 12.4 6.8 11.6 6.3 V 10.6 A 4 4 0 1 1 7.6 6.6 V 8.8 A 1.8 1.8 0 1 0 9.5 10.6 V 2 Z" fill="currentColor" />
+            </svg>
+            <div class="social-text">
+              <span class="social-platform">TIKTOK</span>
+              <span class="social-handle" id="tt-handle">ardyhim</span>
+            </div>
+          </div>
+
+          <div class="social-item">
+            <svg class="social-icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path fill-rule="evenodd" d="M 2.5 3.5 H 13.5 L 14.5 4.5 V 11.5 L 13.5 12.5 H 2.5 L 1.5 11.5 V 4.5 Z M 6.5 5.6 V 10.4 L 11 8 Z" fill="currentColor" />
+            </svg>
+            <div class="social-text">
+              <span class="social-platform">YOUTUBE</span>
+              <span class="social-handle" id="yt-handle">ardyhim</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tag-row">
+          <span>#THANKYOU</span>
+          <span>#Y2K</span>
+          <span>#BROADCAST</span>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+
+      function pick(keys, fallback) {
+        for (var i = 0; i < keys.length; i += 1) {
+          var value = params.get(keys[i]);
+          if (value !== null && value !== "") {
+            return value;
+          }
+        }
+        return fallback;
+      }
+
+      function flag(keys, fallback) {
+        var value = pick(keys, null);
+        if (value === null) {
+          return fallback;
+        }
+        return value === "1" || value === "true";
+      }
+
+      function number(keys, fallback) {
+        var value = parseFloat(pick(keys, ""));
+        return isNaN(value) ? fallback : value;
+      }
+
+      var CONFIG = {
+        streamer: pick(["name", "streamer", "user"], "ARDYHIM"),
+        instagram: pick(["instagram", "ig"], "ardyhim"),
+        tiktok: pick(["tiktok", "tt"], "ardyhim"),
+        youtube: pick(["youtube", "yt"], "ardyhim"),
+        badge: pick(["badge"], "EOF"),
+        title: pick(["title"], "ending"),
+        subline: pick(["subtitle", "sub"], "SEE YOU NEXT STREAM"),
+        transparent: flag(["transparent"], false),
+        fps: Math.min(60, Math.max(8, number(["fps"], 24)))
+      };
+
+      var sceneEl = document.getElementById("scene");
+      if (CONFIG.transparent) {
+        sceneEl.classList.add("is-transparent");
+      }
+
+      var streamerUpper = CONFIG.streamer.toUpperCase();
+      document.getElementById("streamer-name-el").textContent = streamerUpper;
+      document.getElementById("ig-handle").textContent = CONFIG.instagram;
+      document.getElementById("tt-handle").textContent = CONFIG.tiktok;
+      document.getElementById("yt-handle").textContent = CONFIG.youtube;
+      document.getElementById("badge-el").textContent = CONFIG.badge;
+      document.getElementById("subline-el").textContent = CONFIG.subline.toUpperCase();
+
+      /* Responsive root rem scaling without vh/vw */
+      function updateRootScale() {
+        var h = window.innerHeight || 1080;
+        var w = window.innerWidth || 1920;
+        var base = Math.min(h / 67.5, w / 120);
+        document.documentElement.style.fontSize = Math.max(6, base) + "px";
+      }
+      updateRootScale();
+      window.addEventListener("resize", updateRootScale);
+
+      /* Custom title fallback if overridden via URL */
+      var titleBox = document.getElementById("title-box");
+      if (CONFIG.title.toLowerCase() !== "ending") {
+        titleBox.innerHTML = "";
+        var customH1 = document.createElement("h1");
+        customH1.className = "custom-vertical-title";
+        customH1.textContent = CONFIG.title;
+        titleBox.appendChild(customH1);
+      }
+
+      /* Subtle paper texture generator */
+      function renderPaperTexture() {
+        var pc = document.getElementById("paper-canvas");
+        var pctx = pc.getContext("2d");
+        var w = pc.width;
+        var h = pc.height;
+        var img = pctx.createImageData(w, h);
+        var d = img.data;
+        var seed = 4099;
+        for (var y = 0; y < h; y++) {
+          for (var x = 0; x < w; x++) {
+            seed = (seed * 1664525 + 1013904223) >>> 0;
+            var grain = ((seed >>> 24) / 255 - 0.5) * 14;
+            var dx = (x / w - 0.5) * 2;
+            var dy = (y / h - 0.5) * 2;
+            var vig = (dx * dx + dy * dy) * 7;
+            var v = Math.max(190, Math.min(235, Math.round(223 + grain - vig)));
+            var idx = (y * w + x) * 4;
+            d[idx] = v;
+            d[idx + 1] = v;
+            d[idx + 2] = v - 2;
+            d[idx + 3] = 255;
+          }
+        }
+        pctx.putImageData(img, 0, 0);
+      }
+      if (!CONFIG.transparent) {
+        renderPaperTexture();
+      }
+
+      /* Live local clock & 1-bit wave equalizer */
+      var statusEl = document.getElementById("status-readout");
+      function pad2(n) { return n < 10 ? "0" + n : String(n); }
+      function updateClock() {
+        var now = new Date();
+        var clockStr = pad2(now.getHours()) + ":" + pad2(now.getMinutes()) + ":" + pad2(now.getSeconds());
+        statusEl.innerHTML =
+          "HOST: " + streamerUpper + "<br />CLOCK: " + clockStr + "<br />SCENE: ENDING";
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      var waveBarEl = document.getElementById("wave-bar");
+      var waveCells = [];
+      for (var wc = 0; wc < 12; wc++) {
+        var cell = document.createElement("div");
+        cell.className = "wave-cell";
+        waveBarEl.appendChild(cell);
+        waveCells.push(cell);
+      }
+
+      /* Periodic slice glitch on vertical title */
+      setInterval(function () {
+        titleBox.classList.add("glitching");
+        setTimeout(function () {
+          titleBox.classList.remove("glitching");
+        }, 260);
+      }, 4900);
+
+      /* Vector helpers */
+      function sub(a, b) { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
+      function cross(a, b) {
+        return [
+          a[1] * b[2] - a[2] * b[1],
+          a[2] * b[0] - a[0] * b[2],
+          a[0] * b[1] - a[1] * b[0]
+        ];
+      }
+      function dot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+      function norm(v) {
+        var l = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]) || 1;
+        return [v[0] / l, v[1] / l, v[2] / l];
+      }
+
+      function addOutwardTri(tris, a, b, c, spineCenter, alb) {
+        var fc = [
+          (a[0] + b[0] + c[0]) / 3,
+          (a[1] + b[1] + c[1]) / 3,
+          (a[2] + b[2] + c[2]) / 3
+        ];
+        var n = cross(sub(b, a), sub(c, a));
+        var outward = sub(fc, spineCenter);
+        if (dot(n, outward) < 0) {
+          tris.push({ a: a, b: c, c: b, alb: alb });
+        } else {
+          tris.push({ a: a, b: b, c: c, alb: alb });
+        }
+      }
+
+      /* Left Mesh: Zebra-Banded Trefoil Torus Knot (parallel-transport frame) */
+      function buildTorusKnot(P, Q, segU, segV) {
+        function knotPt(t) {
+          var r = 0.56 + 0.24 * Math.cos(Q * t);
+          return [
+            r * Math.cos(P * t),
+            r * Math.sin(P * t),
+            0.30 * Math.sin(Q * t)
+          ];
+        }
+
+        var centers = [];
+        var tangents = [];
+        var i, j;
+        for (i = 0; i < segU; i++) {
+          centers.push(knotPt((2 * Math.PI * i) / segU));
+        }
+        for (i = 0; i < segU; i++) {
+          var nextC = centers[(i + 1) % segU];
+          var prevC = centers[(i - 1 + segU) % segU];
+          tangents.push(norm(sub(nextC, prevC)));
+        }
+
+        var N = cross(tangents[0], [0, 0, 1]);
+        if (Math.sqrt(dot(N, N)) < 1e-4) {
+          N = cross(tangents[0], [1, 0, 0]);
+        }
+        N = norm(N);
+
+        var pts = [];
+        for (i = 0; i < segU; i++) {
+          var T = tangents[i];
+          var d = dot(N, T);
+          N = norm([N[0] - d * T[0], N[1] - d * T[1], N[2] - d * T[2]]);
+          var B = cross(T, N);
+          var rad = 0.20;
+          var ring = [];
+          for (j = 0; j < segV; j++) {
+            var v = (2 * Math.PI * j) / segV;
+            var cv = Math.cos(v);
+            var sv = Math.sin(v);
+            ring.push([
+              centers[i][0] + (N[0] * cv + B[0] * sv) * rad,
+              centers[i][1] + (N[1] * cv + B[1] * sv) * rad,
+              centers[i][2] + (N[2] * cv + B[2] * sv) * rad
+            ]);
+          }
+          pts.push(ring);
+        }
+
+        var tris = [];
+        for (i = 0; i < segU; i++) {
+          var ni = (i + 1) % segU;
+          var sc = [
+            (centers[i][0] + centers[ni][0]) * 0.5,
+            (centers[i][1] + centers[ni][1]) * 0.5,
+            (centers[i][2] + centers[ni][2]) * 0.5
+          ];
+          var isBrightBand = (Math.floor(i / 2) % 2) === 0;
+          var alb = isBrightBand ? 0.94 : 0.16;
+          for (j = 0; j < segV; j++) {
+            var nj = (j + 1) % segV;
+            var a = pts[i][j];
+            var b = pts[ni][j];
+            var c = pts[ni][nj];
+            var dPt = pts[i][nj];
+            addOutwardTri(tris, a, b, c, sc, alb);
+            addOutwardTri(tris, a, c, dPt, sc, alb);
+          }
+        }
+        return tris;
+      }
+
+      /* Right Mesh: Stellated Polyhedral Crystal + 2 Independent Gyro Rings */
+      function buildCrystalCore() {
+        var tris = [];
+        var phi = (1 + Math.sqrt(5)) / 2;
+        var rawVerts = [
+          [-1, phi, 0], [1, phi, 0], [-1, -phi, 0], [1, -phi, 0],
+          [0, -1, phi], [0, 1, phi], [0, -1, -phi], [0, 1, -phi],
+          [phi, 0, -1], [phi, 0, 1], [-phi, 0, -1], [-phi, 0, 1]
+        ];
+        var verts = [];
+        for (var vi = 0; vi < rawVerts.length; vi++) {
+          var nv = norm(rawVerts[vi]);
+          verts.push([nv[0] * 0.65, nv[1] * 0.65, nv[2] * 0.65]);
+        }
+
+        var faces = [
+          [0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11],
+          [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
+          [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9],
+          [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]
+        ];
+
+        var seed = 11;
+        function rand() {
+          seed = (seed * 1664525 + 1013904223) >>> 0;
+          return seed / 4294967296;
+        }
+
+        var origin = [0, 0, 0];
+        for (var fi = 0; fi < faces.length; fi++) {
+          var v0 = verts[faces[fi][0]];
+          var v1 = verts[faces[fi][1]];
+          var v2 = verts[faces[fi][2]];
+          var center = [
+            (v0[0] + v1[0] + v2[0]) / 3,
+            (v0[1] + v1[1] + v2[1]) / 3,
+            (v0[2] + v1[2] + v2[2]) / 3
+          ];
+          var n = norm(center);
+          var tipLen = 0.88 + rand() * 0.45;
+          var tip = [n[0] * tipLen, n[1] * tipLen, n[2] * tipLen];
+          addOutwardTri(tris, v0, v1, tip, origin, 0.88);
+          addOutwardTri(tris, v1, v2, tip, origin, 0.88);
+          addOutwardTri(tris, v2, v0, tip, origin, 0.88);
+        }
+        return tris;
+      }
+
+      function buildGyroRing(rMaj, rMin, segU, segV, alb) {
+        var tris = [];
+        var centers = [];
+        var ringPts = [];
+        var i, j;
+        for (i = 0; i < segU; i++) {
+          var u = (2 * Math.PI * i) / segU;
+          var cu = Math.cos(u);
+          var su = Math.sin(u);
+          centers.push([rMaj * cu, 0, rMaj * su]);
+          var subPts = [];
+          for (j = 0; j < segV; j++) {
+            var v = (2 * Math.PI * j) / segV;
+            var rr = rMaj + rMin * Math.cos(v);
+            subPts.push([rr * cu, rMin * Math.sin(v), rr * su]);
+          }
+          ringPts.push(subPts);
+        }
+
+        for (i = 0; i < segU; i++) {
+          var ni = (i + 1) % segU;
+          var sc = [
+            (centers[i][0] + centers[ni][0]) * 0.5,
+            (centers[i][1] + centers[ni][1]) * 0.5,
+            (centers[i][2] + centers[ni][2]) * 0.5
+          ];
+          for (j = 0; j < segV; j++) {
+            var nj = (j + 1) % segV;
+            var a = ringPts[i][j];
+            var b = ringPts[ni][j];
+            var c = ringPts[ni][nj];
+            var d = ringPts[i][nj];
+            addOutwardTri(tris, a, b, c, sc, alb);
+            addOutwardTri(tris, a, c, d, sc, alb);
+          }
+        }
+        return tris;
+      }
+
+      var knotMesh = buildTorusKnot(2, 3, 48, 10);
+      var crystalMesh = buildCrystalCore();
+      var ring1Mesh = buildGyroRing(1.04, 0.048, 48, 8, 0.85);
+      var ring2Mesh = buildGyroRing(1.18, 0.036, 48, 8, 0.76);
+
+      var lightDir = norm([-0.45, -0.52, 0.72]);
+      var bayer4 = [
+        [0 / 16, 8 / 16, 2 / 16, 10 / 16],
+        [12 / 16, 4 / 16, 14 / 16, 6 / 16],
+        [3 / 16, 11 / 16, 1 / 16, 9 / 16],
+        [15 / 16, 7 / 16, 13 / 16, 5 / 16]
+      ];
+
+      function createRasterBuffers(w, h) {
+        return {
+          w: w,
+          h: h,
+          zbuf: new Float32Array(w * h),
+          lbuf: new Float32Array(w * h),
+          mask: new Uint8Array(w * h),
+          err: new Float32Array(w * h)
+        };
+      }
+
+      var leftCanvas = document.getElementById("canvas-left");
+      var leftCtx = leftCanvas.getContext("2d");
+      var leftImg = leftCtx.createImageData(leftCanvas.width, leftCanvas.height);
+      var leftBuf = createRasterBuffers(leftCanvas.width, leftCanvas.height);
+
+      var rightCanvas = document.getElementById("canvas-right");
+      var rightCtx = rightCanvas.getContext("2d");
+      var rightImg = rightCtx.createImageData(rightCanvas.width, rightCanvas.height);
+      var rightBuf = createRasterBuffers(rightCanvas.width, rightCanvas.height);
+
+      function clearBuffers(buf) {
+        buf.zbuf.fill(-1e9);
+        buf.lbuf.fill(1);
+        buf.mask.fill(0);
+      }
+
+      function drawMeshToBuffers(mesh, buf, ax, ay, az, scale) {
+        var w = buf.w;
+        var h = buf.h;
+        var zbuf = buf.zbuf;
+        var lbuf = buf.lbuf;
+        var mask = buf.mask;
+
+        var cx = w * 0.5;
+        var cy = h * 0.5;
+        var rad = Math.min(w, h) * 0.36 * scale;
+
+        var cosX = Math.cos(ax), sinX = Math.sin(ax);
+        var cosY = Math.cos(ay), sinY = Math.sin(ay);
+        var cosZ = Math.cos(az), sinZ = Math.sin(az);
+
+        function rot(v) {
+          var y1 = v[1] * cosX - v[2] * sinX;
+          var z1 = v[1] * sinX + v[2] * cosX;
+          var x1 = v[0];
+          var x2 = x1 * cosY + z1 * sinY;
+          var z2 = -x1 * sinY + z1 * cosY;
+          var y2 = y1;
+          return [
+            x2 * cosZ - y2 * sinZ,
+            x2 * sinZ + y2 * cosZ,
+            z2
+          ];
+        }
+
+        for (var i = 0; i < mesh.length; i++) {
+          var tri = mesh[i];
+          var v0 = rot(tri.a);
+          var v1 = rot(tri.b);
+          var v2 = rot(tri.c);
+
+          var e1x = v1[0] - v0[0], e1y = v1[1] - v0[1], e1z = v1[2] - v0[2];
+          var e2x = v2[0] - v0[0], e2y = v2[1] - v0[1], e2z = v2[2] - v0[2];
+          var nx = e1y * e2z - e1z * e2y;
+          var ny = e1z * e2x - e1x * e2z;
+          var nz = e1x * e2y - e1y * e2x;
+
+          if (nz <= 0) continue;
+          var nl = Math.sqrt(nx * nx + ny * ny + nz * nz);
+          if (nl < 1e-6) continue;
+          nx /= nl;
+          ny /= nl;
+          nz /= nl;
+
+          var diff = nx * lightDir[0] + ny * lightDir[1] + nz * lightDir[2];
+          if (diff < 0) diff = 0;
+          var shade = tri.alb * (0.1 + 0.9 * diff);
+
+          var p0x = cx + v0[0] * rad, p0y = cy - v0[1] * rad, p0z = v0[2];
+          var p1x = cx + v1[0] * rad, p1y = cy - v1[1] * rad, p1z = v1[2];
+          var p2x = cx + v2[0] * rad, p2y = cy - v2[1] * rad, p2z = v2[2];
+
+          var minX = Math.max(0, Math.floor(Math.min(p0x, p1x, p2x)));
+          var maxX = Math.min(w - 1, Math.ceil(Math.max(p0x, p1x, p2x)));
+          var minY = Math.max(0, Math.floor(Math.min(p0y, p1y, p2y)));
+          var maxY = Math.min(h - 1, Math.ceil(Math.max(p0y, p1y, p2y)));
+          if (minX > maxX || minY > maxY) continue;
+
+          var denom = (p1y - p2y) * (p0x - p2x) + (p2x - p1x) * (p0y - p2y);
+          if (Math.abs(denom) < 1e-5) continue;
+          var invDenom = 1 / denom;
+
+          for (var py = minY; py <= maxY; py++) {
+            var rowOff = py * w;
+            for (var px = minX; px <= maxX; px++) {
+              var w0 = ((p1y - p2y) * (px - p2x) + (p2x - p1x) * (py - p2y)) * invDenom;
+              var w1 = ((p2y - p0y) * (px - p2x) + (p0x - p2x) * (py - p2y)) * invDenom;
+              var w2 = 1 - w0 - w1;
+              if (w0 >= -0.002 && w1 >= -0.002 && w2 >= -0.002) {
+                var z = w0 * p0z + w1 * p1z + w2 * p2z;
+                var idx = rowOff + px;
+                if (z > zbuf[idx]) {
+                  zbuf[idx] = z;
+                  lbuf[idx] = shade;
+                  mask[idx] = 1;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      function renderLeftBayer(t) {
+        clearBuffers(leftBuf);
+        drawMeshToBuffers(knotMesh, leftBuf, 0.55 + t * 0.21, 0.45 + t * 0.29, t * 0.12, 0.98);
+        var w = leftBuf.w;
+        var h = leftBuf.h;
+        var lbuf = leftBuf.lbuf;
+        var mask = leftBuf.mask;
+        var data = leftImg.data;
+
+        for (var y = 0; y < h; y++) {
+          var bRow = bayer4[y & 3];
+          var rowOff = y * w;
+          for (var x = 0; x < w; x++) {
+            var idx = rowOff + x;
+            var p = idx * 4;
+            if (!mask[idx]) {
+              data[p + 3] = 0;
+              continue;
+            }
+            var hash = (((x * 374761393) ^ (y * 668265263)) >>> 0) / 4294967296 - 0.5;
+            var lum = lbuf[idx] + hash * 0.24;
+            var ink = lum < bRow[x & 3];
+            if (ink) {
+              data[p] = 12;
+              data[p + 1] = 12;
+              data[p + 2] = 12;
+              data[p + 3] = 255;
+            } else {
+              data[p + 3] = 0;
+            }
+          }
+        }
+        leftCtx.putImageData(leftImg, 0, 0);
+      }
+
+      function renderRightAtkinson(t) {
+        clearBuffers(rightBuf);
+        drawMeshToBuffers(crystalMesh, rightBuf, 0.35 + t * 0.16, -t * 0.22, t * 0.08, 0.88);
+        drawMeshToBuffers(ring1Mesh, rightBuf, 0.45 + t * 0.35, t * 0.28, 0.25 + t * 0.18, 0.88);
+        drawMeshToBuffers(ring2Mesh, rightBuf, -0.65 - t * 0.27, t * 0.41, 0.80 - t * 0.21, 0.88);
+
+        var w = rightBuf.w;
+        var h = rightBuf.h;
+        var err = rightBuf.err;
+        err.set(rightBuf.lbuf);
+        var mask = rightBuf.mask;
+        var data = rightImg.data;
+
+        for (var y = 0; y < h; y++) {
+          var rowOff = y * w;
+          for (var x = 0; x < w; x++) {
+            var idx = rowOff + x;
+            var p = idx * 4;
+            if (!mask[idx]) {
+              data[p + 3] = 0;
+              continue;
+            }
+            var oldVal = err[idx];
+            var newVal = oldVal > 0.5 ? 1 : 0;
+            if (newVal === 0) {
+              data[p] = 12;
+              data[p + 1] = 12;
+              data[p + 2] = 12;
+              data[p + 3] = 255;
+            } else {
+              data[p + 3] = 0;
+            }
+
+            var qErr = (oldVal - newVal) * 0.125;
+            if (x + 1 < w && mask[idx + 1]) err[idx + 1] += qErr;
+            if (x + 2 < w && mask[idx + 2]) err[idx + 2] += qErr;
+            if (y + 1 < h) {
+              var nRow = idx + w;
+              if (x - 1 >= 0 && mask[nRow - 1]) err[nRow - 1] += qErr;
+              if (mask[nRow]) err[nRow] += qErr;
+              if (x + 1 < w && mask[nRow + 1]) err[nRow + 1] += qErr;
+            }
+            if (y + 2 < h) {
+              var nRow2 = idx + w * 2;
+              if (mask[nRow2]) err[nRow2] += qErr;
+            }
+          }
+        }
+        rightCtx.putImageData(rightImg, 0, 0);
+      }
+
+      function renderWaveBar(t) {
+        for (var i = 0; i < waveCells.length; i++) {
+          var v = 0.5 + 0.5 * Math.sin(t * 2.8 - i * 0.55);
+          var stepped = Math.round(v * 4) / 4;
+          var hRem = 0.25 + stepped * 1.1;
+          waveCells[i].style.height = hRem.toFixed(2) + "rem";
+        }
+      }
+
+      var frameInterval = 1000 / CONFIG.fps;
+      var lastFrame = 0;
+      var startTime = performance.now();
+
+      function tick(now) {
+        requestAnimationFrame(tick);
+        if (now - lastFrame < frameInterval) return;
+        lastFrame = now;
+        var t = (now - startTime) * 0.001;
+        renderLeftBayer(t);
+        renderRightAtkinson(t);
+        renderWaveBar(t);
+      }
+      requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>

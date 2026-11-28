@@ -1,0 +1,144 @@
+/* 1. Kanvas Transparan Total & Hapus Scrollbar */
+html,
+body,
+yt-live-chat-app,
+yt-live-chat-renderer,
+yt-live-chat-item-list-renderer,
+#contents,
+#items,
+#item-scroller,
+#item-offset {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+}
+
+/* 2. Bersihkan UI YouTube (Header, Input, Ticker) */
+yt-live-chat-header-renderer,
+yt-live-chat-message-input-renderer,
+#ticker,
+yt-live-chat-banner-manager {
+  display: none !important;
+}
+
+/* 3. Tipografi & Reset Kartu Pesan */
+yt-live-chat-text-message-renderer,
+yt-live-chat-text-message-renderer[is-highlighted] {
+  background: rgba(241, 237, 228, 0.42) !important;
+  border-radius: 6px !important;
+  margin: 4px 8px !important;
+  padding: 6px 10px !important;
+  font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.35 !important;
+}
+
+yt-live-chat-author-chip #author-name {
+  background: transparent !important;
+  padding: 0 !important;
+  font-weight: 700 !important;
+}
+
+/* 4. Pembedaan Role (Termasuk varian [is-highlighted]) */
+/* Regular */
+yt-live-chat-text-message-renderer #author-name,
+yt-live-chat-text-message-renderer[is-highlighted] #author-name {
+  color: #3a342d !important;
+}
+
+yt-live-chat-text-message-renderer #message,
+yt-live-chat-text-message-renderer[is-highlighted] #message {
+  color: #151412 !important;
+  font-weight: 500 !important;
+}
+
+/* Membership */
+yt-live-chat-text-message-renderer[author-type="member"],
+yt-live-chat-text-message-renderer[author-type="member"][is-highlighted],
+yt-live-chat-text-message-renderer:has(yt-live-chat-author-chip[is-member]),
+yt-live-chat-text-message-renderer[is-highlighted]:has(yt-live-chat-author-chip[is-member]) {
+  background: rgba(30, 107, 67, 0.1) !important;
+  border-left: 3px solid #1e6b43 !important;
+}
+
+yt-live-chat-text-message-renderer[author-type="member"] #author-name,
+yt-live-chat-text-message-renderer[author-type="member"][is-highlighted] #author-name,
+yt-live-chat-text-message-renderer:has(yt-live-chat-author-chip[is-member]) #author-name,
+yt-live-chat-text-message-renderer[is-highlighted]:has(yt-live-chat-author-chip[is-member]) #author-name {
+  color: #165b37 !important;
+}
+
+yt-live-chat-text-message-renderer[author-type="member"] #message,
+yt-live-chat-text-message-renderer[author-type="member"][is-highlighted] #message,
+yt-live-chat-text-message-renderer:has(yt-live-chat-author-chip[is-member]) #message,
+yt-live-chat-text-message-renderer[is-highlighted]:has(yt-live-chat-author-chip[is-member]) #message {
+  color: #151412 !important;
+}
+
+/* Moderator */
+yt-live-chat-text-message-renderer[author-type="moderator"],
+yt-live-chat-text-message-renderer[author-type="moderator"][is-highlighted] {
+  background: rgba(29, 78, 216, 0.09) !important;
+  border-left: 3px solid #1d4ed8 !important;
+}
+
+yt-live-chat-text-message-renderer[author-type="moderator"] #author-name,
+yt-live-chat-text-message-renderer[author-type="moderator"][is-highlighted] #author-name {
+  color: #1d4ed8 !important;
+}
+
+yt-live-chat-text-message-renderer[author-type="moderator"] #message,
+yt-live-chat-text-message-renderer[author-type="moderator"][is-highlighted] #message {
+  color: #151412 !important;
+}
+
+/* Owner */
+yt-live-chat-text-message-renderer[author-type="owner"],
+yt-live-chat-text-message-renderer[author-type="owner"][is-highlighted] {
+  background: rgba(167, 58, 53, 0.12) !important;
+  border-left: 3px solid #a73a35 !important;
+}
+
+yt-live-chat-text-message-renderer[author-type="owner"] #author-name,
+yt-live-chat-text-message-renderer[author-type="owner"][is-highlighted] #author-name {
+  color: #a73a35 !important;
+}
+
+yt-live-chat-text-message-renderer[author-type="owner"] #message,
+yt-live-chat-text-message-renderer[author-type="owner"][is-highlighted] #message {
+  color: #151412 !important;
+}
+
+/* 5. Notifikasi Member & Info Sistem (Mode Subscriber, dll) */
+yt-live-chat-membership-item-renderer {
+  margin: 6px 8px !important;
+  border-radius: 6px !important;
+  border: 1.5px solid #1e6b43 !important;
+  background: rgba(30, 107, 67, 0.14) !important;
+}
+
+yt-live-chat-membership-item-renderer #card,
+yt-live-chat-membership-item-renderer #header {
+  background: transparent !important;
+}
+
+yt-live-chat-membership-item-renderer #author-name,
+yt-live-chat-membership-item-renderer #header-subtext,
+yt-live-chat-membership-item-renderer #message {
+  color: #151412 !important;
+}
+
+yt-live-chat-viewer-engagement-message-renderer {
+  background: rgba(21, 20, 18, 0.08) !important;
+  border-radius: 6px !important;
+  margin: 4px 8px !important;
+}
+
+yt-live-chat-viewer-engagement-message-renderer #message,
+yt-live-chat-viewer-engagement-message-renderer a {
+  color: #262421 !important;
+}

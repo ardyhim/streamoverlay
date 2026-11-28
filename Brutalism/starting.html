@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jaden Bahtera — Starting Soon // Brutalism × Zine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Permanent+Marker&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #EFEADB;
+      --paper-2: #E1DBC9;
+      --concrete: #B7B3A6;
+      --ink: #0F0F0E;
+      --orange: #FF4A00;
+      --white: #F8F5EC;
+      --grey: #6F6B60;
+      --font-display: "Archivo Black", "Arial Black", Impact, sans-serif;
+      --font-cond: "Bebas Neue", "Arial Narrow", Impact, sans-serif;
+      --font-mono: "Courier Prime", "Courier New", monospace;
+      --font-hand: "Permanent Marker", "Comic Sans MS", cursive;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent !important;
+      color: var(--ink);
+      font-family: var(--font-mono);
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .stage-wrapper {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+    }
+
+    .stage {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      flex-shrink: 0;
+      overflow: hidden;
+      background: var(--concrete);
+      transform-origin: center center;
+    }
+
+    /* ================= RAW CONCRETE ================= */
+    .concrete {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background-color: var(--concrete);
+      background-image:
+        radial-gradient(circle at 120px 120px, rgba(15, 15, 14, 0.34) 0 3.5px, rgba(15, 15, 14, 0.1) 4px 7px, transparent 8px),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.07) 0 119px, rgba(15, 15, 14, 0.09) 119px 120px, transparent 120px 240px),
+        repeating-linear-gradient(0deg, rgba(15, 15, 14, 0.1) 0 1px, transparent 1px 240px);
+      background-size: 240px 240px, auto, auto;
+    }
+
+    .concrete::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(90deg, rgba(15, 15, 14, 0.035) 0 60px, transparent 60px 140px, rgba(255, 255, 255, 0.03) 140px 240px);
+      mix-blend-mode: multiply;
+    }
+
+    /* Big torn paper poster pasted over the concrete */
+    .paper-sheet {
+      position: absolute;
+      z-index: 1;
+      left: -26px;
+      top: 88px;
+      width: 1248px;
+      height: 912px;
+      background: var(--paper);
+      transform: rotate(-0.5deg);
+      clip-path: polygon(
+        0 0, 100% 0,
+        99.1% 4%, 100% 9%, 98.7% 14%, 99.7% 19%, 98.3% 24%, 99.6% 30%,
+        98.4% 36%, 99.8% 42%, 98.2% 48%, 99.5% 54%, 98.4% 60%, 99.7% 66%,
+        98.2% 72%, 99.5% 78%, 98.4% 84%, 99.6% 90%, 98.3% 95%, 99.4% 100%,
+        94% 99%, 88% 100%, 82% 98.6%, 76% 100%, 70% 98.7%, 64% 100%,
+        58% 98.5%, 52% 99.8%, 46% 98.6%, 40% 100%, 34% 98.4%, 28% 99.7%,
+        22% 98.6%, 16% 100%, 10% 98.5%, 4% 99.8%, 0 98.6%
+      );
+    }
+
+    .paper-sheet::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(112deg, transparent 47.6%, rgba(15, 15, 14, 0.05) 47.9%, transparent 48.3%),
+        linear-gradient(74deg, transparent 67.6%, rgba(15, 15, 14, 0.04) 67.9%, transparent 68.3%);
+    }
+
+    /* Torn orange riso scrap */
+    .orange-scrap {
+      position: absolute;
+      z-index: 2;
+      left: -40px;
+      top: 214px;
+      width: 545px;
+      height: 178px;
+      background-color: var(--orange);
+      background-image: radial-gradient(rgba(15, 15, 14, 0.14) 1.5px, transparent 1.8px);
+      background-size: 9px 9px;
+      transform: rotate(-3deg);
+      clip-path: polygon(0 4%, 8% 0, 18% 3%, 28% 0, 39% 4%, 50% 0, 62% 3%, 74% 0, 86% 4%, 100% 1%, 98% 20%, 100% 42%, 97% 63%, 100% 84%, 98% 100%, 86% 97%, 74% 100%, 62% 96%, 50% 100%, 38% 97%, 26% 100%, 14% 96%, 0 100%, 2% 78%, 0 56%, 3% 34%, 0 16%);
+    }
+
+    /* Xerox halftone patches */
+    .halftone {
+      position: absolute;
+      z-index: 2;
+      pointer-events: none;
+      background-image: radial-gradient(rgba(15, 15, 14, 0.85) 2.2px, transparent 2.5px);
+      background-size: 12px 12px;
+    }
+
+    .halftone-a {
+      left: -30px;
+      top: 118px;
+      width: 480px;
+      height: 330px;
+      opacity: 0.15;
+      transform: rotate(-6deg);
+      -webkit-mask-image: linear-gradient(135deg, #000 10%, transparent 72%);
+      mask-image: linear-gradient(135deg, #000 10%, transparent 72%);
+    }
+
+    .halftone-b {
+      right: 22px;
+      bottom: 108px;
+      width: 360px;
+      height: 300px;
+      opacity: 0.12;
+      transform: rotate(4deg);
+      -webkit-mask-image: linear-gradient(315deg, #000 5%, transparent 70%);
+      mask-image: linear-gradient(315deg, #000 5%, transparent 70%);
+    }
+
+    .grain {
+      position: absolute;
+      inset: 0;
+      z-index: 60;
+      opacity: 0.06;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .xerox {
+      position: absolute;
+      inset: 0;
+      z-index: 59;
+      pointer-events: none;
+      opacity: 0.4;
+      background-image: repeating-linear-gradient(90deg, transparent 0 4px, rgba(15, 15, 14, 0.025) 4px 5px);
+      mix-blend-mode: multiply;
+    }
+
+    /* ================= MASTHEAD ================= */
+    .masthead {
+      position: relative;
+      z-index: 20;
+      height: 104px;
+      padding: 0 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 30px;
+      border-bottom: 10px solid var(--ink);
+    }
+
+    .mast-left {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      min-width: 0;
+    }
+
+    .mast-title {
+      position: relative;
+      font-family: var(--font-display);
+      font-size: 66px;
+      line-height: 0.86;
+      letter-spacing: -0.035em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      isolation: isolate;
+    }
+
+    .mast-title::before {
+      content: "JADEN BAHTERA";
+      position: absolute;
+      z-index: -1;
+      left: 3px;
+      top: 3px;
+      color: rgba(255, 74, 0, 0.55);
+    }
+
+    .mast-sub {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      height: 64px;
+      border-left: 3px solid var(--ink);
+      padding-left: 8px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .mast-meta {
+      display: flex;
+      align-items: stretch;
+      border: 3px solid var(--ink);
+      background: var(--paper);
+      flex-shrink: 0;
+    }
+
+    .meta-cell {
+      padding: 6px 13px 7px;
+      border-left: 3px solid var(--ink);
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      min-width: 92px;
+    }
+
+    .meta-cell:first-child { border-left: none; }
+
+    .meta-cell span {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--grey);
+    }
+
+    .meta-cell strong {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .meta-cell strong.hot { color: var(--orange); }
+
+    /* ================= MAIN STRUCTURE ================= */
+    .canvas {
+      position: relative;
+      z-index: 10;
+      height: calc(100% - 104px - 92px);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 34px 596px;
+      padding: 0 44px;
+    }
+
+    .col-left {
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      min-width: 0;
+      padding: 18px 26px 18px 0;
+    }
+
+    .beam {
+      position: relative;
+      background: var(--ink);
+      height: 100%;
+    }
+
+    .beam::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(239, 234, 219, 0.22) 2px, transparent 2.8px);
+      background-size: 34px 84px;
+      background-position: center 18px;
+    }
+
+    .col-right {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+      min-height: 0;
+      padding: 18px 0 18px 26px;
+    }
+
+    /* ================= FILE LINE ================= */
+    .file-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 5px 0 7px;
+      border-bottom: 3px solid var(--ink);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .file-line .sq {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 7px;
+      background: var(--orange);
+    }
+
+    .file-line .hot { color: var(--orange); }
+
+    /* ================= HERO ================= */
+    .hero {
+      position: relative;
+      min-height: 300px;
+      padding-top: 8px;
+    }
+
+    .hero-title {
+      position: relative;
+      z-index: 2;
+      font-family: var(--font-display);
+      font-size: 186px;
+      line-height: 0.78;
+      letter-spacing: -0.045em;
+      text-transform: uppercase;
+      color: var(--ink);
+      width: max-content;
+      max-width: 100%;
+      isolation: isolate;
+    }
+
+    .hero-title::before {
+      content: "STARTING";
+      position: absolute;
+      z-index: -1;
+      left: 8px;
+      top: 8px;
+      color: var(--orange);
+    }
+
+    .hero-soon {
+      position: relative;
+      z-index: 4;
+      display: flex;
+      align-items: flex-start;
+      margin-top: -12px;
+      padding-left: 2px;
+    }
+
+    .cut {
+      display: inline-block;
+      line-height: 0.8;
+      text-transform: uppercase;
+    }
+
+    .cut-s {
+      font-family: var(--font-display);
+      font-size: 146px;
+      background: var(--white);
+      color: var(--ink);
+      padding: 12px 22px 18px;
+      transform: rotate(-4deg);
+      margin-right: -10px;
+      clip-path: polygon(3% 0, 97% 2%, 100% 12%, 98% 26%, 100% 42%, 97% 58%, 100% 74%, 98% 88%, 99% 100%, 86% 97%, 72% 100%, 58% 97%, 44% 100%, 30% 97%, 16% 100%, 2% 97%, 0 84%, 2% 68%, 0 52%, 2% 36%, 0 20%, 2% 8%);
+    }
+
+    .cut-o1 {
+      font-family: var(--font-cond);
+      font-size: 174px;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 8px 20px 14px;
+      transform: rotate(2deg) translateY(12px);
+      clip-path: polygon(2% 2%, 96% 0, 100% 14%, 97% 30%, 100% 46%, 97% 62%, 100% 78%, 97% 94%, 84% 100%, 68% 97%, 52% 100%, 36% 97%, 20% 100%, 4% 96%, 0 82%, 3% 66%, 0 50%, 3% 34%, 0 18%, 3% 6%);
+    }
+
+    .cut-o2 {
+      font-family: var(--font-mono);
+      font-size: 138px;
+      font-weight: 700;
+      background: var(--paper-2);
+      color: var(--ink);
+      padding: 14px 18px 20px;
+      transform: rotate(-1.5deg) translateY(-8px);
+      margin-left: -6px;
+      clip-path: polygon(0 6%, 14% 0, 30% 3%, 46% 0, 62% 3%, 78% 0, 94% 3%, 100% 18%, 97% 34%, 100% 50%, 97% 66%, 100% 82%, 96% 100%, 80% 97%, 64% 100%, 48% 97%, 32% 100%, 16% 97%, 2% 100%, 0 86%, 3% 70%, 0 54%, 3% 38%, 0 22%);
+    }
+
+    .cut-n {
+      font-family: var(--font-hand);
+      font-size: 152px;
+      background: var(--orange);
+      color: var(--ink);
+      padding: 6px 24px 14px;
+      transform: rotate(3.5deg) translateY(6px);
+      margin-left: -4px;
+      clip-path: polygon(4% 2%, 20% 0, 36% 3%, 52% 0, 68% 3%, 84% 0, 98% 2%, 100% 16%, 97% 32%, 100% 48%, 97% 64%, 100% 80%, 97% 98%, 82% 100%, 66% 97%, 50% 100%, 34% 97%, 18% 100%, 2% 97%, 0% 82%, 3% 66%, 0% 50%, 3% 34%, 0% 18%);
+    }
+
+    .soon-underline {
+      position: absolute;
+      z-index: 3;
+      left: 6px;
+      top: 262px;
+      width: 560px;
+      height: 22px;
+      opacity: 0.95;
+    }
+
+    .hero-note {
+      position: absolute;
+      z-index: 5;
+      right: 0;
+      top: 104px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0;
+      transform: rotate(-4deg);
+    }
+
+    .hero-note .hand {
+      font-family: var(--font-hand);
+      font-size: 27px;
+      line-height: 1.05;
+      color: var(--orange);
+      text-align: right;
+    }
+
+    .hero-note svg {
+      width: 96px;
+      margin-top: 2px;
+      transform: scaleX(-1);
+    }
+
+    /* ================= STATUS ================= */
+    .status-line {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 22px;
+      padding: 0 2px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .status-square {
+      width: 9px;
+      height: 9px;
+      background: var(--orange);
+      flex-shrink: 0;
+      animation: blink 1.1s steps(2, start) infinite;
+    }
+
+    .status-text {
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status-text.switching {
+      opacity: 0;
+      transform: translateX(-8px);
+    }
+
+    /* ================= COUNTDOWN ================= */
+    .countdown {
+      position: relative;
+      z-index: 3;
+      background: var(--paper);
+      border: 8px solid var(--ink);
+      transform: rotate(-0.45deg);
+      margin: 0 4px 0 0;
+    }
+
+    .cd-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 8px 14px;
+      background: var(--ink);
+      color: var(--paper);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.17em;
+      text-transform: uppercase;
+    }
+
+    .cd-top .target { color: var(--orange); }
+
+    .cd-cells {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .cd-cell {
+      padding: 9px 8px 11px;
+      text-align: center;
+      border-left: 6px solid var(--ink);
+      min-width: 0;
+    }
+
+    .cd-cell:first-child { border-left: none; }
+
+    .cd-num {
+      display: block;
+      font-family: var(--font-cond);
+      font-size: 150px;
+      line-height: 0.82;
+      letter-spacing: 0.01em;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
+    .cd-lab {
+      display: block;
+      margin-top: 2px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--grey);
+    }
+
+    .cd-bottom {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 8px 12px;
+      border-top: 6px solid var(--ink);
+    }
+
+    .cd-progress {
+      flex: 1;
+      height: 12px;
+      border: 3px solid var(--ink);
+      background: var(--paper-2);
+      overflow: hidden;
+    }
+
+    .cd-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--orange);
+      transition: width 0.5s linear;
+    }
+
+    .cd-hand {
+      font-family: var(--font-hand);
+      font-size: 20px;
+      line-height: 1;
+      transform: rotate(-2deg);
+      white-space: nowrap;
+    }
+
+    .stage.is-live .cd-num { color: var(--orange); }
+    .stage.is-live .cd-progress-fill { background: var(--ink); }
+
+    /* ================= PASTED NOTES ================= */
+    .notes-row {
+      display: grid;
+      grid-template-columns: 1.16fr 0.84fr;
+      gap: 18px;
+      flex: 1;
+      min-height: 156px;
+    }
+
+    .scrap {
+      position: relative;
+      background: var(--paper);
+      border: 4px solid var(--ink);
+      padding: 11px 13px 10px;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .scrap-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding-bottom: 5px;
+      margin-bottom: 6px;
+      border-bottom: 3px solid var(--ink);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.19em;
+      text-transform: uppercase;
+    }
+
+    .programme {
+      transform: rotate(-0.8deg);
+    }
+
+    .programme ul {
+      list-style: none;
+    }
+
+    .programme li {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 4px 0;
+      border-bottom: 1px dashed rgba(15, 15, 14, 0.4);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .programme li:last-child { border-bottom: none; }
+
+    .cb {
+      width: 15px;
+      height: 15px;
+      border: 2px solid var(--ink);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .programme li.done .cb {
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .programme .num {
+      margin-left: auto;
+      font-size: 9px;
+      color: var(--grey);
+    }
+
+    .programme-note {
+      position: absolute;
+      right: 12px;
+      bottom: 9px;
+      font-family: var(--font-hand);
+      font-size: 20px;
+      line-height: 1.02;
+      color: var(--orange);
+      text-align: right;
+      transform: rotate(-3deg);
+    }
+
+    .programme-note2 {
+      position: absolute;
+      left: 16px;
+      bottom: 44px;
+      font-family: var(--font-hand);
+      font-size: 17px;
+      line-height: 1;
+      color: var(--ink);
+      opacity: 0.85;
+      transform: rotate(-2deg);
+    }
+
+    .host-scrap {
+      background: var(--orange);
+      transform: rotate(1deg);
+    }
+
+    .host-scrap .hand {
+      font-family: var(--font-hand);
+      font-size: 21px;
+      line-height: 1;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .host-name {
+      font-family: var(--font-display);
+      font-size: 34px;
+      line-height: 0.95;
+      letter-spacing: -0.025em;
+      text-transform: uppercase;
+    }
+
+    .host-line {
+      margin-top: 7px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .host-meta {
+      margin-top: 4px;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+
+    .host-scrap::after {
+      content: "JB";
+      position: absolute;
+      right: -6px;
+      bottom: -22px;
+      font-family: var(--font-display);
+      font-size: 120px;
+      line-height: 1;
+      color: rgba(15, 15, 14, 0.13);
+      letter-spacing: -0.06em;
+      pointer-events: none;
+    }
+
+    /* ================= CHAT CUTOUT ================= */
+    .chat-frame {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px;
+      background: var(--paper);
+      border: 8px solid var(--ink);
+    }
+
+    .chat-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 7px 10px;
+      background: var(--ink);
+      color: var(--paper);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .chat-top .left {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rec {
+      width: 8px;
+      height: 8px;
+      background: var(--orange);
+      display: inline-block;
+      animation: blink 1.1s steps(2, start) infinite;
+    }
+
+    .chat-viewport {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      background: transparent !important;
+      border: 3px dashed var(--ink);
+    }
+
+    .chat-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--grey);
+      flex-shrink: 0;
+    }
+
+    /* ================= INFO SCRAPS ================= */
+    .info-row {
+      display: grid;
+      grid-template-columns: 1.14fr 0.86fr;
+      gap: 16px;
+      height: 176px;
+      flex-shrink: 0;
+    }
+
+    .socials-scrap {
+      transform: rotate(-0.7deg);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .socials-foot {
+      margin-top: auto;
+      padding-top: 5px;
+      border-top: 2px solid var(--ink);
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .social-link {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 4px 0;
+      border-bottom: 2px solid var(--ink);
+      color: var(--ink);
+      text-decoration: none;
+      min-width: 0;
+    }
+
+    .social-link:last-of-type { border-bottom: none; }
+
+    .social-link span {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      color: var(--grey);
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .social-link strong {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stamp-scrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--concrete);
+      border: 4px solid var(--ink);
+      overflow: hidden;
+      transform: rotate(1deg);
+    }
+
+    .stamp-scrap::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(15, 15, 14, 0.3) 1.7px, transparent 2px);
+      background-size: 10px 10px;
+      opacity: 0.45;
+    }
+
+    .stamp {
+      position: relative;
+      z-index: 1;
+      border: 5px solid var(--orange);
+      outline: 2px dashed var(--orange);
+      outline-offset: -10px;
+      color: var(--orange);
+      background: rgba(239, 234, 219, 0.4);
+      padding: 13px 14px 12px;
+      text-align: center;
+      transform: rotate(-8deg);
+      mix-blend-mode: multiply;
+    }
+
+    .stamp strong {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 25px;
+      line-height: 0.92;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+    }
+
+    .stamp small {
+      display: block;
+      margin-top: 4px;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .stamp-note {
+      position: absolute;
+      z-index: 2;
+      right: 7px;
+      bottom: 3px;
+      font-family: var(--font-hand);
+      font-size: 18px;
+      color: var(--ink);
+      transform: rotate(-4deg);
+    }
+
+    /* ================= FOOTER ================= */
+    .footer {
+      position: relative;
+      z-index: 20;
+      height: 92px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+      padding: 0 44px;
+      background: var(--ink);
+      color: var(--paper);
+      border-top: 8px solid var(--orange);
+    }
+
+    .foot-big {
+      font-family: var(--font-display);
+      font-size: 50px;
+      line-height: 1;
+      letter-spacing: -0.025em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .foot-big .ast {
+      color: var(--orange);
+    }
+
+    .foot-mid,
+    .foot-right {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      line-height: 1.7;
+      text-transform: uppercase;
+    }
+
+    .foot-mid { text-align: center; }
+
+    .foot-right { text-align: right; }
+
+    /* ================= TAPE, STAPLES, CLIP ================= */
+    .tape {
+      position: absolute;
+      z-index: 8;
+      width: 116px;
+      height: 30px;
+      background-color: rgba(226, 216, 185, 0.78);
+      background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0 2px, transparent 2px 7px);
+      clip-path: polygon(2% 0, 98% 5%, 100% 50%, 97% 100%, 3% 94%, 0 46%);
+      pointer-events: none;
+    }
+
+    .tape-soon {
+      left: 10px;
+      top: -16px;
+      transform: rotate(-12deg);
+    }
+
+    .tape-cd {
+      right: 14px;
+      top: 120px;
+      transform: rotate(84deg);
+      width: 96px;
+      height: 26px;
+    }
+
+    .tape-chat {
+      right: 34px;
+      top: -21px;
+      transform: rotate(-6deg);
+      width: 132px;
+    }
+
+    .tape-socials {
+      right: 10px;
+      top: -20px;
+      transform: rotate(5deg);
+      width: 96px;
+      height: 24px;
+    }
+
+    .staple {
+      position: absolute;
+      z-index: 9;
+      width: 27px;
+      height: 9px;
+      background: linear-gradient(90deg, #8A867A, #E2DED1 40%, #8A867A);
+      border: 1px solid rgba(15, 15, 14, 0.55);
+      pointer-events: none;
+    }
+
+    .staple-a {
+      left: 14px;
+      top: auto;
+      bottom: 10px;
+      transform: rotate(-16deg);
+    }
+
+    .staple-b {
+      right: 20px;
+      bottom: 12px;
+      transform: rotate(9deg);
+    }
+
+    .paperclip {
+      position: absolute;
+      z-index: 9;
+      left: -10px;
+      top: -8px;
+      width: 30px;
+      height: 56px;
+      transform: rotate(16deg);
+      pointer-events: none;
+    }
+
+    /* ================= ANIMATION ================= */
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .status-square,
+      .rec {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage-wrapper">
+    <div class="stage" id="stage">
+
+      <!-- Raw materials -->
+      <div class="concrete" aria-hidden="true"></div>
+      <div class="paper-sheet" aria-hidden="true"></div>
+      <div class="orange-scrap" aria-hidden="true"></div>
+      <div class="halftone halftone-a" aria-hidden="true"></div>
+      <div class="halftone halftone-b" aria-hidden="true"></div>
+      <div class="xerox" aria-hidden="true"></div>
+      <div class="grain" aria-hidden="true"></div>
+
+      <!-- Masthead -->
+      <header class="masthead">
+        <div class="mast-left">
+          <div class="mast-title">JADEN BAHTERA</div>
+          <div class="mast-sub">LIVE STREAM — PRE-SHOW BROADCAST</div>
+        </div>
+
+        <div class="mast-meta">
+          <div class="meta-cell">
+            <span>FILE</span>
+            <strong>001</strong>
+          </div>
+          <div class="meta-cell">
+            <span>LOCAL TIME</span>
+            <strong id="localClock">00:00:00</strong>
+          </div>
+          <div class="meta-cell">
+            <span>SIGNAL</span>
+            <strong class="hot" id="signalState">STANDBY</strong>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main structure -->
+      <main class="canvas">
+
+        <!-- LEFT: poster + timetable -->
+        <section class="col-left">
+          <div class="file-line">
+            <span><i class="sq"></i>PRE-SHOW BROADCAST</span>
+            <span>AUDIO / CAM / CHAT CHECK</span>
+            <span class="hot">NO. 001</span>
+          </div>
+
+          <div class="hero">
+            <div class="hero-title">STARTING</div>
+
+            <div class="hero-soon">
+              <span class="cut cut-s">S</span>
+              <span class="cut cut-o1">O</span>
+              <span class="cut cut-o2">O</span>
+              <span class="cut cut-n">N</span>
+              <div class="tape tape-soon" aria-hidden="true"></div>
+            </div>
+
+            <svg class="soon-underline" viewBox="0 0 560 22" fill="none" aria-hidden="true">
+              <path d="M3 15C48 8 92 17 138 11C184 5 229 16 275 10C321 4 366 16 412 10C458 4 502 15 557 8"
+                    stroke="#FF4A00" stroke-width="6" stroke-linecap="round"/>
+            </svg>
+
+            <div class="hero-note">
+              <span class="hand">setting up.<br>chill.</span>
+              <svg viewBox="0 0 96 58" fill="none" aria-hidden="true">
+                <path d="M8 8C22 42 46 52 84 40" stroke="#FF4A00" stroke-width="4.5" stroke-linecap="round"/>
+                <path d="M70 32L85 39L74 50" stroke="#FF4A00" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="status-line">
+            <span class="status-square" aria-hidden="true"></span>
+            <span class="status-text" id="statusText">SIGNAL LOCKING IN — STANDBY</span>
+          </div>
+
+          <div class="countdown">
+            <div class="cd-top">
+              <span id="cdLabel">STREAM STARTS IN</span>
+              <span>TARGET <span class="target" id="cdTarget">--:--</span></span>
+            </div>
+
+            <div class="cd-cells">
+              <div class="cd-cell">
+                <span class="cd-num" id="cdH">00</span>
+                <span class="cd-lab">HOURS</span>
+              </div>
+              <div class="cd-cell">
+                <span class="cd-num" id="cdM">05</span>
+                <span class="cd-lab">MINUTES</span>
+              </div>
+              <div class="cd-cell">
+                <span class="cd-num" id="cdS">00</span>
+                <span class="cd-lab">SECONDS</span>
+              </div>
+            </div>
+
+            <div class="cd-bottom">
+              <div class="cd-progress">
+                <div class="cd-progress-fill" id="cdProgress"></div>
+              </div>
+              <span class="cd-hand">no rush.</span>
+            </div>
+
+            <div class="tape tape-cd" aria-hidden="true"></div>
+          </div>
+
+          <div class="notes-row">
+            <div class="scrap programme">
+              <div class="scrap-head"><span>TONIGHT / PROGRAMME</span><span>01—03</span></div>
+              <ul>
+                <li class="done"><span class="cb">✓</span>WARM UP THE ROOM<span class="num">01</span></li>
+                <li><span class="cb"></span>TALK, GAMES, CHAOS<span class="num">02</span></li>
+                <li><span class="cb"></span>GO LIVE — NO MERCY<span class="num">03</span></li>
+              </ul>
+              <div class="programme-note">all gas.<br>no brakes.</div>
+              <div class="programme-note2">subject to chaos.</div>
+              <div class="staple staple-a" aria-hidden="true"></div>
+            </div>
+
+            <div class="scrap host-scrap">
+              <span class="hand">hosted by</span>
+              <div class="host-name">JADEN<br>BAHTERA</div>
+              <div class="host-line">SAY HI IN CHAT ↗</div>
+              <div class="host-meta">PRE-SHOW / NO. 001</div>
+              <div class="staple staple-b" aria-hidden="true"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Structural beam -->
+        <div class="beam" aria-hidden="true"></div>
+
+        <!-- RIGHT: cut-out chat + contact sheet -->
+        <section class="col-right">
+          <div class="chat-frame">
+            <div class="chat-top">
+              <span class="left"><i class="rec"></i>LIVE CHAT</span>
+              <span>YOUTUBE / CUTOUT</span>
+            </div>
+
+            <!-- Transparent hole: put the YouTube chat browser source underneath -->
+            <div class="chat-viewport" id="chatViewport"></div>
+
+            <div class="chat-bottom">
+              <span>LAYER YOUTUBE CHAT UNDER THIS SOURCE</span>
+              <span>ALPHA 0</span>
+            </div>
+
+            <div class="tape tape-chat" aria-hidden="true"></div>
+
+            <svg class="paperclip" viewBox="0 0 40 90" fill="none" aria-hidden="true">
+              <path d="M20 6C11 6 6 13 6 22V68C6 77 12 83 20 83C28 83 34 77 34 68V28C34 22 30 18 25 18C20 18 16 22 16 28V66C16 70 18 72 21 72C24 72 26 70 26 66V34"
+                    stroke="#0F0F0E" stroke-width="5" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <div class="info-row">
+            <div class="scrap socials-scrap">
+              <div class="scrap-head"><span>FIND ME</span><span>1/1</span></div>
+              <a class="social-link" href="https://tiktok.com/@jadenbahtera" target="_blank" rel="noopener">
+                <span>TIKTOK</span><strong>@jadenbahtera ↗</strong>
+              </a>
+              <a class="social-link" href="https://instagram.com/jadenbahtera" target="_blank" rel="noopener">
+                <span>INSTAGRAM</span><strong>jadenbahtera ↗</strong>
+              </a>
+              <a class="social-link" href="https://youtube.com/@jadenbahtera" target="_blank" rel="noopener">
+                <span>YOUTUBE</span><strong>Jadenbahtera ↗</strong>
+              </a>
+              <div class="socials-foot">FOLLOW / SHARE / REPEAT</div>
+              <div class="tape tape-socials" aria-hidden="true"></div>
+            </div>
+
+            <div class="stamp-scrap">
+              <div class="stamp">
+                <strong id="stampText">PRE-SHOW<br>NOT LIVE<br>YET</strong>
+                <small>TRANSMISSION PENDING</small>
+              </div>
+              <span class="stamp-note">be patient.</span>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <div class="foot-big"><span id="footBigText">STARTING SOON</span><span class="ast">*</span></div>
+        <div class="foot-mid">JADEN BAHTERA — LIVE STREAM<br>PRE-SHOW BROADCAST / DO NOT ADJUST</div>
+        <div class="foot-right">TIKTOK @JADENBAHTERA<br>IG + YT / JADENBAHTERA</div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const stage = document.getElementById("stage");
+      const viewport = document.getElementById("chatViewport");
+      const statusText = document.getElementById("statusText");
+
+      /* ------------------------------------------------------------------
+         1. Fit the 1920x1080 canvas + punch the transparent chat hole
+         ------------------------------------------------------------------ */
+      function updateCutoutMask() {
+        if (!stage || !viewport) return;
+
+        const stageRect = stage.getBoundingClientRect();
+        const vpRect = viewport.getBoundingClientRect();
+        const scale = stageRect.width / 1920 || 1;
+
+        const cs = getComputedStyle(viewport);
+        const bw = parseFloat(cs.borderLeftWidth) || 0;
+
+        const x = Math.round((vpRect.left - stageRect.left) / scale) + bw;
+        const y = Math.round((vpRect.top - stageRect.top) / scale) + bw;
+        const w = Math.max(0, Math.round(vpRect.width / scale) - bw * 2);
+        const h = Math.max(0, Math.round(vpRect.height / scale) - bw * 2);
+
+        const maskImg = "linear-gradient(#fff, #fff), linear-gradient(#fff, #fff)";
+        const maskPos = `0 0, ${x}px ${y}px`;
+        const maskSize = `100% 100%, ${w}px ${h}px`;
+
+        if (CSS.supports("mask-composite", "exclude")) {
+          stage.style.maskImage = maskImg;
+          stage.style.maskPosition = maskPos;
+          stage.style.maskSize = maskSize;
+          stage.style.maskRepeat = "no-repeat";
+          stage.style.maskComposite = "exclude";
+        } else {
+          stage.style.webkitMaskImage = maskImg;
+          stage.style.webkitMaskPosition = maskPos;
+          stage.style.webkitMaskSize = maskSize;
+          stage.style.webkitMaskRepeat = "no-repeat";
+          stage.style.webkitMaskComposite = "xor";
+        }
+      }
+
+      function scaleStage() {
+        if (!stage) return;
+        const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+        stage.style.transform = `scale(${scale})`;
+        updateCutoutMask();
+      }
+
+      window.addEventListener("resize", scaleStage);
+      scaleStage();
+
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(updateCutoutMask);
+      }
+
+      if (window.ResizeObserver) {
+        new ResizeObserver(updateCutoutMask).observe(viewport);
+      }
+
+      /* ------------------------------------------------------------------
+         2. Local clock
+         ------------------------------------------------------------------ */
+      const clockEl = document.getElementById("localClock");
+
+      function pad2(n) {
+        return String(n).padStart(2, "0");
+      }
+
+      function updateClock() {
+        const now = new Date();
+        clockEl.textContent = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+      }
+
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      /* ------------------------------------------------------------------
+         3. Countdown
+            ?start=HH:MM   -> local start time (rolls to tomorrow if passed)
+            ?minutes=5     -> countdown from now (default 5 minutes)
+         ------------------------------------------------------------------ */
+      const params = new URLSearchParams(window.location.search);
+      const startParam = params.get("start");
+      const minutesParam = parseFloat(params.get("minutes") || params.get("min"));
+      const secondsParam = parseFloat(params.get("seconds") || params.get("sec"));
+
+      const now0 = new Date();
+      let target;
+      let totalMs;
+
+      if (startParam && /^\d{1,2}:\d{2}(:\d{2})?$/.test(startParam.trim())) {
+        const parts = startParam.trim().split(":").map(Number);
+        target = new Date(
+          now0.getFullYear(),
+          now0.getMonth(),
+          now0.getDate(),
+          parts[0],
+          parts[1],
+          parts[2] || 0,
+          0
+        );
+        if (target.getTime() <= now0.getTime()) {
+          target.setDate(target.getDate() + 1);
+        }
+        totalMs = target.getTime() - now0.getTime();
+      } else {
+        const minutes = Number.isFinite(minutesParam) && minutesParam > 0 ? minutesParam : 5;
+        const seconds = Number.isFinite(secondsParam) && secondsParam >= 0 ? secondsParam : null;
+        totalMs = seconds !== null ? seconds * 1000 : minutes * 60 * 1000;
+        target = new Date(now0.getTime() + totalMs);
+      }
+
+      const cdH = document.getElementById("cdH");
+      const cdM = document.getElementById("cdM");
+      const cdS = document.getElementById("cdS");
+      const cdTarget = document.getElementById("cdTarget");
+      const cdProgress = document.getElementById("cdProgress");
+      const cdLabel = document.getElementById("cdLabel");
+      const signalState = document.getElementById("signalState");
+      const stampText = document.getElementById("stampText");
+      const footBigText = document.getElementById("footBigText");
+
+      cdTarget.textContent = `${pad2(target.getHours())}:${pad2(target.getMinutes())}`;
+
+      let liveFired = false;
+
+      function renderCountdown() {
+        const remaining = Math.max(0, target.getTime() - Date.now());
+        const totalSeconds = Math.ceil(remaining / 1000);
+
+        cdH.textContent = pad2(Math.floor(totalSeconds / 3600));
+        cdM.textContent = pad2(Math.floor((totalSeconds % 3600) / 60));
+        cdS.textContent = pad2(totalSeconds % 60);
+
+        const elapsed = Math.min(1, Math.max(0, (totalMs - remaining) / totalMs));
+        cdProgress.style.width = `${(elapsed * 100).toFixed(2)}%`;
+
+        if (remaining <= 0) {
+          stage.classList.add("is-live");
+          cdProgress.style.width = "100%";
+          if (!liveFired) {
+            liveFired = true;
+            cdLabel.textContent = "STREAM IS LIVE";
+            signalState.textContent = "LIVE";
+            stampText.innerHTML = "LIVE<br>NOW<br>ON AIR";
+            footBigText.textContent = "LIVE NOW";
+            setStatus("LIVE NOW — WELCOME IN, CHAT");
+          }
+        }
+      }
+
+      renderCountdown();
+      setInterval(renderCountdown, 500);
+
+      /* ------------------------------------------------------------------
+         4. Rotating status line
+         ------------------------------------------------------------------ */
+      const statuses = [
+        "SIGNAL LOCKING IN — STANDBY",
+        "AUDIO CHECK / CAMERA CHECK",
+        "CHAT IS OPEN — SAY HI EARLY",
+        "BROADCAST STARTS WHEN IT STARTS",
+        "GRAB A SNACK. HOLD TIGHT."
+      ];
+
+      let statusIdx = 0;
+
+      function setStatus(text) {
+        statusText.classList.add("switching");
+        setTimeout(() => {
+          statusText.textContent = text;
+          statusText.classList.remove("switching");
+        }, 200);
+      }
+
+      setInterval(() => {
+        if (liveFired) return;
+        statusIdx = (statusIdx + 1) % statuses.length;
+        setStatus(statuses[statusIdx]);
+      }, 4400);
+    })();
+  </script>
+</body>
+</html>

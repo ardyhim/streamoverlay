@@ -1,0 +1,646 @@
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Tako Brutalism Alert</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Courier+Prime:wght@400;700&family=Permanent+Marker&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper: #efeade;
+      --paper-2: #e1dbc9;
+      --concrete: #b7b3a6;
+      --ink: #0f0f0e;
+      --orange: #ff4a00;
+      --white: #f8f5ec;
+      --grey: #6f6b60;
+      --font-display: "Archivo Black", "Arial Black", Impact, sans-serif;
+      --font-mono: "Courier Prime", "Courier New", monospace;
+      --font-hand: "Permanent Marker", "Comic Sans MS", cursive;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      overflow: hidden;
+    }
+
+    body {
+      margin: 0;
+      padding: 0.9rem 0.9rem 1rem;
+      width: 100%;
+      background: none;
+      color: var(--ink);
+      font-family: var(--font-mono);
+      font-size: 16px;
+      line-height: 1.3;
+      overflow: hidden;
+    }
+
+    img[src=""],
+    img[src*="{"] {
+      display: none !important;
+    }
+
+    .zine {
+      position: relative;
+      width: 100%;
+      animation: slamIn 0.5s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+    }
+
+    @keyframes slamIn {
+      0% {
+        opacity: 0;
+        transform: translateY(1.1rem) rotate(-2.2deg) scale(0.96);
+      }
+      60% {
+        opacity: 1;
+        transform: translateY(-0.15rem) rotate(0.8deg) scale(1.004);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) rotate(0deg) scale(1);
+      }
+    }
+
+    .concrete {
+      position: absolute;
+      left: 0.5rem;
+      right: -0.55rem;
+      top: 0.6rem;
+      bottom: -0.6rem;
+      background-color: var(--concrete);
+      background-image:
+        radial-gradient(rgba(15, 15, 14, 0.18) 0.05rem, transparent 0.05rem),
+        linear-gradient(96deg, transparent 46%, rgba(15, 15, 14, 0.14) 46.6%, transparent 47.4%);
+      background-size: 0.42rem 0.42rem, 100% 100%;
+      border: 0.16rem solid rgba(15, 15, 14, 0.42);
+      transform: rotate(-1.1deg);
+      z-index: 0;
+    }
+
+    .slab {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      background-color: var(--paper);
+      background-image: radial-gradient(rgba(15, 15, 14, 0.055) 0.05rem, transparent 0.05rem);
+      background-size: 0.5rem 0.5rem;
+      border: 0.26rem solid var(--ink);
+      box-shadow: 0.26rem 0.26rem 0 var(--ink);
+      transform: rotate(0.35deg);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      padding: 0.38rem 0.7rem;
+      background-color: var(--ink);
+      color: var(--paper);
+      font-size: 0.56rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sq {
+      width: 0.42rem;
+      height: 0.42rem;
+      background-color: var(--orange);
+      flex-shrink: 0;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-shrink: 0;
+    }
+
+    .tier {
+      display: inline-block;
+      background-color: var(--orange);
+      color: var(--ink);
+      border: 0.1rem solid var(--paper);
+      padding: 0.08rem 0.34rem;
+      font-size: 0.5rem;
+      letter-spacing: 0.18em;
+      transform: rotate(-1.5deg);
+    }
+
+    .tier.tier-big {
+      background-color: var(--paper);
+      color: var(--ink);
+      border-color: var(--ink);
+    }
+
+    .tier.tier-mega {
+      background-color: var(--ink);
+      color: var(--orange);
+      border-color: var(--orange);
+    }
+
+    .stamp {
+      font-size: 0.5rem;
+      letter-spacing: 0.12em;
+      color: var(--paper-2);
+      opacity: 0.75;
+    }
+
+    .slab-body {
+      padding: 0.85rem 0.8rem 0.7rem;
+    }
+
+    .id-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+    }
+
+    .avatar-frame {
+      position: relative;
+      flex-shrink: 0;
+      width: 4rem;
+      height: 4rem;
+      background-color: var(--orange);
+      border: 0.22rem solid var(--ink);
+      transform: rotate(-2.5deg);
+    }
+
+    .avatar {
+      display: none;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar-fallback {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--orange);
+      background-image: radial-gradient(rgba(15, 15, 14, 0.18) 0.05rem, transparent 0.05rem);
+      background-size: 0.3rem 0.3rem;
+      font-family: var(--font-display);
+      font-size: 1.9rem;
+      line-height: 1;
+      color: var(--ink);
+    }
+
+    .tape-av {
+      position: absolute;
+      right: -0.6rem;
+      top: -0.5rem;
+      width: 1.5rem;
+      height: 0.6rem;
+      background-color: rgba(225, 219, 201, 0.82);
+      border-left: 0.06rem dashed rgba(15, 15, 14, 0.28);
+      border-right: 0.06rem dashed rgba(15, 15, 14, 0.28);
+      transform: rotate(38deg);
+    }
+
+    .id-col {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .kicker {
+      font-family: var(--font-hand);
+      font-size: 0.85rem;
+      line-height: 1;
+      color: var(--orange);
+      transform: rotate(-1.5deg);
+      transform-origin: left center;
+    }
+
+    .name-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.22rem;
+    }
+
+    .gifter-name {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      line-height: 0.98;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .verified {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background-color: var(--ink);
+      color: var(--paper);
+      padding: 0.12rem 0.3rem;
+      font-size: 0.48rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      transform: rotate(-3deg);
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.28rem;
+      margin-top: 0.36rem;
+    }
+
+    .badge-icon {
+      display: block;
+      height: 1.1rem;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .badge {
+      border: 0.12rem solid var(--ink);
+      padding: 0.07rem 0.3rem;
+      font-size: 0.48rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .badge-0 {
+      background-color: var(--orange);
+      color: var(--ink);
+    }
+
+    .badge-1 {
+      background-color: var(--ink);
+      color: var(--paper);
+    }
+
+    .badge-2 {
+      background-color: var(--paper-2);
+      color: var(--ink);
+    }
+
+    .amount-block {
+      position: relative;
+      display: flex;
+      align-items: baseline;
+      gap: 0.55rem;
+      margin-top: 0.95rem;
+      padding: 0.55rem 0.7rem 0.6rem;
+      background-color: var(--orange);
+      background-image: radial-gradient(rgba(15, 15, 14, 0.14) 0.055rem, transparent 0.055rem);
+      background-size: 0.32rem 0.32rem;
+      border: 0.24rem solid var(--ink);
+      box-shadow: 0.22rem 0.22rem 0 var(--ink);
+      transform: rotate(-0.7deg);
+    }
+
+    .amount-label {
+      position: absolute;
+      top: -0.72rem;
+      left: 0.55rem;
+      background-color: var(--ink);
+      color: var(--paper);
+      padding: 0.16rem 0.36rem;
+      font-size: 0.56rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .amount-value {
+      font-family: var(--font-display);
+      font-size: 2.05rem;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .message-wrap {
+      position: relative;
+      margin-top: 0.9rem;
+      padding: 0.62rem 0.8rem 0.62rem 1.1rem;
+      background-color: var(--white);
+      background-image:
+        linear-gradient(to right, var(--ink) 0 0.32rem, transparent 0.32rem),
+        radial-gradient(rgba(15, 15, 14, 0.09) 0.05rem, transparent 0.05rem);
+      background-size: 100% 100%, 0.34rem 0.34rem;
+      clip-path: polygon(
+        0.4% 1%, 12% 0, 26% 1.2%, 41% 0, 56% 1%, 71% 0, 86% 1.2%, 99.4% 0,
+        100% 14%, 99.2% 28%, 100% 43%, 99.3% 58%, 100% 72%, 99.1% 87%, 99.8% 99%,
+        86% 100%, 71% 98.8%, 56% 100%, 41% 98.9%, 26% 100%, 12% 98.7%, 0.5% 100%,
+        0 86%, 0.8% 71%, 0 56%, 0.7% 41%, 0 26%, 0.8% 12%
+      );
+      transform: rotate(0.35deg);
+    }
+
+    .message {
+      margin: 0;
+      font-size: 0.98rem;
+      font-weight: 700;
+      line-height: 1.35;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-top: 0.62rem;
+      font-size: 0.48rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--grey);
+    }
+
+    .media-tag {
+      display: none;
+      background-color: var(--paper-2);
+      border: 0.12rem solid var(--ink);
+      color: var(--ink);
+      padding: 0.08rem 0.3rem;
+      letter-spacing: 0.12em;
+    }
+
+    .meta-note {
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    .slab-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.32rem 0.7rem;
+      border-top: 0.2rem solid var(--ink);
+      background-color: var(--paper-2);
+      font-size: 0.48rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .foot-brand {
+      font-family: var(--font-display);
+      font-size: 0.56rem;
+      letter-spacing: 0.02em;
+    }
+
+    .staple {
+      position: absolute;
+      z-index: 3;
+      width: 1.35rem;
+      height: 0.34rem;
+      background: linear-gradient(180deg, #cfcabd, #8f8b80 45%, #d6d1c4);
+      border: 0.06rem solid rgba(15, 15, 14, 0.55);
+      box-shadow: 0 0.04rem 0 rgba(15, 15, 14, 0.35);
+      pointer-events: none;
+    }
+
+    .staple-a {
+      left: 1.1rem;
+      top: -0.28rem;
+      transform: rotate(-18deg);
+    }
+
+    .staple-b {
+      right: 1.4rem;
+      bottom: -0.3rem;
+      transform: rotate(12deg);
+    }
+  </style>
+</head>
+<body>
+  <div class="zine">
+    <div class="concrete" aria-hidden="true"></div>
+
+    <article class="slab">
+      <div class="topbar">
+        <div class="topbar-left">
+          <span class="sq" aria-hidden="true"></span>
+          <span>SUPPORT RECEIVED</span>
+        </div>
+        <div class="topbar-right">
+          <span class="tier" id="tier-tag">TIP</span>
+          <span class="stamp" id="stamp">{{timestamp}}</span>
+        </div>
+      </div>
+
+      <div class="slab-body">
+        <div class="id-row">
+          <div class="avatar-frame">
+            <img class="avatar" id="avatar" alt="" />
+            <span class="avatar-fallback" id="avatar-fallback">?</span>
+            <span class="tape-av" aria-hidden="true"></span>
+          </div>
+
+          <div class="id-col">
+            <div class="kicker">new support!</div>
+            <div class="name-line">
+              <span class="gifter-name" id="gifter-name">{{gifterName}}</span>
+              <span class="verified" id="verified-badge">VERIFIED</span>
+            </div>
+            <div class="badges" id="badges"></div>
+          </div>
+        </div>
+
+        <div class="amount-block">
+          <span class="amount-label">AMOUNT</span>
+          <span class="amount-value" id="amount-value">{{formattedAmount}}</span>
+        </div>
+
+        <div class="message-wrap" id="message-wrap">
+          <p class="message" id="message">{{message}}</p>
+        </div>
+
+        <div class="meta-row">
+          <span class="media-tag" id="media-tag"></span>
+          <span class="meta-note">SAY HI IN CHAT ↗</span>
+        </div>
+      </div>
+
+      <div class="slab-foot">
+        <span class="foot-brand">JADEN BAHTERA</span>
+        <span>THANK YOU / NO. 01</span>
+      </div>
+    </article>
+
+    <span class="staple staple-a" aria-hidden="true"></span>
+    <span class="staple staple-b" aria-hidden="true"></span>
+  </div>
+
+  <script>
+    (function () {
+      var demo = new URLSearchParams(window.location.search).has("demo");
+
+      var nameEl = document.getElementById("gifter-name");
+      var amountEl = document.getElementById("amount-value");
+      var messageEl = document.getElementById("message");
+      var messageWrap = document.getElementById("message-wrap");
+      var stampEl = document.getElementById("stamp");
+      var tierEl = document.getElementById("tier-tag");
+      var verifiedEl = document.getElementById("verified-badge");
+      var badgesEl = document.getElementById("badges");
+      var mediaTag = document.getElementById("media-tag");
+      var avatarEl = document.getElementById("avatar");
+      var avatarFallback = document.getElementById("avatar-fallback");
+
+      var BADGE_ICON_URLS = {
+        "Tako Verified Partner": "https://tako.id/images/badges/partnered-creator.png",
+        "Tako Verified Creator": "https://tako.id/images/badges/verified-creator.png",
+        "Rich Rich Club": "https://tako.id/images/badges/king.png",
+        "Charity": "https://tako.id/images/badges/charity.png",
+        "VTuber": "https://tako.id/images/badges/vtuber.png",
+        "Tako Team": "https://tako.id/images/badges/admin.png"
+      };
+
+      function clean(value) {
+        var text = String(value == null ? "" : value).trim();
+        if (text.indexOf("{{") !== -1) {
+          return "";
+        }
+        return text;
+      }
+
+      var gifterName = clean(nameEl.textContent);
+      var formattedAmount = clean(amountEl.textContent);
+      var messageText = clean(messageEl.textContent);
+      var timestamp = clean(stampEl.textContent);
+      var picture = clean("{{gifterPicture}}");
+      var badgesRaw = clean("{{gifterBadges}}");
+      var mediaDuration = clean("{{mediaDuration}}");
+      var isVerified = "{{isGifterVerified}}" === "true";
+      var showTimestamp = "{{showTimestamp}}" === "true";
+      var rawAmount = Number(clean("{{amount}}")) || 0;
+
+      if (demo) {
+        gifterName = "BudiGaming";
+        formattedAmount = "IDR 150.000";
+        messageText = "Gaskeun bang! Jangan lupa makan & istirahat ya.";
+        timestamp = "23 Nov 2026 21:04";
+        badgesRaw = "VIP, Top Donator";
+        mediaDuration = "10";
+        picture = "";
+        isVerified = true;
+        showTimestamp = true;
+        rawAmount = 150000;
+      }
+
+      if (!gifterName) {
+        gifterName = "ANON";
+      }
+      nameEl.textContent = gifterName;
+      avatarFallback.textContent = gifterName.charAt(0).toUpperCase();
+
+      if (!formattedAmount) {
+        formattedAmount = "-";
+      }
+      amountEl.textContent = formattedAmount;
+
+      if (rawAmount >= 100000) {
+        tierEl.textContent = "MEGA TIP";
+        tierEl.className = "tier tier-mega";
+      } else if (rawAmount >= 50000) {
+        tierEl.textContent = "BIG TIP";
+        tierEl.className = "tier tier-big";
+      } else {
+        tierEl.textContent = "TIP";
+        tierEl.className = "tier";
+      }
+
+      if (isVerified) {
+        verifiedEl.style.display = "inline-flex";
+      }
+
+      if (badgesRaw) {
+        var badgeList = badgesRaw.split(",").map(function (entry) {
+          return entry.trim();
+        }).filter(Boolean);
+
+        badgeList.forEach(function (entry, index) {
+          var isUrl = entry.indexOf("https://") === 0 || entry.indexOf("http://") === 0 || entry.indexOf("/") === 0;
+          var iconUrl = isUrl ? entry : BADGE_ICON_URLS[entry];
+
+          if (iconUrl) {
+            var icon = document.createElement("img");
+            icon.className = "badge-icon";
+            icon.src = iconUrl;
+            icon.alt = entry;
+            icon.title = entry;
+            icon.onerror = function () {
+              icon.style.display = "none";
+            };
+            badgesEl.appendChild(icon);
+          } else {
+            var tag = document.createElement("span");
+            tag.className = "badge badge-" + (index % 3);
+            tag.textContent = entry.toUpperCase();
+            badgesEl.appendChild(tag);
+          }
+        });
+      }
+
+      if (!badgesEl.children.length) {
+        badgesEl.style.display = "none";
+      }
+
+      if (picture) {
+        avatarEl.src = picture;
+        avatarEl.style.display = "block";
+        avatarFallback.style.display = "none";
+        avatarEl.onerror = function () {
+          avatarEl.style.display = "none";
+          avatarFallback.style.display = "flex";
+        };
+      }
+
+      if (messageText) {
+        messageEl.textContent = messageText;
+      } else {
+        messageWrap.style.display = "none";
+      }
+
+      var mediaSeconds = Number(mediaDuration);
+      if (mediaDuration && mediaSeconds > 0) {
+        mediaTag.textContent = "MEDIA " + mediaSeconds + "s";
+        mediaTag.style.display = "inline-block";
+      }
+
+      if (!showTimestamp || !timestamp) {
+        stampEl.style.display = "none";
+      } else {
+        stampEl.textContent = timestamp;
+      }
+    })();
+  </script>
+</body>
+</html>

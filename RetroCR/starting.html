@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRT VHS Starting Overlay + Live Chat</title>
+  <style>
+    :root {
+      --crt-bg: rgba(11, 13, 18, 0.92);
+      --phosphor-main: #e8f7ff;
+      --phosphor-cyan: #00f0ff;
+      --phosphor-magenta: #ff2a6d;
+      --phosphor-amber: #ffbe0b;
+      --phosphor-green: #39ff14;
+      --scanline-opacity: 0.24;
+      --vignette-opacity: 0.72;
+      --font-mono: "Consolas", "Lucida Console", "DejaVu Sans Mono", "Courier New", monospace;
+      --font-display: Impact, "Arial Black", "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      width: 100%;
+      height: 100%;
+      font-size: 16px;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      font-family: var(--font-mono);
+      color: var(--phosphor-main);
+      user-select: none;
+    }
+
+    /* Kontainer utama responsif memenuhi kanvas OBS */
+    .crt-stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 2rem 2.6rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1.25rem;
+      background: var(--crt-bg);
+      isolation: isolate;
+      animation: crtFlicker 0.14s infinite alternate;
+    }
+
+    /* Efek kelengkungan tepi kaca CRT & bayangan dalam */
+    .crt-stage::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 20;
+      background:
+        radial-gradient(
+          ellipse at center,
+          rgba(0, 0, 0, 0) 56%,
+          rgba(0, 0, 0, 0.45) 84%,
+          rgba(0, 0, 0, var(--vignette-opacity)) 100%
+        );
+      box-shadow:
+        inset 0 0 6rem rgba(0, 0, 0, 0.85),
+        inset 0 0 1.2rem rgba(0, 240, 255, 0.12);
+    }
+
+    /* Garis scanline & subpixel phosphor RGB */
+    .crt-scanlines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 18;
+      opacity: var(--scanline-opacity);
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0) 0px,
+          rgba(255, 255, 255, 0) 2px,
+          rgba(0, 0, 0, 0.65) 3px,
+          rgba(0, 0, 0, 0.65) 4px
+        ),
+        repeating-linear-gradient(
+          to right,
+          rgba(255, 0, 76, 0.06) 0px,
+          rgba(0, 255, 136, 0.06) 1px,
+          rgba(0, 170, 255, 0.06) 2px
+        );
+    }
+
+    /* Roll bar CRT bergerak perlahan */
+    .crt-roll {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -18%;
+      height: 16%;
+      pointer-events: none;
+      z-index: 16;
+      background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.045) 50%,
+        rgba(0, 240, 255, 0.03) 65%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      animation: crtRoll 7.5s linear infinite;
+    }
+
+    /* Canvas noise VHS ringan */
+    #vhs-noise {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 15;
+      opacity: 0.075;
+      mix-blend-mode: screen;
+      image-rendering: pixelated;
+    }
+
+    /* Garis distorsi tracking VHS */
+    .vhs-tracking-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2.2rem;
+      bottom: 6%;
+      pointer-events: none;
+      z-index: 17;
+      opacity: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.22) 0px,
+        rgba(0, 240, 255, 0.14) 2px,
+        rgba(0, 0, 0, 0.5) 4px,
+        rgba(255, 42, 109, 0.15) 6px
+      );
+      filter: blur(0.6px);
+    }
+
+    .crt-stage.is-glitching .vhs-tracking-bar {
+      opacity: 0.65;
+      animation: trackingJitter 0.22s steps(3) infinite;
+    }
+
+    .crt-stage.is-glitching .main-grid {
+      animation: screenTear 0.18s steps(2) infinite;
+    }
+
+    /* Bingkai OSD sudut TV */
+    .osd-top,
+    .osd-bottom {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      flex: 0 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1.5rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-shadow:
+        -1.5px 0 rgba(255, 42, 109, 0.75),
+        1.5px 0 rgba(0, 240, 255, 0.75),
+        0 0 10px rgba(232, 247, 255, 0.35);
+    }
+
+    .osd-bottom {
+      align-items: flex-end;
+    }
+
+    .osd-block {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      font-size: clamp(0.8rem, 1.2vw, 1.15rem);
+      font-weight: 700;
+    }
+
+    .osd-right {
+      text-align: right;
+      align-items: flex-end;
+    }
+
+    .play-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      color: var(--phosphor-green);
+      font-size: clamp(0.95rem, 1.5vw, 1.4rem);
+    }
+
+    .play-icon {
+      display: inline-block;
+      width: 0;
+      height: 0;
+      border-top: 0.48em solid transparent;
+      border-bottom: 0.48em solid transparent;
+      border-left: 0.78em solid var(--phosphor-green);
+      filter: drop-shadow(0 0 6px rgba(57, 255, 20, 0.7));
+    }
+
+    .rec-dot {
+      display: inline-block;
+      width: 0.62em;
+      height: 0.62em;
+      border-radius: 50%;
+      background: var(--phosphor-magenta);
+      box-shadow: 0 0 10px var(--phosphor-magenta);
+      animation: blinkRec 1.1s steps(1) infinite;
+    }
+
+    .osd-sub {
+      color: rgba(232, 247, 255, 0.76);
+      font-size: clamp(0.72rem, 1vw, 0.95rem);
+    }
+
+    /* Grid Utama: Kiri (Info + Socials), Kanan (CRT Live Chat) */
+    .main-grid {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(20rem, 0.95fr);
+      gap: 2.2rem;
+      align-items: stretch;
+    }
+
+    /* Kolom Kiri */
+    .center-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      text-align: left;
+      min-width: 0;
+    }
+
+    .signal-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.35rem 0.9rem;
+      margin-bottom: 1.1rem;
+      border: 2px solid var(--phosphor-cyan);
+      background: rgba(0, 240, 255, 0.08);
+      color: var(--phosphor-cyan);
+      font-size: clamp(0.75rem, 1.05vw, 1rem);
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      box-shadow:
+        0 0 14px rgba(0, 240, 255, 0.25),
+        inset 0 0 10px rgba(0, 240, 255, 0.14);
+    }
+
+    /* Judul Glitch Berlapis */
+    .glitch-title {
+      position: relative;
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5.4vw, 5.2rem);
+      line-height: 0.98;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--phosphor-main);
+      text-shadow:
+        -3px 0 var(--phosphor-magenta),
+        3px 0 var(--phosphor-cyan),
+        0 0 24px rgba(0, 240, 255, 0.32);
+    }
+
+    .glitch-title::before,
+    .glitch-title::after {
+      content: attr(data-text);
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.78;
+    }
+
+    .glitch-title::before {
+      color: var(--phosphor-cyan);
+      z-index: -1;
+      clip-path: inset(0 0 62% 0);
+      transform: translate(-3px, 0);
+      animation: glitchSliceTop 3.6s infinite steps(1);
+    }
+
+    .glitch-title::after {
+      color: var(--phosphor-magenta);
+      z-index: -1;
+      clip-path: inset(58% 0 0 0);
+      transform: translate(3px, 0);
+      animation: glitchSliceBottom 2.9s infinite steps(1);
+    }
+
+    .subtitle-text {
+      margin: 0.95rem 0 1.65rem;
+      font-size: clamp(0.88rem, 1.25vw, 1.2rem);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--phosphor-amber);
+      text-shadow:
+        -1px 0 rgba(255, 42, 109, 0.65),
+        1px 0 rgba(0, 240, 255, 0.65),
+        0 0 12px rgba(255, 190, 11, 0.35);
+    }
+
+    /* Kotak Countdown Retro VCR */
+    .countdown-frame {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.65rem;
+      padding: 1rem 1.8rem;
+      margin-bottom: 1.5rem;
+      border: 2px solid rgba(232, 247, 255, 0.45);
+      background: rgba(4, 7, 12, 0.68);
+      box-shadow:
+        -3px 0 0 rgba(255, 42, 109, 0.45),
+        3px 0 0 rgba(0, 240, 255, 0.45),
+        0 0 25px rgba(0, 0, 0, 0.6);
+    }
+
+    .countdown-label {
+      font-size: clamp(0.68rem, 0.9vw, 0.86rem);
+      letter-spacing: 0.26em;
+      color: rgba(232, 247, 255, 0.72);
+      text-transform: uppercase;
+    }
+
+    .countdown-value {
+      font-size: clamp(2.1rem, 4.3vw, 4rem);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.14em;
+      color: var(--phosphor-main);
+      font-variant-numeric: tabular-nums;
+      text-shadow:
+        -2px 0 var(--phosphor-magenta),
+        2px 0 var(--phosphor-cyan),
+        0 0 18px rgba(232, 247, 255, 0.45);
+    }
+
+    .tape-progress {
+      width: clamp(14rem, 24vw, 24rem);
+      height: 0.6rem;
+      padding: 2px;
+      border: 1px solid rgba(232, 247, 255, 0.5);
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .tape-progress-fill {
+      width: 0%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        to right,
+        var(--phosphor-cyan) 0px,
+        var(--phosphor-cyan) 10px,
+        transparent 10px,
+        transparent 13px
+      );
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.55);
+      transition: width 0.4s linear;
+    }
+
+    /* Panel Social Media CRT */
+    .social-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      width: 100%;
+    }
+
+    .social-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0.9rem;
+      border: 1.5px solid rgba(232, 247, 255, 0.35);
+      background: rgba(6, 10, 16, 0.72);
+      font-size: clamp(0.76rem, 1vw, 0.96rem);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      box-shadow:
+        -2px 0 0 rgba(255, 42, 109, 0.4),
+        2px 0 0 rgba(0, 240, 255, 0.4);
+    }
+
+    .social-chip svg {
+      width: 1.15em;
+      height: 1.15em;
+      flex: 0 0 auto;
+    }
+
+    .social-chip--ig {
+      border-color: rgba(255, 42, 109, 0.65);
+      color: var(--phosphor-main);
+    }
+    .social-chip--ig .social-platform {
+      color: var(--phosphor-magenta);
+    }
+
+    .social-chip--tt {
+      border-color: rgba(0, 240, 255, 0.65);
+      color: var(--phosphor-main);
+    }
+    .social-chip--tt .social-platform {
+      color: var(--phosphor-cyan);
+    }
+
+    .social-chip--yt {
+      border-color: rgba(255, 190, 11, 0.65);
+      color: var(--phosphor-main);
+    }
+    .social-chip--yt .social-platform {
+      color: var(--phosphor-amber);
+    }
+
+    .social-handle {
+      color: var(--phosphor-main);
+      text-shadow: 0 0 8px rgba(232, 247, 255, 0.3);
+    }
+
+    /* Kolom Kanan: Monitor CRT Live Chat */
+    .chat-monitor {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      height: 100%;
+      border: 2px solid rgba(0, 240, 255, 0.55);
+      background: rgba(4, 7, 12, 0.76);
+      box-shadow:
+        -4px 0 0 rgba(255, 42, 109, 0.45),
+        4px 0 0 rgba(0, 240, 255, 0.45),
+        inset 0 0 2.5rem rgba(0, 0, 0, 0.88),
+        0 0 28px rgba(0, 240, 255, 0.14);
+    }
+
+    .chat-monitor-bar {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 1rem;
+      border-bottom: 2px solid rgba(0, 240, 255, 0.35);
+      background: rgba(0, 240, 255, 0.08);
+      font-size: clamp(0.75rem, 1vw, 0.95rem);
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--phosphor-cyan);
+      text-shadow:
+        -1px 0 rgba(255, 42, 109, 0.6),
+        1px 0 rgba(0, 240, 255, 0.7);
+    }
+
+    .chat-live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: var(--phosphor-green);
+      font-size: 0.9em;
+    }
+
+    .chat-live-dot {
+      width: 0.55em;
+      height: 0.55em;
+      border-radius: 50%;
+      background: var(--phosphor-green);
+      box-shadow: 0 0 8px var(--phosphor-green);
+      animation: blinkRec 1s steps(1) infinite;
+    }
+
+    .chat-viewport {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+      overflow: hidden;
+      background: rgba(6, 9, 14, 0.72);
+    }
+
+    .chat-iframe {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      background: transparent;
+      filter: contrast(1.06) saturate(1.12);
+    }
+
+    /* Overlay CRT halus di atas frame chat (tetap tidak menghalangi scroll/klik jika pointer-events: none) */
+    .chat-crt-glass {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0) 0px,
+          rgba(255, 255, 255, 0) 2px,
+          rgba(0, 0, 0, 0.24) 3px,
+          rgba(0, 0, 0, 0.24) 4px
+        ),
+        radial-gradient(
+          ellipse at center,
+          rgba(0, 0, 0, 0) 64%,
+          rgba(0, 0, 0, 0.58) 100%
+        );
+      box-shadow: inset 0 0 1.8rem rgba(0, 240, 255, 0.14);
+    }
+
+    /* Equalizer / Audio Signal Bar dekoratif */
+    .vcr-bars {
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 0.25rem;
+      height: 1.1rem;
+      margin-top: 0.15rem;
+    }
+
+    .vcr-bars span {
+      display: block;
+      width: 0.28rem;
+      background: var(--phosphor-cyan);
+      box-shadow: 0 0 6px var(--phosphor-cyan);
+      animation: eqBounce 0.9s ease-in-out infinite alternate;
+    }
+
+    .vcr-bars span:nth-child(2) { animation-delay: 0.18s; background: var(--phosphor-green); }
+    .vcr-bars span:nth-child(3) { animation-delay: 0.35s; }
+    .vcr-bars span:nth-child(4) { animation-delay: 0.1s; background: var(--phosphor-amber); }
+    .vcr-bars span:nth-child(5) { animation-delay: 0.45s; background: var(--phosphor-magenta); }
+    .vcr-bars span:nth-child(6) { animation-delay: 0.26s; }
+
+    /* Animasi */
+    @keyframes crtFlicker {
+      0% { opacity: 0.985; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes crtRoll {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(740%); }
+    }
+
+    @keyframes blinkRec {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0.15; }
+    }
+
+    @keyframes glitchSliceTop {
+      0%, 84%, 100% {
+        transform: translate(0, 0);
+        clip-path: inset(0 0 100% 0);
+      }
+      85% {
+        transform: translate(-6px, -1px);
+        clip-path: inset(12% 0 62% 0);
+      }
+      88% {
+        transform: translate(5px, 1px);
+        clip-path: inset(34% 0 42% 0);
+      }
+      91% {
+        transform: translate(-3px, 0);
+        clip-path: inset(5% 0 76% 0);
+      }
+      94% {
+        transform: translate(0, 0);
+        clip-path: inset(0 0 100% 0);
+      }
+    }
+
+    @keyframes glitchSliceBottom {
+      0%, 78%, 100% {
+        transform: translate(0, 0);
+        clip-path: inset(100% 0 0 0);
+      }
+      79% {
+        transform: translate(6px, 2px);
+        clip-path: inset(60% 0 14% 0);
+      }
+      82% {
+        transform: translate(-7px, -1px);
+        clip-path: inset(48% 0 28% 0);
+      }
+      85% {
+        transform: translate(3px, 0);
+        clip-path: inset(74% 0 6% 0);
+      }
+      87% {
+        transform: translate(0, 0);
+        clip-path: inset(100% 0 0 0);
+      }
+    }
+
+    @keyframes trackingJitter {
+      0% { transform: translateY(0) scaleX(1.01); }
+      50% { transform: translateY(-5px) translateX(4px); }
+      100% { transform: translateY(3px) translateX(-4px); }
+    }
+
+    @keyframes screenTear {
+      0% { transform: translate(0, 0) skewX(0deg); }
+      33% { transform: translate(-4px, 1px) skewX(-1.4deg); }
+      66% { transform: translate(5px, -1px) skewX(1.2deg); }
+      100% { transform: translate(0, 0) skewX(0deg); }
+    }
+
+    @keyframes eqBounce {
+      0% { height: 22%; }
+      100% { height: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="crt-stage" id="crt-stage">
+    <!-- Lapisan Efek Visual CRT & VHS -->
+    <canvas id="vhs-noise" width="240" height="135"></canvas>
+    <div class="crt-roll"></div>
+    <div class="vhs-tracking-bar"></div>
+    <div class="crt-scanlines"></div>
+
+    <!-- OSD Atas -->
+    <header class="osd-top">
+      <div class="osd-block">
+        <div class="play-indicator">
+          <span class="play-icon"></span>
+          <span>PLAY</span>
+          <span class="rec-dot" title="LIVE SIGNAL"></span>
+        </div>
+        <div class="osd-sub" id="osd-channel">CH 03 // AV-IN // SP</div>
+      </div>
+
+      <div class="osd-block osd-right">
+        <div id="vhs-clock">--:--:--</div>
+        <div class="osd-sub" id="vhs-date">--- -- ----</div>
+      </div>
+    </header>
+
+    <!-- Konten Tengah 2 Kolom -->
+    <div class="main-grid">
+      <!-- Kolom Kiri: Judul, Timer & Social Media -->
+      <section class="center-panel">
+        <div class="signal-tag" id="signal-tag">SIGNAL LOCKED // CALIBRATING</div>
+
+        <h1 class="glitch-title" id="main-title" data-text="STREAM STARTING SOON">
+          STREAM STARTING SOON
+        </h1>
+
+        <p class="subtitle-text" id="sub-title">
+          PLEASE STAND BY // ADJUSTING TRACKING
+        </p>
+
+        <div class="countdown-frame" id="countdown-frame">
+          <div class="countdown-label" id="countdown-label">BROADCAST BEGINS IN</div>
+          <div class="countdown-value" id="countdown-value">05:00</div>
+          <div class="tape-progress">
+            <div class="tape-progress-fill" id="progress-fill"></div>
+          </div>
+        </div>
+
+        <!-- Social Media -->
+        <div class="social-strip" aria-label="Social Media">
+          <div class="social-chip social-chip--ig">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="4"></rect>
+              <circle cx="12" cy="12" r="4"></circle>
+              <circle cx="17.5" cy="6.5" r="1" fill="currentColor"></circle>
+            </svg>
+            <span class="social-platform">INSTAGRAM:</span>
+            <span class="social-handle" id="social-ig">ardyhim</span>
+          </div>
+
+          <div class="social-chip social-chip--tt">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M16.5 3h-2.8v11.2a2.6 2.6 0 1 1-2.6-2.6c.28 0 .55.04.8.12V8.8a5.4 5.4 0 0 0-.8-.06 5.5 5.5 0 1 0 5.4 5.5V8.6a7.3 7.3 0 0 0 4.3 1.4V7.2a4.4 4.4 0 0 1-4.3-4.2z"></path>
+            </svg>
+            <span class="social-platform">TIKTOK:</span>
+            <span class="social-handle" id="social-tt">ardyhim</span>
+          </div>
+
+          <div class="social-chip social-chip--yt">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M21.6 7.2a2.8 2.8 0 0 0-2-2C17.9 4.7 12 4.7 12 4.7s-5.9 0-7.6.5a2.8 2.8 0 0 0-2 2A29 29 0 0 0 2 12a29 29 0 0 0 .4 4.8 2.8 2.8 0 0 0 2 2c1.7.5 7.6.5 7.6.5s5.9 0 7.6-.5a2.8 2.8 0 0 0 2-2A29 29 0 0 0 22 12a29 29 0 0 0-.4-4.8zM10 15.2V8.8l5.5 3.2-5.5 3.2z"></path>
+            </svg>
+            <span class="social-platform">YOUTUBE:</span>
+            <span class="social-handle" id="social-yt">ardyhim</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Kolom Kanan: CRT Monitor Live Chat YouTube -->
+      <aside class="chat-monitor" aria-label="YouTube Live Chat">
+        <div class="chat-monitor-bar">
+          <span>AV-2 // LIVE CHAT FEED</span>
+          <span class="chat-live-badge">
+            <span class="chat-live-dot"></span>
+            <span>SYNC</span>
+          </span>
+        </div>
+
+        <div class="chat-viewport">
+          <iframe
+            id="yt-chat-iframe"
+            class="chat-iframe"
+            title="YouTube Live Chat"
+            allow="autoplay; encrypted-media"
+          ></iframe>
+          <div class="chat-crt-glass"></div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- OSD Bawah -->
+    <footer class="osd-bottom">
+      <div class="osd-block">
+        <div id="osd-tape">TAPE: <span id="tape-counter">00:00:00:00</span></div>
+        <div class="osd-sub">TRACKING: AUTO // HI-FI STEREO</div>
+      </div>
+
+      <div class="osd-block osd-right">
+        <div id="osd-user">@ardyhim</div>
+        <div class="vcr-bars" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+
+      function pick(keys, fallback) {
+        for (var i = 0; i < keys.length; i += 1) {
+          var value = params.get(keys[i]);
+          if (value !== null && value !== "") {
+            return value;
+          }
+        }
+        return fallback;
+      }
+
+      // Kustomisasi teks & parameter via URL query
+      var titleText = pick(["title"], "STREAM STARTING SOON");
+      var subText = pick(["subtitle", "sub"], "PLEASE STAND BY // ADJUSTING TRACKING");
+      var tagText = pick(["status", "tag"], "SIGNAL LOCKED // CALIBRATING");
+      var userText = pick(["name", "streamer", "user"], "@ardyhim");
+      var channelText = pick(["channel", "ch"], "CH 03 // AV-IN // SP");
+      var doneText = pick(["cta", "done"], "STARTING NOW");
+
+      // Socials
+      var igHandle = pick(["instagram", "ig"], "ardyhim");
+      var ttHandle = pick(["tiktok", "tt"], "ardyhim");
+      var ytHandle = pick(["youtube", "yt"], "ardyhim");
+
+      // YouTube Live Chat ID (default: O5kFGBZSVgQ)
+      var chatParam = pick(["chat", "v"], null);
+      var showChatIframe = chatParam !== "0";
+      var videoId = chatParam && chatParam !== "0" ? chatParam : "O5kFGBZSVgQ";
+
+      // Durasi hitung mundur
+      var secondsParam = pick(["seconds", "sec"], null);
+      var minutesParam = pick(["minutes", "min"], null);
+      var totalSeconds = 300;
+      if (secondsParam !== null) {
+        totalSeconds = Math.max(0, parseInt(secondsParam, 10) || 0);
+      } else if (minutesParam !== null) {
+        totalSeconds = Math.max(0, Math.round((parseFloat(minutesParam) || 0) * 60));
+      }
+
+      // Opasitas background CRT
+      var opacityParam = pick(["opacity", "alpha"], null);
+      if (opacityParam !== null) {
+        var alpha = parseFloat(opacityParam);
+        if (!isNaN(alpha)) {
+          alpha = Math.min(1, Math.max(0, alpha));
+          document.documentElement.style.setProperty(
+            "--crt-bg",
+            "rgba(11, 13, 18, " + alpha + ")"
+          );
+        }
+      }
+
+      var titleEl = document.getElementById("main-title");
+      var subEl = document.getElementById("sub-title");
+      var tagEl = document.getElementById("signal-tag");
+      var userEl = document.getElementById("osd-user");
+      var channelEl = document.getElementById("osd-channel");
+      var countdownFrameEl = document.getElementById("countdown-frame");
+      var countdownValEl = document.getElementById("countdown-value");
+      var countdownLabelEl = document.getElementById("countdown-label");
+      var progressFillEl = document.getElementById("progress-fill");
+      var chatIframeEl = document.getElementById("yt-chat-iframe");
+
+      titleEl.textContent = titleText;
+      titleEl.setAttribute("data-text", titleText);
+      subEl.textContent = subText;
+      tagEl.textContent = tagText;
+      userEl.textContent = userText;
+      channelEl.textContent = channelText;
+      document.getElementById("social-ig").textContent = igHandle;
+      document.getElementById("social-tt").textContent = ttHandle;
+      document.getElementById("social-yt").textContent = ytHandle;
+
+      // Setup Iframe YouTube Live Chat
+      if (!showChatIframe) {
+        chatIframeEl.style.display = "none";
+      } else {
+        var embedDomain = pick(["domain"], window.location.hostname || "localhost");
+        var chatUrl =
+          "https://www.youtube.com/live_chat?is_popout=1&v=" +
+          encodeURIComponent(videoId) +
+          "&dark_theme=1";
+        if (embedDomain) {
+          chatUrl += "&embed_domain=" + encodeURIComponent(embedDomain);
+        }
+        chatIframeEl.src = chatUrl;
+      }
+
+      // Timer Countdown
+      var remaining = totalSeconds;
+      if (totalSeconds <= 0) {
+        countdownFrameEl.style.display = "none";
+      }
+
+      function formatMMSS(sec) {
+        var mins = Math.floor(sec / 60);
+        var secs = sec % 60;
+        var hh = Math.floor(mins / 60);
+        var mm = mins % 60;
+        if (hh > 0) {
+          return (
+            String(hh).padStart(2, "0") +
+            ":" +
+            String(mm).padStart(2, "0") +
+            ":" +
+            String(secs).padStart(2, "0")
+          );
+        }
+        return String(mm).padStart(2, "0") + ":" + String(secs).padStart(2, "0");
+      }
+
+      function updateCountdown() {
+        if (totalSeconds <= 0) return;
+
+        if (remaining > 0) {
+          countdownValEl.textContent = formatMMSS(remaining);
+          var progress = ((totalSeconds - remaining) / totalSeconds) * 100;
+          progressFillEl.style.width = progress.toFixed(1) + "%";
+          remaining -= 1;
+        } else {
+          countdownValEl.textContent = doneText;
+          countdownLabelEl.textContent = "TAPE READY // STAND BY";
+          progressFillEl.style.width = "100%";
+        }
+      }
+
+      updateCountdown();
+      if (totalSeconds > 0) {
+        setInterval(updateCountdown, 1000);
+      }
+
+      // Jam OSD & Tape Counter ala VCR
+      var clockEl = document.getElementById("vhs-clock");
+      var dateEl = document.getElementById("vhs-date");
+      var tapeEl = document.getElementById("tape-counter");
+      var months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+      var frameTicks = 0;
+
+      function updateClock() {
+        var now = new Date();
+        var hh = String(now.getHours()).padStart(2, "0");
+        var mm = String(now.getMinutes()).padStart(2, "0");
+        var ss = String(now.getSeconds()).padStart(2, "0");
+        clockEl.textContent = hh + ":" + mm + ":" + ss;
+
+        var mon = months[now.getMonth()];
+        var day = String(now.getDate()).padStart(2, "0");
+        var yr = now.getFullYear();
+        dateEl.textContent = mon + ". " + day + " " + yr;
+      }
+
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      setInterval(function () {
+        frameTicks += 1;
+        var ff = String(frameTicks % 30).padStart(2, "0");
+        var totalSec = Math.floor(frameTicks / 30);
+        var ss = String(totalSec % 60).padStart(2, "0");
+        var mm = String(Math.floor(totalSec / 60) % 60).padStart(2, "0");
+        var hh = String(Math.floor(totalSec / 3600)).padStart(2, "0");
+        tapeEl.textContent = hh + ":" + mm + ":" + ss + ":" + ff;
+      }, 33);
+
+      // Efek glitch & VHS tracking burst acak
+      var stageEl = document.getElementById("crt-stage");
+      function triggerGlitch() {
+        stageEl.classList.add("is-glitching");
+        var burstDuration = 140 + Math.random() * 240;
+        setTimeout(function () {
+          stageEl.classList.remove("is-glitching");
+          var nextDelay = 2400 + Math.random() * 4800;
+          setTimeout(triggerGlitch, nextDelay);
+        }, burstDuration);
+      }
+      setTimeout(triggerGlitch, 1800);
+
+      // Canvas Noise VHS (~12fps agar ringan di OBS)
+      var canvas = document.getElementById("vhs-noise");
+      var ctx = canvas.getContext("2d");
+      var w = canvas.width;
+      var h = canvas.height;
+      var imgData = ctx.createImageData(w, h);
+      var buffer32 = new Uint32Array(imgData.data.buffer);
+      var lastNoiseTime = 0;
+
+      function renderNoise(timestamp) {
+        if (timestamp - lastNoiseTime >= 80) {
+          lastNoiseTime = timestamp;
+          for (var i = 0; i < buffer32.length; i++) {
+            if (Math.random() < 0.25) {
+              var shade = (Math.random() * 255) | 0;
+              buffer32[i] = (255 << 24) | (shade << 16) | (shade << 8) | shade;
+            } else {
+              buffer32[i] = 0;
+            }
+          }
+          ctx.putImageData(imgData, 0, 0);
+        }
+        requestAnimationFrame(renderNoise);
+      }
+      requestAnimationFrame(renderNoise);
+    })();
+  </script>
+</body>
+</html>

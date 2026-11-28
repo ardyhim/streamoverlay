@@ -1,0 +1,132 @@
+html,
+body,
+yt-live-chat-renderer,
+yt-live-chat-item-list-renderer,
+#item-scroller {
+  background: transparent !important;
+  background-color: transparent !important;
+  overflow: hidden !important;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace !important;
+}
+
+yt-live-chat-header-renderer,
+yt-live-chat-message-input-renderer,
+#ticker,
+#reaction-control-panel,
+#action-panel,
+#separator {
+  display: none !important;
+}
+
+#items.yt-live-chat-item-list-renderer {
+  padding: 6px 8px !important;
+}
+
+/* Regular Viewer */
+yt-live-chat-text-message-renderer,
+yt-live-chat-text-message-renderer[is-highlighted] {
+  background: rgba(223, 222, 220, 0.92) !important;
+  border: 2px solid #0c0c0c !important;
+  border-radius: 0 !important;
+  margin: 0 0 6px 0 !important;
+  padding: 6px 8px !important;
+  box-shadow: 2px 2px 0 #0c0c0c !important;
+}
+
+yt-live-chat-text-message-renderer #author-photo {
+  border-radius: 0 !important;
+  border: 1.5px solid #0c0c0c !important;
+  filter: grayscale(100%) contrast(180%) !important;
+}
+
+yt-live-chat-author-chip #author-name {
+  background: transparent !important;
+  color: #0c0c0c !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+}
+
+yt-live-chat-text-message-renderer #message {
+  color: #141414 !important;
+  font-weight: 600 !important;
+  line-height: 1.35 !important;
+}
+
+/* Membership */
+yt-live-chat-text-message-renderer[author-type="member"],
+yt-live-chat-text-message-renderer[author-type="member"][is-highlighted],
+yt-live-chat-text-message-renderer:has(yt-live-chat-author-chip[is-member]),
+yt-live-chat-text-message-renderer[is-highlighted]:has(yt-live-chat-author-chip[is-member]) {
+  background-color: #dfdedc !important;
+  background-image: radial-gradient(rgba(12, 12, 12, 0.16) 1px, transparent 0) !important;
+  background-size: 6px 6px !important;
+  border-left: 6px solid #0c0c0c !important;
+}
+
+yt-live-chat-text-message-renderer[author-type="member"] #author-name,
+yt-live-chat-text-message-renderer:has(yt-live-chat-author-chip[is-member]) #author-name {
+  color: #0c0c0c !important;
+}
+
+yt-live-chat-text-message-renderer[author-type="member"] #message,
+yt-live-chat-text-message-renderer:has(yt-live-chat-author-chip[is-member]) #message {
+  color: #0c0c0c !important;
+  font-weight: 700 !important;
+}
+
+/* Moderator */
+yt-live-chat-text-message-renderer[author-type="moderator"],
+yt-live-chat-text-message-renderer[author-type="moderator"][is-highlighted] {
+  background: #0c0c0c !important;
+  border: 2px solid #0c0c0c !important;
+  box-shadow: 2px 2px 0 rgba(12, 12, 12, 0.45) !important;
+}
+
+yt-live-chat-text-message-renderer[author-type="moderator"] #author-name {
+  color: #dfdedc !important;
+}
+
+yt-live-chat-text-message-renderer[author-type="moderator"] #message {
+  color: #ffffff !important;
+}
+
+/* Owner (ARDYHIM) */
+yt-live-chat-text-message-renderer[author-type="owner"],
+yt-live-chat-text-message-renderer[author-type="owner"][is-highlighted] {
+  background: #0c0c0c !important;
+  border: 2px solid #0c0c0c !important;
+  outline: 2px solid #dfdedc !important;
+  outline-offset: -4px !important;
+  box-shadow: 3px 3px 0 #0c0c0c !important;
+}
+
+yt-live-chat-text-message-renderer[author-type="owner"] #author-name {
+  color: #ffffff !important;
+}
+
+yt-live-chat-text-message-renderer[author-type="owner"] #message {
+  color: #dfdedc !important;
+  font-weight: 700 !important;
+}
+
+/* Notifikasi New Membership */
+yt-live-chat-membership-item-renderer {
+  background: #0c0c0c !important;
+  border: 2px solid #0c0c0c !important;
+  outline: 2px dashed #dfdedc !important;
+  outline-offset: -4px !important;
+  margin: 0 0 6px 0 !important;
+  padding: 6px 8px !important;
+}
+
+yt-live-chat-membership-item-renderer #card,
+yt-live-chat-membership-item-renderer #header {
+  background: transparent !important;
+}
+
+yt-live-chat-membership-item-renderer #author-name,
+yt-live-chat-membership-item-renderer #header-subtext,
+yt-live-chat-membership-item-renderer #message {
+  color: #dfdedc !important;
+}

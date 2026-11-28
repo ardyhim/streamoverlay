@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ardyhim — Sumi-e Zen Ink Brush Overlay Scene</title>
+
+  <!-- Webfont untuk gaya kaligrafi Jepang & keterbacaan modern -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&family=Shippori+Mincho:wght@500;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --sumi-deep: #12100e;
+      --sumi-ink: #1e1a17;
+      --sumi-wash: rgba(24, 21, 18, 0.86);
+      --sumi-mist: rgba(28, 24, 21, 0.45);
+      --washi-cream: #f4efe6;
+      --washi-muted: #cfc6b6;
+      --hanko-red: #c03227;
+      --hanko-glow: rgba(192, 50, 39, 0.35);
+      --kinpaku-gold: #c9a760;
+
+      --font-zen: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", Georgia, serif;
+      --font-ui: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Wajib transparan & bebas scroll untuk OBS Browser Source */
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      overflow: hidden;
+      font-family: var(--font-ui);
+      color: var(--washi-cream);
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    /* Kontainer utama responsif tanpa max-width tetap */
+    .scene-root {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 24px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      visibility: hidden; /* Ditampilkan mulus oleh GSAP agar anti-FOUT */
+    }
+
+    /* ============================================================
+       OPSIONAL: LATAR WASHI & PEGUNUNGAN SUMI-E (?scene=starting|brb|ending)
+       Default tersembunyi agar kanvas OBS tetap transparan
+    ============================================================ */
+    .washi-backdrop {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      display: none;
+      background:
+        radial-gradient(circle at 75% 22%, rgba(201, 167, 96, 0.12), transparent 45%),
+        radial-gradient(circle at 20% 80%, rgba(192, 50, 39, 0.06), transparent 50%),
+        linear-gradient(160deg, #ece4d5 0%, #e1d7c5 52%, #d5cab6 100%);
+      overflow: hidden;
+    }
+
+    .scene-root.is-full-scene .washi-backdrop {
+      display: block;
+    }
+
+    .washi-grain {
+      position: absolute;
+      inset: 0;
+      opacity: 0.22;
+      pointer-events: none;
+      background-image: radial-gradient(rgba(30, 26, 23, 0.18) 0.7px, transparent 0.7px);
+      background-size: 18px 18px;
+    }
+
+    .sumi-mountains-svg {
+      position: absolute;
+      bottom: -2%;
+      left: 0;
+      width: 100%;
+      height: 62%;
+      pointer-events: none;
+    }
+
+    .scene-center-banner {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      pointer-events: none;
+      padding: 32px;
+      box-sizing: border-box;
+    }
+
+    .scene-root.is-full-scene .scene-center-banner {
+      display: flex;
+    }
+
+    .banner-kanji {
+      font-family: var(--font-zen);
+      font-size: 22px;
+      letter-spacing: 0.55em;
+      color: var(--hanko-red);
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-indent: 0.55em;
+    }
+
+    .banner-title {
+      font-family: var(--font-zen);
+      font-size: clamp(36px, 4.4vw, 68px);
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      color: var(--sumi-deep);
+      margin: 0;
+      line-height: 1.15;
+      text-shadow: 0 2px 18px rgba(244, 239, 230, 0.8);
+    }
+
+    .banner-sub {
+      margin-top: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #4b433b;
+    }
+
+    /* ============================================================
+       LAPISAN KANVAS PARTIKEL & BINGKAI KUAS SVG
+    ============================================================ */
+    #zen-particles {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .brush-frame-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Ornamen Bambu Sudut */
+    .bamboo-cluster {
+      position: absolute;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .bamboo-top-right {
+      top: -10px;
+      right: -12px;
+      width: 340px;
+      height: 300px;
+    }
+
+    .bamboo-bottom-right {
+      bottom: -14px;
+      right: 12px;
+      width: 240px;
+      height: 220px;
+      opacity: 0.82;
+    }
+
+    /* ============================================================
+       BARIS ATAS: HEADER STREAMER TAG & ENSO LIVE EMBLEM
+    ============================================================ */
+    .top-bar {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      box-sizing: border-box;
+    }
+
+    /* Tag Kiri Atas */
+    .zen-header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 18px 10px 12px;
+      background: var(--sumi-wash);
+      border: 1px solid rgba(201, 167, 96, 0.3);
+      border-left: 3px solid var(--hanko-red);
+      border-radius: 3px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.36);
+      backdrop-filter: blur(6px);
+    }
+
+    .live-dot-wrap {
+      position: relative;
+      width: 12px;
+      height: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .live-dot-pulse {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--hanko-red);
+      opacity: 0.7;
+    }
+
+    .live-dot-core {
+      position: relative;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #ff584a;
+      box-shadow: 0 0 8px rgba(255, 88, 74, 0.85);
+    }
+
+    .header-brand-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.15;
+    }
+
+    .header-title {
+      font-family: var(--font-zen);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      color: var(--washi-cream);
+      text-transform: uppercase;
+    }
+
+    .header-subtitle {
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--kinpaku-gold);
+      margin-top: 2px;
+    }
+
+    /* Enso Emblem Kanan Atas */
+    .enso-crest {
+      position: relative;
+      width: 96px;
+      height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: -4px;
+      margin-right: 4px;
+    }
+
+    .enso-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45));
+    }
+
+    .enso-center-kanji {
+      position: relative;
+      z-index: 2;
+      font-family: var(--font-zen);
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--washi-cream);
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.65);
+      line-height: 1;
+    }
+
+    .scene-root.is-full-scene .enso-center-kanji {
+      color: var(--sumi-deep);
+      text-shadow: none;
+    }
+
+    /* ============================================================
+       OPSIONAL: BINGKAI WEBCAM (?cam=left | ?cam=right)
+    ============================================================ */
+    .cam-wrapper {
+      position: absolute;
+      z-index: 8;
+      display: none;
+      width: 380px;
+      aspect-ratio: 16 / 9;
+      box-sizing: border-box;
+    }
+
+    .cam-wrapper.cam-left {
+      display: block;
+      left: 34px;
+      top: 104px;
+    }
+
+    .cam-wrapper.cam-right {
+      display: block;
+      right: 34px;
+      top: 118px;
+    }
+
+    .cam-inner-void {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      border: 2px solid rgba(30, 26, 23, 0.9);
+      box-shadow:
+        0 0 0 1px rgba(201, 167, 96, 0.35),
+        0 18px 40px rgba(0, 0, 0, 0.45);
+      box-sizing: border-box;
+    }
+
+    .cam-corner {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-color: var(--hanko-red);
+      border-style: solid;
+      pointer-events: none;
+    }
+
+    .cam-corner.tl { top: -5px; left: -5px; border-width: 3px 0 0 3px; }
+    .cam-corner.tr { top: -5px; right: -5px; border-width: 3px 3px 0 0; }
+    .cam-corner.bl { bottom: -5px; left: -5px; border-width: 0 0 3px 3px; }
+    .cam-corner.br { bottom: -5px; right: -5px; border-width: 0 3px 3px 0; }
+
+    .cam-tag {
+      position: absolute;
+      bottom: -13px;
+      left: 16px;
+      padding: 3px 12px;
+      background: var(--sumi-deep);
+      border: 1px solid rgba(201, 167, 96, 0.45);
+      font-family: var(--font-zen);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--washi-cream);
+      text-transform: uppercase;
+    }
+
+    /* ============================================================
+       BARIS BAWAH: PANEL BRAND & SOCIAL MEDIA (ARDYHIM)
+    ============================================================ */
+    .bottom-bar {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      box-sizing: border-box;
+      gap: 20px;
+    }
+
+    .social-dock {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 18px;
+      padding: 14px 24px 14px 18px;
+      background: linear-gradient(135deg, rgba(18, 16, 14, 0.92) 0%, rgba(30, 26, 22, 0.86) 100%);
+      border: 1px solid rgba(201, 167, 96, 0.34);
+      border-radius: 4px;
+      box-shadow:
+        0 14px 36px rgba(0, 0, 0, 0.48),
+        inset 0 1px 0 rgba(244, 239, 230, 0.08);
+      backdrop-filter: blur(8px);
+      overflow: hidden;
+    }
+
+    /* Aksen sapuan kuas tipis di atas dock */
+    .social-dock::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--hanko-red) 0%, var(--kinpaku-gold) 48%, transparent 100%);
+    }
+
+    /* Kilatan sapuan tinta GSAP */
+    .ink-sheen {
+      position: absolute;
+      top: 0;
+      left: -40%;
+      width: 35%;
+      height: 100%;
+      background: linear-gradient(105deg, transparent 0%, rgba(244, 239, 230, 0.08) 50%, transparent 100%);
+      pointer-events: none;
+    }
+
+    /* Stempel Hanko Merah Tradisional */
+    .hanko-seal {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      border: 2.5px solid var(--hanko-red);
+      border-radius: 5px;
+      background: rgba(192, 50, 39, 0.14);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #e44b3f;
+      font-family: var(--font-zen);
+      font-weight: 800;
+      font-size: 13px;
+      line-height: 1.05;
+      letter-spacing: 0.05em;
+      box-shadow: 0 0 16px var(--hanko-glow);
+      transform: rotate(-3deg);
+    }
+
+    .hanko-seal::after {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border: 1px dashed rgba(228, 75, 63, 0.45);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+
+    .dock-identity {
+      display: flex;
+      flex-direction: column;
+      padding-right: 18px;
+      border-right: 1px solid rgba(244, 239, 230, 0.14);
+    }
+
+    .dock-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--kinpaku-gold);
+      margin-bottom: 2px;
+    }
+
+    .dock-name {
+      font-family: var(--font-zen);
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: var(--washi-cream);
+      line-height: 1.05;
+    }
+
+    /* Daftar Social Media */
+    .social-list {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .social-item {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 13px;
+      border-radius: 4px;
+      background: rgba(244, 239, 230, 0.04);
+      border: 1px solid rgba(244, 239, 230, 0.09);
+      transition: border-color 0.3s ease;
+    }
+
+    .social-item.is-spotlight {
+      border-color: rgba(201, 167, 96, 0.55);
+      background: rgba(201, 167, 96, 0.1);
+    }
+
+    .social-icon {
+      width: 17px;
+      height: 17px;
+      flex-shrink: 0;
+      fill: var(--washi-cream);
+      opacity: 0.92;
+    }
+
+    .social-item[data-platform="youtube"].is-spotlight .social-icon {
+      fill: #ff5a4f;
+    }
+
+    .social-item[data-platform="instagram"].is-spotlight .social-icon {
+      fill: #f0a875;
+    }
+
+    .social-item[data-platform="tiktok"].is-spotlight .social-icon {
+      fill: #7ce8e4;
+    }
+
+    .social-meta {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .social-platform {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--washi-muted);
+    }
+
+    .social-handle {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--washi-cream);
+      margin-top: 2px;
+    }
+
+    .social-underline {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: -1px;
+      height: 2px;
+      background: var(--hanko-red);
+      transform: scaleX(0);
+      transform-origin: left center;
+    }
+
+    /* Kaligrafi Zen Quote Ringan di Kanan Bawah */
+    .zen-footer-sign {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      background: rgba(18, 16, 14, 0.72);
+      border: 1px solid rgba(244, 239, 230, 0.12);
+      border-radius: 3px;
+      backdrop-filter: blur(4px);
+    }
+
+    .zen-sign-kanji {
+      font-family: var(--font-zen);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--kinpaku-gold);
+      letter-spacing: 0.18em;
+    }
+
+    .zen-sign-divider {
+      width: 1px;
+      height: 14px;
+      background: rgba(244, 239, 230, 0.2);
+    }
+
+    .zen-sign-text {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--washi-muted);
+    }
+
+    /* ============================================================
+       TEMA OPSIONAL: KERTAS WASHI TERANG (?theme=washi)
+    ============================================================ */
+    .scene-root.theme-washi .zen-header-badge,
+    .scene-root.theme-washi .social-dock,
+    .scene-root.theme-washi .zen-footer-sign {
+      background: rgba(244, 239, 230, 0.92);
+      border-color: rgba(30, 26, 23, 0.25);
+      box-shadow: 0 12px 30px rgba(20, 16, 12, 0.18);
+    }
+
+    .scene-root.theme-washi .header-title,
+    .scene-root.theme-washi .dock-name,
+    .scene-root.theme-washi .social-handle {
+      color: var(--sumi-deep);
+    }
+
+    .scene-root.theme-washi .social-platform,
+    .scene-root.theme-washi .zen-sign-text {
+      color: #5b5248;
+    }
+
+    .scene-root.theme-washi .dock-label,
+    .scene-root.theme-washi .header-subtitle,
+    .scene-root.theme-washi .zen-sign-kanji {
+      color: var(--hanko-red);
+    }
+
+    .scene-root.theme-washi .social-item {
+      background: rgba(30, 26, 23, 0.05);
+      border-color: rgba(30, 26, 23, 0.12);
+    }
+
+    .scene-root.theme-washi .social-icon {
+      fill: var(--sumi-ink);
+    }
+
+    .scene-root.theme-washi .dock-identity {
+      border-right-color: rgba(30, 26, 23, 0.16);
+    }
+  </style>
+</head>
+<body>
+  <div class="scene-root" id="scene-root">
+
+    <!-- Latar Washi & Pegunungan Sumi-e (Aktif hanya jika ?scene=starting|brb|ending) -->
+    <div class="washi-backdrop" aria-hidden="true">
+      <div class="washi-grain"></div>
+      <svg class="sumi-mountains-svg" viewBox="0 0 1920 650" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="mountFar" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3c3732" stop-opacity="0.34" />
+            <stop offset="100%" stop-color="#3c3732" stop-opacity="0.02" />
+          </linearGradient>
+          <linearGradient id="mountMid" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#25211d" stop-opacity="0.58" />
+            <stop offset="100%" stop-color="#25211d" stop-opacity="0.06" />
+          </linearGradient>
+          <linearGradient id="mountNear" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#141210" stop-opacity="0.88" />
+            <stop offset="100%" stop-color="#141210" stop-opacity="0.32" />
+          </linearGradient>
+        </defs>
+        <path class="sumi-mount-layer" d="M0,450 Q260,260 520,380 T1040,300 Q1360,180 1640,340 T1920,280 L1920,650 L0,650 Z" fill="url(#mountFar)" />
+        <path class="sumi-mount-layer" d="M0,510 Q320,330 660,440 T1240,350 Q1540,260 1920,420 L1920,650 L0,650 Z" fill="url(#mountMid)" />
+        <path class="sumi-mount-layer" d="M0,560 Q280,440 590,510 T1180,470 Q1520,390 1920,520 L1920,650 L0,650 Z" fill="url(#mountNear)" />
+      </svg>
+    </div>
+
+    <!-- Banner Tengah untuk Mode Starting / BRB / Ending -->
+    <div class="scene-center-banner" id="scene-center-banner">
+      <div class="banner-kanji" id="banner-kanji">一期一会</div>
+      <h1 class="banner-title" id="banner-title">STARTING SOON</h1>
+      <div class="banner-sub" id="banner-sub">ARDYHIM • ZEN INK STREAM</div>
+    </div>
+
+    <!-- Kanvas Partikel Debu Emas & Kelopak Tinta -->
+    <canvas id="zen-particles"></canvas>
+
+    <!-- Bingkai Goresan Kuas Sumi-e Full Screen -->
+    <svg class="brush-frame-layer" viewBox="0 0 1920 1080" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <!-- Filter tekstur serat kuas fude organik -->
+        <filter id="sumi-brush-filter" x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </defs>
+
+      <!-- Garis Kuas Tepi Atas -->
+      <path class="brush-stroke" filter="url(#sumi-brush-filter)"
+        d="M 28 20 Q 480 15 960 21 T 1892 18"
+        fill="none" stroke="#181512" stroke-width="4.5" stroke-linecap="round" opacity="0.88" />
+      <path class="brush-stroke" filter="url(#sumi-brush-filter)"
+        d="M 140 26 Q 520 28 840 24"
+        fill="none" stroke="#c9a760" stroke-width="1.2" stroke-linecap="round" opacity="0.55" />
+
+      <!-- Garis Kuas Tepi Bawah -->
+      <path class="brush-stroke" filter="url(#sumi-brush-filter)"
+        d="M 1894 1060 Q 1320 1065 920 1059 T 28 1062"
+        fill="none" stroke="#181512" stroke-width="4.5" stroke-linecap="round" opacity="0.88" />
+
+      <!-- Garis Kuas Tepi Kiri -->
+      <path class="brush-stroke" filter="url(#sumi-brush-filter)"
+        d="M 20 14 L 18 420 Q 22 720 19 1068"
+        fill="none" stroke="#181512" stroke-width="4" stroke-linecap="round" opacity="0.84" />
+
+      <!-- Garis Kuas Tepi Kanan -->
+      <path class="brush-stroke" filter="url(#sumi-brush-filter)"
+        d="M 1900 1066 L 1902 640 Q 1897 340 1900 12"
+        fill="none" stroke="#181512" stroke-width="4" stroke-linecap="round" opacity="0.84" />
+    </svg>
+
+    <!-- Ornamen Bambu Tinta Kanan Atas -->
+    <svg class="bamboo-cluster bamboo-top-right" viewBox="0 0 340 300" aria-hidden="true">
+      <g class="bamboo-sway-group">
+        <!-- Batang Latar (Tinta Cair) -->
+        <path class="brush-stroke" d="M 295 -10 Q 260 95 220 195" fill="none" stroke="rgba(26,22,19,0.42)" stroke-width="5" stroke-linecap="round" />
+        <!-- Batang Utama (Tinta Pekat) -->
+        <path class="brush-stroke" d="M 325 -12 Q 285 110 248 240" fill="none" stroke="#171411" stroke-width="7" stroke-linecap="round" />
+        <!-- Ruas Bambu -->
+        <path d="M 289 72 L 303 77 M 263 158 L 278 164" stroke="#c9a760" stroke-width="1.5" opacity="0.6" />
+        <!-- Kelompok Daun Bambu -->
+        <g class="bamboo-leaf" style="transform-origin: 288px 76px;">
+          <path d="M 288 76 Q 232 62 194 94 Q 242 92 288 76 Z" fill="#171411" />
+          <path d="M 286 78 Q 226 98 205 136 Q 252 114 286 78 Z" fill="#231e1a" />
+          <path d="M 290 74 Q 258 34 222 44 Q 258 64 290 74 Z" fill="rgba(26,22,19,0.68)" />
+        </g>
+        <g class="bamboo-leaf" style="transform-origin: 266px 158px;">
+          <path d="M 266 158 Q 204 148 168 182 Q 218 176 266 158 Z" fill="#171411" />
+          <path d="M 264 162 Q 214 188 198 225 Q 238 198 264 162 Z" fill="rgba(24,20,17,0.75)" />
+        </g>
+        <g class="bamboo-leaf" style="transform-origin: 236px 128px;">
+          <path d="M 236 128 Q 186 106 146 126 Q 192 136 236 128 Z" fill="rgba(24,20,17,0.52)" />
+        </g>
+      </g>
+    </svg>
+
+    <!-- Ornamen Bambu Halus Kanan Bawah -->
+    <svg class="bamboo-cluster bamboo-bottom-right" viewBox="0 0 240 220" aria-hidden="true">
+      <g class="bamboo-sway-group">
+        <path class="brush-stroke" d="M 215 230 Q 192 145 170 72" fill="none" stroke="#181512" stroke-width="5.5" stroke-linecap="round" />
+        <g class="bamboo-leaf" style="transform-origin: 188px 134px;">
+          <path d="M 188 134 Q 140 108 106 124 Q 148 138 188 134 Z" fill="#1a1613" />
+          <path d="M 188 138 Q 134 144 114 176 Q 154 156 188 138 Z" fill="rgba(26,22,19,0.65)" />
+        </g>
+        <g class="bamboo-leaf" style="transform-origin: 174px 86px;">
+          <path d="M 174 86 Q 136 46 98 54 Q 138 78 174 86 Z" fill="#181512" />
+        </g>
+      </g>
+    </svg>
+
+    <!-- BARIS ATAS -->
+    <header class="top-bar">
+      <div class="zen-header-badge" id="zen-header-badge">
+        <div class="live-dot-wrap">
+          <span class="live-dot-pulse"></span>
+          <span class="live-dot-core"></span>
+        </div>
+        <div class="header-brand-text">
+          <span class="header-title" id="header-title">ARDYHIM</span>
+          <span class="header-subtitle" id="header-subtitle">LIVE BROADCAST • SUMI-E EDITION</span>
+        </div>
+      </div>
+
+      <!-- Lingkaran Enso Zen -->
+      <div class="enso-crest" id="enso-crest" aria-hidden="true">
+        <svg class="enso-svg" viewBox="0 0 120 120">
+          <path class="enso-path"
+            d="M 62 14 C 91 14, 108 36, 106 64 C 104 92, 82 108, 54 106 C 27 104, 12 82, 14 55 C 16 32, 34 18, 52 15"
+            fill="none" stroke="#171411" stroke-width="9" stroke-linecap="round" />
+          <path class="enso-path-thin"
+            d="M 59 11 C 93 12, 111 35, 109 65 C 107 93, 83 111, 53 109"
+            fill="none" stroke="#c9a760" stroke-width="1.6" stroke-linecap="round" opacity="0.7" />
+        </svg>
+        <span class="enso-center-kanji">禅</span>
+      </div>
+    </header>
+
+    <!-- OPSIONAL: BINGKAI WEBCAM (?cam=left atau ?cam=right) -->
+    <aside class="cam-wrapper" id="cam-wrapper" aria-label="Webcam Frame">
+      <div class="cam-inner-void">
+        <span class="cam-corner tl"></span>
+        <span class="cam-corner tr"></span>
+        <span class="cam-corner bl"></span>
+        <span class="cam-corner br"></span>
+        <div class="cam-tag">ARDYHIM CAM</div>
+      </div>
+    </aside>
+
+    <!-- BARIS BAWAH: SOCIAL MEDIA & BRANDING -->
+    <footer class="bottom-bar">
+      <div class="social-dock" id="social-dock">
+        <div class="ink-sheen" id="ink-sheen"></div>
+
+        <!-- Stempel Hanko Merah -->
+        <div class="hanko-seal" id="hanko-seal" aria-hidden="true">
+          <span>墨</span>
+          <span>絵</span>
+        </div>
+
+        <!-- Identitas Streamer -->
+        <div class="dock-identity">
+          <span class="dock-label">FOLLOW &amp; SUBSCRIBE</span>
+          <span class="dock-name">ARDYHIM</span>
+        </div>
+
+        <!-- Daftar Social Media -->
+        <div class="social-list" id="social-list">
+          <!-- YouTube -->
+          <div class="social-item" data-platform="youtube">
+            <svg class="social-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M23.5 6.2a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.51A3.02 3.02 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3.02 3.02 0 0 0 2.12 2.14c1.88.51 9.38.51 9.38.51s7.5 0 9.38-.51a3.02 3.02 0 0 0 2.12-2.14C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.6 15.57V8.43L15.82 12 9.6 15.57z"/>
+            </svg>
+            <div class="social-meta">
+              <span class="social-platform">YouTube</span>
+              <span class="social-handle">ardyhim</span>
+            </div>
+            <span class="social-underline"></span>
+          </div>
+
+          <!-- Instagram -->
+          <div class="social-item" data-platform="instagram">
+            <svg class="social-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7.75 2h8.5A5.76 5.76 0 0 1 22 7.75v8.5A5.76 5.76 0 0 1 16.25 22h-8.5A5.76 5.76 0 0 1 2 16.25v-8.5A5.76 5.76 0 0 1 7.75 2zm0 1.8A3.95 3.95 0 0 0 3.8 7.75v8.5a3.95 3.95 0 0 0 3.95 3.95h8.5a3.95 3.95 0 0 0 3.95-3.95v-8.5a3.95 3.95 0 0 0-3.95-3.95h-8.5zm9.15 1.45a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 1.8a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4z"/>
+            </svg>
+            <div class="social-meta">
+              <span class="social-platform">Instagram</span>
+              <span class="social-handle">ardyhim</span>
+            </div>
+            <span class="social-underline"></span>
+          </div>
+
+          <!-- TikTok -->
+          <div class="social-item" data-platform="tiktok">
+            <svg class="social-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/>
+            </svg>
+            <div class="social-meta">
+              <span class="social-platform">TikTok</span>
+              <span class="social-handle">ardyhim</span>
+            </div>
+            <span class="social-underline"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cap Zen Kanan Bawah -->
+      <div class="zen-footer-sign" id="zen-footer-sign">
+        <span class="zen-sign-kanji">静寂</span>
+        <span class="zen-sign-divider"></span>
+        <span class="zen-sign-text" id="zen-sign-text">WABI-SABI • INK FLOW</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- GSAP Core Library (jsDelivr CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const sceneRoot = document.getElementById("scene-root");
+      const camWrapper = document.getElementById("cam-wrapper");
+
+      // 1. Konfigurasi Parameter URL Opsional untuk fleksibilitas Scene OBS
+      const sceneMode = (params.get("scene") || "overlay").toLowerCase();
+      const camMode = (params.get("cam") || "none").toLowerCase();
+      const themeMode = (params.get("theme") || "sumi").toLowerCase();
+      const customTitle = params.get("title");
+      const customSub = params.get("sub");
+
+      if (themeMode === "washi") {
+        sceneRoot.classList.add("theme-washi");
+      }
+
+      if (camMode === "left") {
+        camWrapper.classList.add("cam-left");
+      } else if (camMode === "right") {
+        camWrapper.classList.add("cam-right");
+      }
+
+      const scenePresets = {
+        starting: { kanji: "一期一会", title: "STARTING SOON", sub: "ARDYHIM • PERSIAPKAN KOPI & SANTAI" },
+        brb:      { kanji: "小休止",   title: "BE RIGHT BACK", sub: "ARDYHIM • SEBENTAR LAGI KEMBALI" },
+        ending:   { kanji: "感謝",     title: "THANKS FOR WATCHING", sub: "ARDYHIM • SAMPAI JUMPA DI STREAM BERIKUTNYA" }
+      };
+
+      if (scenePresets[sceneMode]) {
+        sceneRoot.classList.add("is-full-scene");
+        document.getElementById("banner-kanji").textContent = scenePresets[sceneMode].kanji;
+        document.getElementById("banner-title").textContent = customTitle || scenePresets[sceneMode].title;
+        document.getElementById("banner-sub").textContent = customSub || scenePresets[sceneMode].sub;
+      } else if (customSub) {
+        document.getElementById("header-subtitle").textContent = customSub;
+      }
+
+      // 2. Siapkan Animasi Sapuan Kuas SVG (Stroke Dash)
+      const strokePaths = document.querySelectorAll(".brush-stroke, .enso-path, .enso-path-thin");
+      strokePaths.forEach((path) => {
+        if (typeof path.getTotalLength === "function") {
+          const length = path.getTotalLength();
+          path.style.strokeDasharray = length;
+          path.style.strokeDashoffset = length;
+        }
+      });
+
+      // 3. Kanvas Partikel Zen (Debu Emas Kinpaku & Kelopak Tinta)
+      function initZenParticles() {
+        const canvas = document.getElementById("zen-particles");
+        const ctx = canvas.getContext("2d");
+        let width = 0;
+        let height = 0;
+        const particles = [];
+        const particleCount = 26;
+
+        function resize() {
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          width = window.innerWidth;
+          height = window.innerHeight;
+          canvas.width = width * dpr;
+          canvas.height = height * dpr;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function createParticle(randomX) {
+          const isInkPetal = Math.random() > 0.65;
+          return {
+            x: randomX ? Math.random() * width : -20,
+            y: Math.random() * height,
+            size: isInkPetal ? 3.5 + Math.random() * 4.5 : 1.1 + Math.random() * 1.8,
+            speedX: 0.18 + Math.random() * 0.42,
+            speedY: -0.1 + Math.random() * 0.25,
+            phase: Math.random() * Math.PI * 2,
+            rot: Math.random() * Math.PI * 2,
+            rotSpeed: (Math.random() - 0.5) * 0.015,
+            alpha: isInkPetal ? 0.22 + Math.random() * 0.25 : 0.35 + Math.random() * 0.4,
+            isInkPetal
+          };
+        }
+
+        resize();
+        window.addEventListener("resize", resize);
+
+        for (let i = 0; i < particleCount; i++) {
+          particles.push(createParticle(true));
+        }
+
+        gsap.ticker.add(() => {
+          ctx.clearRect(0, 0, width, height);
+          for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            p.phase += 0.014;
+            p.x += p.speedX;
+            p.y += p.speedY + Math.sin(p.phase) * 0.22;
+            p.rot += p.rotSpeed;
+
+            if (p.x > width + 30 || p.y < -30 || p.y > height + 30) {
+              particles[i] = createParticle(false);
+              continue;
+            }
+
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot);
+            ctx.globalAlpha = p.alpha;
+
+            if (p.isInkPetal) {
+              // Siluet kelopak tinta / daun bambu mini
+              ctx.fillStyle = sceneRoot.classList.contains("is-full-scene")
+                ? "rgba(28, 24, 21, 0.75)"
+                : "rgba(244, 239, 230, 0.5)";
+              ctx.beginPath();
+              ctx.ellipse(0, 0, p.size * 1.5, p.size * 0.5, 0, 0, Math.PI * 2);
+              ctx.fill();
+            } else {
+              // Debu emas kinpaku
+              ctx.fillStyle = "#c9a760";
+              ctx.beginPath();
+              ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+              ctx.fill();
+            }
+
+            ctx.restore();
+          }
+        });
+      }
+
+      // 4. Timeline Animasi Utama GSAP
+      function startZenAnimation() {
+        initZenParticles();
+
+        gsap.set(sceneRoot, { autoAlpha: 1 });
+
+        const intro = gsap.timeline({ defaults: { ease: "power3.out" } });
+
+        // Goresan bingkai kuas Sumi-e
+        intro
+          .to(".brush-stroke", {
+            strokeDashoffset: 0,
+            duration: 1.5,
+            stagger: 0.14,
+            ease: "power2.inOut"
+          })
+          // Lingkaran Enso Zen dilukis halus
+          .to(".enso-path, .enso-path-thin", {
+            strokeDashoffset: 0,
+            duration: 1.3,
+            stagger: 0.15,
+            ease: "power2.out"
+          }, "-=1.1")
+          // Kanji di dalam Enso muncul bagai tinta meresap
+          .from(".enso-center-kanji", {
+            opacity: 0,
+            scale: 0.75,
+            duration: 0.7
+          }, "-=0.7")
+          // Daun bambu bermunculan
+          .from(".bamboo-leaf", {
+            opacity: 0,
+            scale: 0.65,
+            duration: 0.85,
+            stagger: 0.08
+          }, "-=0.9")
+          // Header kiri atas & footer kanan bawah
+          .from("#zen-header-badge", {
+            x: -36,
+            opacity: 0,
+            duration: 0.75
+          }, "-=0.8")
+          .from("#zen-footer-sign", {
+            x: 30,
+            opacity: 0,
+            duration: 0.75
+          }, "-=0.7")
+          // Panel Social Media Dock masuk
+          .from("#social-dock", {
+            y: 36,
+            opacity: 0,
+            duration: 0.85
+          }, "-=0.65")
+          // Stempel Hanko merah mengecap ke kertas
+          .from("#hanko-seal", {
+            scale: 1.7,
+            opacity: 0,
+            rotation: -16,
+            duration: 0.45,
+            ease: "back.out(1.7)"
+          }, "-=0.45")
+          // Item social media muncul berurutan
+          .from(".social-item", {
+            y: 12,
+            opacity: 0,
+            duration: 0.55,
+            stagger: 0.12
+          }, "-=0.3");
+
+        // Animasi Webcam Frame (jika aktif)
+        if (camMode === "left" || camMode === "right") {
+          intro.from("#cam-wrapper", {
+            scale: 0.92,
+            opacity: 0,
+            duration: 0.8
+          }, "-=0.7");
+        }
+
+        // Animasi Banner Tengah (jika ?scene=starting|brb|ending)
+        if (scenePresets[sceneMode]) {
+          intro
+            .from(".sumi-mount-layer", {
+              y: 45,
+              opacity: 0,
+              duration: 1.2,
+              stagger: 0.18
+            }, 0.2)
+            .from(["#banner-kanji", "#banner-title", "#banner-sub"], {
+              y: 22,
+              opacity: 0,
+              duration: 0.85,
+              stagger: 0.14
+            }, 0.5);
+        }
+
+        // 5. Animasi Looping Ambient (Angin Bambu, Denyut Live, & Enso Breathing)
+        gsap.to(".bamboo-leaf", {
+          rotation: (i) => (i % 2 === 0 ? 3.5 : -2.8),
+          duration: (i) => 2.6 + i * 0.35,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+          stagger: 0.25
+        });
+
+        gsap.to(".live-dot-pulse", {
+          scale: 2.3,
+          opacity: 0,
+          duration: 1.8,
+          repeat: -1,
+          ease: "power2.out"
+        });
+
+        gsap.to(".enso-svg", {
+          rotation: 8,
+          scale: 1.03,
+          duration: 6,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut"
+        });
+
+        // 6. Animasi Spotlight Social Media Bergantian Setiap ~4.5 Detik
+        const socialItems = Array.from(document.querySelectorAll(".social-item"));
+        let activeIdx = 0;
+
+        function cycleSocialSpotlight() {
+          socialItems.forEach((el, idx) => {
+            const underline = el.querySelector(".social-underline");
+            if (idx === activeIdx) {
+              el.classList.add("is-spotlight");
+              gsap.to(el, { y: -2, duration: 0.4, ease: "power2.out" });
+              gsap.to(underline, { scaleX: 1, duration: 0.55, ease: "power2.out" });
+            } else {
+              el.classList.remove("is-spotlight");
+              gsap.to(el, { y: 0, duration: 0.4, ease: "power2.out" });
+              gsap.to(underline, { scaleX: 0, duration: 0.35, ease: "power2.in" });
+            }
+          });
+
+          // Kilatan tinta lembut melintasi dock setiap pergantian spotlight
+          gsap.fromTo("#ink-sheen",
+            { left: "-45%" },
+            { left: "120%", duration: 1.1, ease: "power2.inOut" }
+          );
+
+          activeIdx = (activeIdx + 1) % socialItems.length;
+        }
+
+        // Mulai spotlight setelah intro selesai
+        gsap.delayedCall(2.0, () => {
+          cycleSocialSpotlight();
+          setInterval(cycleSocialSpotlight, 4500);
+        });
+      }
+
+      // Sinkronkan font agar 0 kedip (dengan batas tunggu aman 450ms jika offline)
+      let started = false;
+      function safeStart() {
+        if (started) return;
+        started = true;
+        startZenAnimation();
+      }
+
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(safeStart);
+        setTimeout(safeStart, 450);
+      } else {
+        window.addEventListener("load", safeStart);
+      }
+    })();
+  </script>
+</body>
+</html>

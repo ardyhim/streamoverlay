@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>CRT VHS Tako Song Share</title>
+  <style>
+    :root {
+      --crt-card-bg: rgba(10, 12, 18, 0.94);
+      --crt-inner-bg: rgba(4, 7, 12, 0.84);
+      --phosphor-main: #e8f7ff;
+      --phosphor-cyan: #00f0ff;
+      --phosphor-magenta: #ff2a6d;
+      --phosphor-amber: #ffbe0b;
+      --phosphor-green: #39ff14;
+      --font-mono: "Consolas", "Lucida Console", "DejaVu Sans Mono", "Courier New", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 16px;
+    }
+
+    body {
+      margin: 0;
+      padding: 0.65rem;
+      width: 100%;
+      box-sizing: border-box;
+      background: transparent;
+      overflow: hidden;
+      font-family: var(--font-mono);
+      color: var(--phosphor-main);
+    }
+
+    img[src=""],
+    img[src*="{"],
+    img:not([src]) {
+      display: none !important;
+    }
+
+    .song-card {
+      position: relative;
+      width: 100%;
+      box-sizing: border-box;
+      border: 0.125rem solid rgba(0, 240, 255, 0.72);
+      background: var(--crt-card-bg);
+      box-shadow:
+        -0.2rem 0 0 rgba(255, 42, 109, 0.55),
+        0.2rem 0 0 rgba(0, 240, 255, 0.55),
+        0 0 1.25rem rgba(0, 0, 0, 0.85),
+        inset 0 0 2rem rgba(0, 0, 0, 0.88);
+      isolation: isolate;
+    }
+
+    .crt-scanlines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0.22;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0) 0px,
+          rgba(255, 255, 255, 0) 2px,
+          rgba(0, 0, 0, 0.65) 3px,
+          rgba(0, 0, 0, 0.65) 4px
+        ),
+        repeating-linear-gradient(
+          to right,
+          rgba(255, 0, 76, 0.05) 0px,
+          rgba(0, 255, 136, 0.05) 1px,
+          rgba(0, 170, 255, 0.05) 2px
+        );
+    }
+
+    .crt-vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 11;
+      background: radial-gradient(
+        ellipse at center,
+        rgba(0, 0, 0, 0) 58%,
+        rgba(0, 0, 0, 0.56) 100%
+      );
+    }
+
+    .osd-bar {
+      position: relative;
+      z-index: 2;
+      height: 2rem;
+      padding: 0 0.85rem;
+      border-bottom: 0.125rem solid rgba(0, 240, 255, 0.32);
+      background: rgba(0, 240, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: nowrap;
+      gap: 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .status-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      white-space: nowrap;
+    }
+
+    .status-led {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      flex: 0 0 0.5rem;
+      background: rgba(232, 247, 255, 0.45);
+    }
+
+    .status-text {
+      color: rgba(232, 247, 255, 0.75);
+    }
+
+    .song-card[data-playing="true"] .status-led {
+      background: var(--phosphor-green);
+      box-shadow: 0 0 0.5rem var(--phosphor-green);
+    }
+
+    .song-card[data-playing="true"] .status-text {
+      color: var(--phosphor-green);
+      text-shadow: 0 0 0.45rem rgba(57, 255, 20, 0.45);
+    }
+
+    .song-card[data-paused="true"] .status-led {
+      background: var(--phosphor-amber);
+      box-shadow: 0 0 0.5rem var(--phosphor-amber);
+    }
+
+    .song-card[data-paused="true"] .status-text {
+      color: var(--phosphor-amber);
+    }
+
+    .song-card[data-gap="true"] .status-led {
+      background: var(--phosphor-cyan);
+      box-shadow: 0 0 0.5rem var(--phosphor-cyan);
+    }
+
+    .song-card[data-gap="true"] .status-text {
+      color: var(--phosphor-cyan);
+    }
+
+    .deck-tag {
+      color: rgba(232, 247, 255, 0.75);
+      white-space: nowrap;
+    }
+
+    .card-content {
+      position: relative;
+      z-index: 2;
+      padding: 0.85rem 0.95rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+
+    .error-banner {
+      display: none;
+      padding: 0.45rem 0.65rem;
+      border-left: 0.2rem solid var(--phosphor-magenta);
+      background: rgba(255, 42, 109, 0.14);
+      color: #ffd6e3;
+      font-size: 0.8rem;
+      line-height: 1.3;
+    }
+
+    .gap-banner {
+      display: none;
+      padding: 0.75rem 0.85rem;
+      border: 0.1rem dashed rgba(0, 240, 255, 0.55);
+      background: var(--crt-inner-bg);
+      color: var(--phosphor-cyan);
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-align: center;
+      text-shadow:
+        -1px 0 rgba(255, 42, 109, 0.65),
+        1px 0 rgba(0, 240, 255, 0.65);
+    }
+
+    .song-card[data-gap="true"] .gap-banner {
+      display: block;
+    }
+
+    .song-card[data-gap="true"] .player-body {
+      display: none;
+    }
+
+    .player-body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+
+    .track-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 0.85rem;
+      min-width: 0;
+    }
+
+    .cover-wrap {
+      position: relative;
+      width: 4.5rem;
+      height: 4.5rem;
+      flex: 0 0 4.5rem;
+      border: 0.125rem solid var(--phosphor-cyan);
+      background: var(--crt-inner-bg);
+      box-shadow:
+        -0.125rem 0 0 rgba(255, 42, 109, 0.5),
+        0.125rem 0 0 rgba(0, 240, 255, 0.5);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cover-fallback {
+      position: relative;
+      z-index: 1;
+      width: 2.3rem;
+      height: 2.3rem;
+      border-radius: 50%;
+      border: 0.15rem solid rgba(0, 240, 255, 0.65);
+      background: radial-gradient(
+        circle,
+        var(--phosphor-magenta) 0 22%,
+        rgba(10, 14, 22, 0.95) 24% 62%,
+        rgba(0, 240, 255, 0.35) 64% 100%
+      );
+    }
+
+    .cover-img {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      width: 4.5rem;
+      height: 4.5rem;
+      object-fit: cover;
+      display: block;
+    }
+
+    .track-meta {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.22rem;
+    }
+
+    .song-title {
+      height: 1.45rem;
+      line-height: 1.45rem;
+      font-size: 1.08rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--phosphor-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow:
+        -1.5px 0 rgba(255, 42, 109, 0.7),
+        1.5px 0 rgba(0, 240, 255, 0.7),
+        0 0 0.5rem rgba(232, 247, 255, 0.32);
+    }
+
+    .song-artist {
+      height: 1.15rem;
+      line-height: 1.15rem;
+      font-size: 0.85rem;
+      color: var(--phosphor-amber);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 0 0.4rem rgba(255, 190, 11, 0.32);
+    }
+
+    .requester-row {
+      height: 1.4rem;
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 0.38rem;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .requester-label {
+      flex: 0 0 auto;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(232, 247, 255, 0.6);
+    }
+
+    .requester-pic {
+      width: 1.2rem;
+      height: 1.2rem;
+      flex: 0 0 1.2rem;
+      border: 1px solid rgba(0, 240, 255, 0.7);
+      object-fit: cover;
+      display: block;
+    }
+
+    .requester-name {
+      flex: 0 1 auto;
+      min-width: 0;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--phosphor-cyan);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .requester-verified {
+      display: none;
+      flex: 0 0 auto;
+      align-items: center;
+      justify-content: center;
+      padding: 0.04rem 0.3rem;
+      border: 1px solid var(--phosphor-cyan);
+      background: rgba(0, 240, 255, 0.14);
+      color: var(--phosphor-cyan);
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+
+    .requester-verified[data-verified="true"] {
+      display: inline-flex;
+    }
+
+    .requester-badges {
+      height: 1.15rem;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 0.25rem;
+      overflow: hidden;
+    }
+
+    .requester-badges:empty {
+      display: none;
+    }
+
+    .badge-icon {
+      width: 1.05rem;
+      height: 1.05rem;
+      flex: 0 0 1.05rem;
+      object-fit: contain;
+      display: block;
+    }
+
+    .badge-tag {
+      display: inline-block;
+      padding: 0.04rem 0.3rem;
+      border: 1px solid rgba(255, 190, 11, 0.65);
+      background: rgba(255, 190, 11, 0.12);
+      color: var(--phosphor-amber);
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+      line-height: 1.2;
+    }
+
+    .progress-row {
+      height: 1.35rem;
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 0.65rem;
+      width: 100%;
+    }
+
+    .bar-track {
+      position: relative;
+      flex: 1 1 0%;
+      min-width: 0;
+      height: 0.68rem;
+      padding: 1px;
+      border: 1px solid rgba(232, 247, 255, 0.5);
+      background: var(--crt-inner-bg);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background:
+        repeating-linear-gradient(
+          to right,
+          var(--phosphor-cyan) 0,
+          var(--phosphor-cyan) 0.45rem,
+          rgba(0, 240, 255, 0.22) 0.45rem,
+          rgba(0, 240, 255, 0.22) 0.6rem
+        );
+      box-shadow: 0 0 0.55rem rgba(0, 240, 255, 0.55);
+    }
+
+    .time-text {
+      flex: 0 0 auto;
+      font-size: 0.74rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.06em;
+      color: var(--phosphor-green);
+      white-space: nowrap;
+    }
+
+    .setlist-box {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      padding-top: 0.55rem;
+      border-top: 1px dashed rgba(0, 240, 255, 0.35);
+    }
+
+    .setlist-box.is-hidden {
+      display: none;
+    }
+
+    .setlist-header {
+      height: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: nowrap;
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--phosphor-magenta);
+    }
+
+    .setlist-body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .queue-item {
+      height: 1.25rem;
+      padding: 0 0.45rem;
+      background: var(--crt-inner-bg);
+      border-left: 0.15rem solid rgba(0, 240, 255, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: nowrap;
+      gap: 0.5rem;
+      font-size: 0.72rem;
+    }
+
+    .queue-item-title {
+      flex: 1 1 auto;
+      min-width: 0;
+      color: var(--phosphor-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .queue-item-sender {
+      flex: 0 0 auto;
+      max-width: 8rem;
+      color: var(--phosphor-cyan);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .queue-more {
+      font-size: 0.66rem;
+      letter-spacing: 0.1em;
+      color: rgba(232, 247, 255, 0.65);
+      text-align: right;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div
+    class="song-card"
+    id="song-card"
+    data-playing="{{isPlaying}}"
+    data-paused="{{isPaused}}"
+    data-gap="{{isInGap}}"
+  >
+    <div class="crt-scanlines"></div>
+    <div class="crt-vignette"></div>
+
+    <div class="osd-bar">
+      <span class="status-group">
+        <span class="status-led"></span>
+        <span class="status-text" id="status-el">STANDBY</span>
+      </span>
+      <span class="deck-tag" id="deck-tag">SONG DECK // CH 03</span>
+    </div>
+
+    <div class="card-content">
+      <div class="error-banner" id="error-banner">{{error}}</div>
+      <div class="gap-banner" id="gap-banner">{{gapText}}</div>
+
+      <div class="player-body" id="player-body">
+        <div class="track-row">
+          <div class="cover-wrap">
+            <div class="cover-fallback"></div>
+            <img
+              class="cover-img"
+              id="cover-img"
+              src="{{songCoverArtUrl}}"
+              width="72"
+              height="72"
+              alt=""
+            />
+          </div>
+
+          <div class="track-meta">
+            <div class="song-title" id="title-el">{{songTitle}}</div>
+            <div class="song-artist" id="artist-el">{{songArtist}}</div>
+
+            <div class="requester-row" id="requester-row">
+              <span class="requester-label">REQ:</span>
+              <img
+                class="requester-pic"
+                id="requester-pic"
+                src="{{requesterPicture}}"
+                width="20"
+                height="20"
+                alt=""
+              />
+              <span class="requester-name" id="requester-name">{{requesterName}}</span>
+              <span
+                class="requester-verified"
+                id="requester-verified"
+                data-verified="{{isRequesterVerified}}"
+              >VER</span>
+              <span class="requester-badges" id="requester-badges"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="progress-row" id="progress-row">
+          <div class="bar-track">
+            <div class="bar-fill" id="bar-fill" style="width: {{percentage}}%"></div>
+          </div>
+          <div
+            class="time-text"
+            id="time-el"
+            data-elapsed="{{elapsed}}"
+            data-duration="{{duration}}"
+          >{{formattedElapsed}} / {{formattedDuration}}</div>
+        </div>
+      </div>
+
+      <div class="setlist-box is-hidden" id="setlist">
+        <div class="setlist-header">
+          <span>UP NEXT // TAPE QUEUE</span>
+          <span id="setlist-count">0</span>
+        </div>
+        <div class="setlist-body" id="setlist-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var isPlaying = "{{isPlaying}}" === "true";
+      var isPaused = "{{isPaused}}" === "true";
+      var isInGap = "{{isInGap}}" === "true";
+      var requesterBadges = "{{requesterBadges}}".trim();
+
+      var BADGE_ICON_URLS = {
+        "Tako Verified Partner": "https://tako.id/images/badges/partnered-creator.png",
+        "Tako Verified Creator": "https://tako.id/images/badges/verified-creator.png",
+        "Rich Rich Club": "https://tako.id/images/badges/king.png",
+        "Charity": "https://tako.id/images/badges/charity.png",
+        "VTuber": "https://tako.id/images/badges/vtuber.png",
+        "Tako Team": "https://tako.id/images/badges/admin.png"
+      };
+
+      var statusEl = document.getElementById("status-el");
+      var titleEl = document.getElementById("title-el");
+      var artistEl = document.getElementById("artist-el");
+      var errorBanner = document.getElementById("error-banner");
+      var gapBanner = document.getElementById("gap-banner");
+      var requesterRow = document.getElementById("requester-row");
+      var requesterNameEl = document.getElementById("requester-name");
+      var requesterPic = document.getElementById("requester-pic");
+      var coverImg = document.getElementById("cover-img");
+      var badgesEl = document.getElementById("requester-badges");
+      var progressRow = document.getElementById("progress-row");
+      var barFill = document.getElementById("bar-fill");
+      var timeEl = document.getElementById("time-el");
+
+      var titleText = titleEl.textContent.trim();
+      var isIdle = !titleText || titleText.indexOf("{") !== -1;
+
+      function parseNum(val) {
+        if (typeof val === "number") return isFinite(val) ? val : 0;
+        var str = String(val || "").replace("%", "").trim();
+        if (!str || str.indexOf("{") !== -1) return 0;
+        var n = parseFloat(str);
+        return isFinite(n) ? n : 0;
+      }
+
+      function formatSec(sec) {
+        var s = Math.max(0, Math.floor(sec));
+        var hrs = Math.floor(s / 3600);
+        var mins = Math.floor((s % 3600) / 60);
+        var rem = s % 60;
+        var mm = String(mins).padStart(hrs > 0 ? 2 : 1, "0");
+        var ss = String(rem).padStart(2, "0");
+        if (hrs > 0) {
+          return hrs + ":" + mm + ":" + ss;
+        }
+        return mm + ":" + ss;
+      }
+
+      var baseElapsed = parseNum("{{elapsed}}");
+      var totalDuration = parseNum("{{duration}}");
+      var initPct = parseNum("{{percentage}}");
+      if (initPct <= 0 && totalDuration > 0 && baseElapsed > 0) {
+        initPct = Math.min(100, (baseElapsed / totalDuration) * 100);
+      }
+      barFill.style.width = Math.min(100, Math.max(0, initPct)).toFixed(2) + "%";
+
+      var baseTimestamp = Date.now();
+      var lastExternalTick = 0;
+
+      function applyProgress(elapsedVal, durationVal, pctVal, formattedText) {
+        var dur = durationVal > 0 ? durationVal : totalDuration;
+        var elap = Math.max(0, elapsedVal);
+        if (dur > 0 && elap > dur) {
+          elap = dur;
+        }
+        var pct = typeof pctVal === "number" && isFinite(pctVal)
+          ? pctVal
+          : (dur > 0 ? (elap / dur) * 100 : 0);
+        pct = Math.min(100, Math.max(0, pct));
+
+        barFill.style.width = pct.toFixed(2) + "%";
+        if (formattedText) {
+          timeEl.textContent = formattedText;
+        } else if (dur > 0) {
+          timeEl.textContent = formatSec(elap) + " / " + formatSec(dur);
+        }
+        timeEl.setAttribute("data-elapsed", String(Math.floor(elap)));
+        timeEl.setAttribute("data-duration", String(Math.floor(dur)));
+      }
+
+      function handleExternalTick(payload) {
+        if (!payload || typeof payload !== "object") return;
+        if (payload.type && payload.type !== "progress-tick" && payload.type !== "songshare-tick") return;
+        var hasData =
+          payload.elapsed !== undefined ||
+          payload.percentage !== undefined ||
+          payload.duration !== undefined;
+        if (!hasData) return;
+
+        lastExternalTick = Date.now();
+        if (payload.duration !== undefined) {
+          totalDuration = parseNum(payload.duration);
+        }
+        if (payload.elapsed !== undefined) {
+          baseElapsed = parseNum(payload.elapsed);
+          baseTimestamp = Date.now();
+        }
+        var extPct = payload.percentage !== undefined ? parseNum(payload.percentage) : undefined;
+        var extText = (payload.formattedElapsed && payload.formattedDuration)
+          ? (payload.formattedElapsed + " / " + payload.formattedDuration)
+          : "";
+        applyProgress(baseElapsed, totalDuration, extPct, extText);
+      }
+
+      window.addEventListener("progress-tick", function (e) {
+        handleExternalTick(e && e.detail ? e.detail : e);
+      });
+      document.addEventListener("progress-tick", function (e) {
+        handleExternalTick(e && e.detail ? e.detail : e);
+      });
+      window.addEventListener("message", function (e) {
+        handleExternalTick(e ? e.data : null);
+      });
+
+      if (isPlaying && !isPaused && !isInGap && !isIdle && totalDuration > 0) {
+        setInterval(function () {
+          if (Date.now() - lastExternalTick < 700) return;
+          var domElapsed = parseNum(timeEl.getAttribute("data-elapsed"));
+          var domDuration = parseNum(timeEl.getAttribute("data-duration"));
+          if (domDuration > 0) {
+            totalDuration = domDuration;
+          }
+          if (Math.abs(domElapsed - baseElapsed) >= 2) {
+            baseElapsed = domElapsed;
+            baseTimestamp = Date.now();
+          }
+          var currentElapsed = baseElapsed + (Date.now() - baseTimestamp) / 1000;
+          if (currentElapsed > totalDuration) {
+            currentElapsed = totalDuration;
+          }
+          applyProgress(currentElapsed, totalDuration);
+        }, 250);
+      }
+
+      var errorText = errorBanner.textContent.trim();
+      if (errorText && errorText.indexOf("{") === -1) {
+        errorBanner.textContent = "! " + errorText;
+        errorBanner.style.display = "block";
+      }
+
+      if (isInGap) {
+        statusEl.textContent = "NEXT TAPE";
+        var gapText = gapBanner.textContent.trim();
+        if (!gapText || gapText.indexOf("{") !== -1) {
+          gapBanner.textContent = "LOADING NEXT TRACK...";
+        }
+      } else if (isIdle) {
+        statusEl.textContent = "NO DISC";
+        titleEl.textContent = "WAITING FOR REQUEST";
+        artistEl.textContent = "INSERT SONG VIA TAKO";
+        requesterRow.style.visibility = "hidden";
+        progressRow.style.visibility = "hidden";
+      } else if (isPaused) {
+        statusEl.textContent = "PAUSED";
+      } else if (isPlaying) {
+        statusEl.textContent = "PLAYING";
+      } else {
+        statusEl.textContent = "READY";
+      }
+
+      if (!requesterNameEl.textContent.trim() || requesterNameEl.textContent.indexOf("{") !== -1) {
+        requesterRow.style.visibility = "hidden";
+      }
+
+      coverImg.onerror = function () {
+        coverImg.style.display = "none";
+      };
+
+      requesterPic.onerror = function () {
+        requesterPic.style.display = "none";
+      };
+
+      if (requesterBadges && requesterBadges.indexOf("{") === -1) {
+        var items = requesterBadges.split(",");
+        for (var i = 0; i < items.length; i++) {
+          var item = items[i].trim();
+          if (!item) continue;
+
+          var iconUrl = "";
+          if (item.indexOf("https://") === 0 || item.indexOf("http://") === 0 || item.indexOf("/") === 0) {
+            iconUrl = item;
+          } else if (BADGE_ICON_URLS[item]) {
+            iconUrl = BADGE_ICON_URLS[item];
+          }
+
+          if (iconUrl) {
+            (function (labelText, srcUrl) {
+              var img = document.createElement("img");
+              img.className = "badge-icon";
+              img.src = srcUrl;
+              img.width = 17;
+              img.height = 17;
+              img.alt = labelText;
+              img.onerror = function () {
+                if (labelText.indexOf("http") === 0 || labelText.indexOf("/") === 0) {
+                  img.style.display = "none";
+                } else {
+                  var span = document.createElement("span");
+                  span.className = "badge-tag";
+                  span.textContent = labelText;
+                  if (img.parentNode) {
+                    img.parentNode.replaceChild(span, img);
+                  }
+                }
+              };
+              badgesEl.appendChild(img);
+            })(item, iconUrl);
+          } else {
+            var tag = document.createElement("span");
+            tag.className = "badge-tag";
+            tag.textContent = item;
+            badgesEl.appendChild(tag);
+          }
+        }
+      }
+
+      var rawQueue = {{queue}};
+      var setlistEl = document.getElementById("setlist");
+      var setlistBody = document.getElementById("setlist-body");
+      var setlistCount = document.getElementById("setlist-count");
+
+      if (Array.isArray(rawQueue) && rawQueue.length > 0) {
+        setlistEl.classList.remove("is-hidden");
+        setlistCount.textContent = rawQueue.length + " TRACKS";
+        var maxShow = Math.min(rawQueue.length, 3);
+        for (var q = 0; q < maxShow; q++) {
+          var entry = rawQueue[q] || {};
+          var row = document.createElement("div");
+          row.className = "queue-item";
+
+          var qTitle = document.createElement("span");
+          qTitle.className = "queue-item-title";
+          var trackLabel = entry.title || "Untitled";
+          if (entry.artist) {
+            trackLabel += " - " + entry.artist;
+          }
+          qTitle.textContent = (q + 1) + ". " + trackLabel;
+
+          var qSender = document.createElement("span");
+          qSender.className = "queue-item-sender";
+          qSender.textContent = entry.senderName ? "@" + entry.senderName : "";
+
+          row.appendChild(qTitle);
+          row.appendChild(qSender);
+          setlistBody.appendChild(row);
+        }
+        if (rawQueue.length > maxShow) {
+          var more = document.createElement("div");
+          more.className = "queue-more";
+          more.textContent = "+" + (rawQueue.length - maxShow) + " MORE IN TAPE";
+          setlistBody.appendChild(more);
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

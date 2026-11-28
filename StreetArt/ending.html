@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neo-Expressionist Street Art Ending Overlay</title>
+  <style>
+    :root {
+      --canvas-black: #0b0708;
+      --chalk-white: #f5f5ef;
+      --raw-red: #e92426;
+      --raw-orange: #ef7d14;
+      --raw-yellow: #efb91a;
+      --bright-yellow: #f4dc1a;
+      --raw-cyan: #1fc1e6;
+      --font-raw: 'Impact', 'Arial Black', 'Trebuchet MS', system-ui, sans-serif;
+      --font-mono: 'Consolas', 'Courier New', ui-monospace, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      overflow: hidden;
+      font-family: var(--font-raw);
+      color: var(--chalk-white);
+      user-select: none;
+    }
+
+    .scene {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+      background: var(--canvas-black);
+    }
+
+    .scene.is-transparent {
+      background: transparent;
+    }
+
+    .scene.is-transparent #paint-bg-canvas {
+      opacity: 0;
+    }
+
+    #paint-bg-canvas,
+    #fx-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    #paint-bg-canvas {
+      z-index: 1;
+    }
+
+    .mural-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    #fx-canvas {
+      z-index: 4;
+    }
+
+    .outro-layout {
+      position: relative;
+      z-index: 5;
+      width: 100%;
+      height: 100%;
+      padding: 2.8rem 3.5rem 4.2rem 2rem;
+      display: flex;
+      align-items: stretch;
+      justify-content: space-between;
+      gap: 2.2rem;
+      box-sizing: border-box;
+    }
+
+    .spine-rail {
+      flex: 0 0 3.6rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 0;
+      border-right: 3px dashed rgba(245, 245, 239, 0.35);
+    }
+
+    .spine-dot {
+      width: 1rem;
+      height: 1rem;
+      background: var(--raw-red);
+      border: 2px solid var(--chalk-white);
+      animation: dotBlink 1.1s steps(2) infinite;
+    }
+
+    .spine-text-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 18rem;
+    }
+
+    .spine-text {
+      display: inline-block;
+      white-space: nowrap;
+      transform: rotate(-90deg);
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      font-weight: 900;
+      letter-spacing: 0.24em;
+      color: var(--bright-yellow);
+      text-transform: uppercase;
+    }
+
+    .spine-tally {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      letter-spacing: 0.12em;
+      color: var(--raw-cyan);
+      writing-mode: vertical-rl;
+    }
+
+    .typo-zone {
+      flex: 1 1 56%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding-left: 0.8rem;
+    }
+
+    .overline-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .crossed-live {
+      position: relative;
+      display: inline-block;
+      padding: 0.28rem 0.75rem;
+      background: var(--canvas-black);
+      border: 2px solid var(--chalk-white);
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      color: rgba(245, 245, 239, 0.65);
+      transform: rotate(-3deg);
+    }
+
+    .crossed-live::after {
+      content: "";
+      position: absolute;
+      left: -6px;
+      right: -6px;
+      top: 50%;
+      height: 4px;
+      background: var(--raw-red);
+      transform: rotate(-8deg);
+    }
+
+    .wrapped-stamp {
+      padding: 0.34rem 0.9rem;
+      background: var(--raw-cyan);
+      color: var(--canvas-black);
+      border: 3px solid var(--canvas-black);
+      box-shadow: 4px 4px 0 var(--bright-yellow);
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      transform: rotate(1.5deg);
+    }
+
+    .ending-title-svg {
+      width: 100%;
+      height: auto;
+      overflow: visible;
+      filter: drop-shadow(0 16px 26px rgba(0, 0, 0, 0.8));
+    }
+
+    .signoff-note {
+      margin-top: 0.7rem;
+      padding: 0.65rem 1.2rem;
+      background: rgba(11, 7, 8, 0.88);
+      border-left: 6px solid var(--raw-orange);
+      border-top: 2px solid rgba(245, 245, 239, 0.35);
+      border-right: 2px solid rgba(245, 245, 239, 0.35);
+      border-bottom: 2px solid rgba(245, 245, 239, 0.35);
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--chalk-white);
+      text-transform: uppercase;
+      transform: rotate(-0.6deg);
+    }
+
+    .sticker-zone {
+      flex: 0 0 34%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 1.25rem;
+    }
+
+    .art-pin-card {
+      position: relative;
+      width: 88%;
+      padding: 1rem 1.2rem;
+      background: rgba(11, 7, 8, 0.9);
+      border: 4px solid var(--chalk-white);
+      box-shadow:
+        10px 10px 0 var(--raw-red),
+        -7px -7px 0 var(--raw-cyan);
+      transform: rotate(1.6deg);
+    }
+
+    .tape-piece {
+      position: absolute;
+      width: 4.2rem;
+      height: 1.15rem;
+      background: rgba(244, 220, 26, 0.88);
+      border: 1px solid rgba(11, 7, 8, 0.45);
+    }
+
+    .tape-piece--tl {
+      top: -0.6rem;
+      left: -1rem;
+      transform: rotate(-22deg);
+    }
+
+    .tape-piece--br {
+      bottom: -0.6rem;
+      right: -1rem;
+      transform: rotate(-20deg);
+    }
+
+    .art-pin-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      overflow: visible;
+    }
+
+    .social-stack {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.85rem;
+    }
+
+    .social-heading {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      color: var(--bright-yellow);
+      background: var(--canvas-black);
+      padding: 0.25rem 0.65rem;
+      border: 2px solid var(--bright-yellow);
+      align-self: flex-start;
+      margin-left: 1.5rem;
+      transform: rotate(-2deg);
+    }
+
+    .social-sticker {
+      width: 86%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.9rem;
+      padding: 0.65rem 1.15rem;
+      border: 3px solid var(--chalk-white);
+      font-family: var(--font-mono);
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .social-sticker--ig {
+      background: var(--raw-red);
+      color: var(--chalk-white);
+      box-shadow: 7px 7px 0 var(--bright-yellow);
+      transform: translateX(-1.6rem) rotate(-1.8deg);
+    }
+
+    .social-sticker--tt {
+      background: var(--raw-cyan);
+      color: var(--canvas-black);
+      border-color: var(--canvas-black);
+      box-shadow: 7px 7px 0 var(--raw-red);
+      transform: translateX(0.2rem) rotate(1.5deg);
+    }
+
+    .social-sticker--yt {
+      background: var(--bright-yellow);
+      color: var(--canvas-black);
+      border-color: var(--canvas-black);
+      box-shadow: 7px 7px 0 var(--raw-cyan);
+      transform: translateX(-1rem) rotate(-1.1deg);
+    }
+
+    .social-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .social-icon {
+      width: 1.5rem;
+      height: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .social-platform {
+      font-size: 0.76rem;
+      letter-spacing: 0.14em;
+      opacity: 0.9;
+    }
+
+    .social-handle {
+      font-size: 1.25rem;
+      letter-spacing: 0.06em;
+    }
+
+    .outro-marquee {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 2.35rem;
+      z-index: 10;
+      background: var(--canvas-black);
+      border-top: 3px solid var(--bright-yellow);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .marquee-track {
+      display: flex;
+      white-space: nowrap;
+      will-change: transform;
+      animation: marqueeRun 24s linear infinite;
+    }
+
+    .marquee-item {
+      font-family: var(--font-mono);
+      font-size: 0.96rem;
+      font-weight: 900;
+      letter-spacing: 0.16em;
+      color: var(--chalk-white);
+      padding-right: 2.5rem;
+    }
+
+    .marquee-accent {
+      color: var(--raw-cyan);
+    }
+
+    .boil-slow {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: sketchBoilA 0.58s steps(3) infinite;
+    }
+
+    .boil-fast {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: sketchBoilB 0.44s steps(3) infinite;
+    }
+
+    .peace-wave {
+      transform-box: fill-box;
+      transform-origin: bottom center;
+      animation: peaceRock 1.8s steps(4) infinite;
+    }
+
+    .zzz-float {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: zzzRise 2.6s steps(5) infinite;
+    }
+
+    .zzz-float--2 {
+      animation-delay: -1.3s;
+    }
+
+    .crown-tilt {
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      animation: crownSway 1.9s steps(4) infinite;
+    }
+
+    .chalk-trace {
+      stroke-dasharray: 560;
+      stroke-dashoffset: 560;
+      animation: chalkSweep 5.2s ease-in-out infinite;
+    }
+
+    .drip-ooze {
+      transform-box: fill-box;
+      transform-origin: top center;
+      animation: dripStretch 5.4s ease-in-out infinite;
+    }
+
+    .drip-ooze--2 {
+      animation-duration: 6.8s;
+      animation-delay: -2.1s;
+    }
+
+    .drip-ooze--3 {
+      animation-duration: 4.7s;
+      animation-delay: -3.4s;
+    }
+
+    .spring-flex {
+      transform-box: fill-box;
+      transform-origin: top center;
+      animation: springStretch 2.5s ease-in-out infinite;
+    }
+
+    .jitter-red {
+      animation: jitterRed 3.4s steps(1) infinite;
+    }
+
+    @keyframes marqueeRun {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    @keyframes dotBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.15; }
+    }
+
+    @keyframes sketchBoilA {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(1.8px, -1.3px) rotate(0.7deg); }
+      66% { transform: translate(-1.5px, 1.5px) rotate(-0.6deg); }
+      100% { transform: translate(0.7px, 0.7px) rotate(0.2deg); }
+    }
+
+    @keyframes sketchBoilB {
+      0% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(-1.8px, 1.4px) scale(1.015); }
+      66% { transform: translate(1.6px, -1.6px) scale(0.99); }
+      100% { transform: translate(0, 0) scale(1); }
+    }
+
+    @keyframes peaceRock {
+      0%, 100% { transform: rotate(-6deg); }
+      50% { transform: rotate(8deg); }
+    }
+
+    @keyframes zzzRise {
+      0% { transform: translate(0, 14px) scale(0.7); opacity: 0; }
+      30% { opacity: 1; }
+      85% { opacity: 0.9; }
+      100% { transform: translate(18px, -32px) scale(1.15); opacity: 0; }
+    }
+
+    @keyframes crownSway {
+      0%, 100% { transform: rotate(10deg); }
+      50% { transform: rotate(17deg); }
+    }
+
+    @keyframes chalkSweep {
+      0% { stroke-dashoffset: 560; opacity: 0.35; }
+      30%, 78% { stroke-dashoffset: 0; opacity: 1; }
+      100% { stroke-dashoffset: -560; opacity: 0.35; }
+    }
+
+    @keyframes dripStretch {
+      0%, 15% { transform: scaleY(0.74); }
+      55% { transform: scaleY(1.2); }
+      88%, 100% { transform: scaleY(0.74); }
+    }
+
+    @keyframes springStretch {
+      0%, 100% { transform: scaleY(0.95); }
+      50% { transform: scaleY(1.09); }
+    }
+
+    @keyframes jitterRed {
+      0%, 91%, 100% { transform: translate(7px, 6px); }
+      94% { transform: translate(12px, 3px); }
+      97% { transform: translate(4px, 9px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="scene" id="scene">
+    <canvas id="paint-bg-canvas"></canvas>
+
+    <svg class="mural-svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <text x="1120" y="210" font-size="185" font-family="Impact, Arial Black, sans-serif" fill="none" stroke="rgba(245,245,239,0.08)" stroke-width="5" letter-spacing="14">FIN.</text>
+
+      <g class="boil-slow">
+        <path class="chalk-trace" d="M110,122 C110,68 176,42 252,48 C322,54 360,96 346,144 C334,184 274,196 218,186 L184,212 L194,178 L138,180 Z" fill="none" stroke="#f5f5ef" stroke-width="4.5" stroke-linejoin="round" />
+        <path d="M196,46 L204,10 M232,46 L248,8 M268,54 L294,16 M302,72 L338,38" stroke="#f5f5ef" stroke-width="3.5" stroke-linecap="round" />
+        <line x1="176" y1="108" x2="218" y2="108" stroke="#f5f5ef" stroke-width="5" stroke-linecap="round" />
+        <path d="M88,154 L152,130 L158,148 L194,124" fill="none" stroke="#1fc1e6" stroke-width="5.5" stroke-linecap="round" />
+      </g>
+
+      <g class="spring-flex">
+        <path class="chalk-trace" d="M1530,36 L1584,64 L1532,94 L1586,124 L1532,154 L1584,184 L1534,214 L1582,244 L1556,270 L1556,312" fill="none" stroke="#f4dc1a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="1556" cy="332" r="18" fill="none" stroke="#f4dc1a" stroke-width="5" />
+      </g>
+
+      <g class="boil-fast">
+        <path d="M104,705 C106,656 158,628 206,648 C232,660 242,695 238,722 L304,722 L226,746 C216,782 186,802 152,802 C116,802 98,760 104,705 Z" fill="#0b0708" stroke="#f5f5ef" stroke-width="4" />
+        <path d="M134,746 L204,746 M136,766 L202,766 M152,734 L152,780 M170,734 L170,780 M188,734 L188,780" stroke="#e92426" stroke-width="4.5" />
+      </g>
+
+      <g class="boil-slow">
+        <rect x="615" y="746" width="136" height="86" rx="10" fill="none" stroke="#f5f5ef" stroke-width="4" />
+        <path d="M636,770 L664,784 M664,770 L636,784 M704,770 L732,784 M732,770 L704,784" stroke="#f5f5ef" stroke-width="4" stroke-linecap="round" />
+        <path d="M645,814 Q683,802 722,814" fill="none" stroke="#f5f5ef" stroke-width="4" stroke-linecap="round" />
+      </g>
+
+      <path class="drip-ooze" d="M388,746 C388,788 398,818 392,848 C388,862 374,860 376,842 C378,810 374,778 374,746 Z" fill="#ef7d14" />
+      <path class="drip-ooze drip-ooze--2" d="M848,748 C848,790 858,822 852,852 C848,864 834,862 836,844 C838,812 834,780 834,748 Z" fill="#1fc1e6" />
+      <path class="drip-ooze drip-ooze--3" d="M1486,772 C1486,812 1494,838 1488,862 C1484,874 1472,872 1474,856 C1476,832 1472,804 1472,772 Z" fill="#e92426" />
+    </svg>
+
+    <canvas id="fx-canvas"></canvas>
+
+    <main class="outro-layout">
+      <aside class="spine-rail" aria-hidden="true">
+        <span class="spine-dot"></span>
+        <div class="spine-text-wrap">
+          <span class="spine-text">END // TRANSMISSION</span>
+        </div>
+        <span class="spine-tally">|||| 00</span>
+      </aside>
+
+      <section class="typo-zone">
+        <div class="overline-row">
+          <span class="crossed-live">LIVE</span>
+          <span class="wrapped-stamp">SESSION WRAPPED</span>
+        </div>
+
+        <svg class="ending-title-svg" viewBox="0 0 760 355">
+          <path d="M22,135 L540,122 L528,158 L16,162 Z" fill="#1fc1e6" opacity="0.28" />
+
+          <text id="title-red" class="jitter-red" x="14" y="120" text-anchor="start" font-size="136" font-family="Impact, Arial Black, sans-serif" font-weight="900" letter-spacing="6" fill="#e92426">THANKS</text>
+          <text id="title-main" x="14" y="120" text-anchor="start" font-size="136" font-family="Impact, Arial Black, sans-serif" font-weight="900" letter-spacing="6" fill="none" stroke="#f5f5ef" stroke-width="5">THANKS</text>
+
+          <g transform="translate(88, 152) rotate(-1.5)">
+            <rect x="0" y="0" width="560" height="84" fill="#f4dc1a" stroke="#0b0708" stroke-width="5" />
+            <text id="sub-main" x="280" y="64" text-anchor="middle" font-size="68" font-family="Impact, Arial Black, sans-serif" font-weight="900" letter-spacing="8" fill="#0b0708">FOR WATCHING</text>
+            <path class="drip-ooze" d="M74,84 L88,84 L85,112 C83,118 76,118 75,111 Z" fill="#e92426" />
+            <path class="drip-ooze drip-ooze--2" d="M468,84 L484,84 L481,120 C479,126 471,126 470,118 Z" fill="#e92426" />
+
+            <g class="crown-tilt" transform="translate(505, -52)">
+              <path d="M10,54 L6,18 L34,38 L56,8 L78,38 L106,18 L102,54 Z" fill="#f4dc1a" stroke="#0b0708" stroke-width="5" stroke-linejoin="round" />
+              <circle cx="56" cy="5" r="5" fill="#e92426" />
+            </g>
+          </g>
+
+          <text id="note-main" x="24" y="314" text-anchor="start" font-size="52" font-family="Impact, Arial Black, sans-serif" font-weight="900" letter-spacing="5" fill="#f5f5ef">SEE YOU NEXT TIME</text>
+          <path class="chalk-trace" d="M24,332 Q340,322 695,334 M670,318 L702,334 L668,348" fill="none" stroke="#1fc1e6" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+
+        <div class="signoff-note" id="signoff-note">
+          APPRECIATE EVERYONE WHO PULLED UP TODAY — STAY CREATIVE
+        </div>
+      </section>
+
+      <aside class="sticker-zone">
+        <div class="art-pin-card">
+          <div class="tape-piece tape-piece--tl"></div>
+          <div class="tape-piece tape-piece--br"></div>
+
+          <svg class="art-pin-svg" viewBox="0 0 360 190" aria-hidden="true">
+            <g class="boil-slow">
+              <path d="M98,42 C142,40 176,72 174,116 C172,138 158,154 152,168 L68,168 C62,154 48,138 46,112 C44,70 66,44 98,42 Z" fill="#0b0708" stroke="#f5f5ef" stroke-width="4.5" stroke-linejoin="round" />
+              <path d="M72,96 L96,116 M96,96 L72,116" stroke="#1fc1e6" stroke-width="5" stroke-linecap="round" />
+              <path d="M122,96 L146,116 M146,96 L122,116" stroke="#1fc1e6" stroke-width="5" stroke-linecap="round" />
+              <path d="M110,122 L102,138 L118,138 Z" fill="none" stroke="#f5f5ef" stroke-width="3.5" />
+              <line x1="78" y1="154" x2="142" y2="154" stroke="#f5f5ef" stroke-width="4" />
+              <path d="M94,144 L94,166 M110,144 L110,166 M126,144 L126,166" stroke="#f5f5ef" stroke-width="3.5" />
+            </g>
+
+            <text class="zzz-float" x="180" y="64" font-size="28" font-family="Impact, Arial Black, sans-serif" fill="#f4dc1a">Z</text>
+            <text class="zzz-float zzz-float--2" x="202" y="42" font-size="22" font-family="Impact, Arial Black, sans-serif" fill="#ef7d14">Z</text>
+
+            <g class="peace-wave" transform="translate(230, 18)">
+              <path d="M36,142 L36,92 L20,30 C18,22 30,18 34,26 L52,82 L64,20 C66,12 78,14 78,24 L74,84 C88,82 98,90 96,104 L92,142 Z" fill="#f5f5ef" stroke="#0b0708" stroke-width="4.5" stroke-linejoin="round" />
+              <path d="M40,98 L88,98 M44,116 L86,116" stroke="#0b0708" stroke-width="4" stroke-linecap="round" />
+            </g>
+          </svg>
+        </div>
+
+        <div class="social-stack">
+          <span class="social-heading">KEEP IN TOUCH //</span>
+
+          <div class="social-sticker social-sticker--ig">
+            <div class="social-left">
+              <svg class="social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2.5" y="2.5" width="19" height="19" rx="5"></rect>
+                <circle cx="12" cy="12" r="4.2"></circle>
+                <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle>
+              </svg>
+              <div>
+                <div class="social-platform">INSTAGRAM</div>
+                <div class="social-handle">@ardyhim</div>
+              </div>
+            </div>
+            <span>-&gt;</span>
+          </div>
+
+          <div class="social-sticker social-sticker--tt">
+            <div class="social-left">
+              <svg class="social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 3v11.5a4 4 0 1 1-3-3.87"></path>
+                <path d="M14 3c1.1 2.7 3.2 4.3 6 4.7"></path>
+              </svg>
+              <div>
+                <div class="social-platform">TIKTOK</div>
+                <div class="social-handle">@ardyhim</div>
+              </div>
+            </div>
+            <span>-&gt;</span>
+          </div>
+
+          <div class="social-sticker social-sticker--yt">
+            <div class="social-left">
+              <svg class="social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2.2" y="5" width="19.6" height="14" rx="4"></rect>
+                <polygon points="10,9 16,12 10,15" fill="currentColor" stroke="none"></polygon>
+              </svg>
+              <div>
+                <div class="social-platform">YOUTUBE</div>
+                <div class="social-handle">@ardyhim</div>
+              </div>
+            </div>
+            <span>-&gt;</span>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="outro-marquee">
+      <div class="marquee-track">
+        <span class="marquee-item">/// STREAM ENDED /// <span class="marquee-accent">THANKS FOR WATCHING</span> /// IG · TIKTOK · YOUTUBE: @ARDYHIM /// SEE YOU NEXT DROP ///</span>
+        <span class="marquee-item">/// STREAM ENDED /// <span class="marquee-accent">THANKS FOR WATCHING</span> /// IG · TIKTOK · YOUTUBE: @ARDYHIM /// SEE YOU NEXT DROP ///</span>
+        <span class="marquee-item">/// STREAM ENDED /// <span class="marquee-accent">THANKS FOR WATCHING</span> /// IG · TIKTOK · YOUTUBE: @ARDYHIM /// SEE YOU NEXT DROP ///</span>
+        <span class="marquee-item">/// STREAM ENDED /// <span class="marquee-accent">THANKS FOR WATCHING</span> /// IG · TIKTOK · YOUTUBE: @ARDYHIM /// SEE YOU NEXT DROP ///</span>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+
+      function pick(keys, fallback) {
+        for (var i = 0; i < keys.length; i += 1) {
+          var value = params.get(keys[i]);
+          if (value !== null && value !== '') {
+            return value;
+          }
+        }
+        return fallback;
+      }
+
+      function flag(keys, fallback) {
+        var value = pick(keys, null);
+        if (value === null) {
+          return fallback;
+        }
+        return value === '1' || value === 'true';
+      }
+
+      var sceneEl = document.getElementById('scene');
+
+      if (flag(['transparent'], false)) {
+        sceneEl.classList.add('is-transparent');
+      }
+
+      var customTitle = pick(['title'], null);
+      if (customTitle) {
+        var upperTitle = customTitle.toUpperCase();
+        document.getElementById('title-red').textContent = upperTitle;
+        document.getElementById('title-main').textContent = upperTitle;
+      }
+
+      var customSub = pick(['subtitle', 'sub'], null);
+      if (customSub) {
+        document.getElementById('sub-main').textContent = customSub.toUpperCase();
+      }
+
+      var customNote = pick(['note'], null);
+      if (customNote) {
+        document.getElementById('note-main').textContent = customNote.toUpperCase();
+      }
+
+      var customMsg = pick(['message', 'msg'], null);
+      if (customMsg) {
+        document.getElementById('signoff-note').textContent = customMsg.toUpperCase();
+      }
+
+      function mulberry32(seed) {
+        return function () {
+          var t = seed += 0x6D2B79F5;
+          t = Math.imul(t ^ (t >>> 15), t | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      var bgCanvas = document.getElementById('paint-bg-canvas');
+      var bgCtx = bgCanvas.getContext('2d');
+
+      function drawDryBrushBlock(ctx, x, y, w, h, color, rand, horizontal) {
+        ctx.fillStyle = color;
+        var strips = horizontal ? 26 : 22;
+        for (var i = 0; i < strips; i++) {
+          var t = i / strips;
+          if (horizontal) {
+            var sy = y + t * h;
+            var sh = (h / strips) * (0.65 + rand() * 0.9);
+            var sx = x + (rand() - 0.5) * 32;
+            var sw = w + (rand() - 0.5) * 42;
+            ctx.globalAlpha = 0.52 + rand() * 0.44;
+            ctx.fillRect(sx, sy, sw, sh);
+          } else {
+            var sx2 = x + t * w;
+            var sw2 = (w / strips) * (0.65 + rand() * 0.9);
+            var sy2 = y + (rand() - 0.5) * 32;
+            var sh2 = h + (rand() - 0.5) * 42;
+            ctx.globalAlpha = 0.52 + rand() * 0.44;
+            ctx.fillRect(sx2, sy2, sw2, sh2);
+          }
+        }
+
+        ctx.globalAlpha = 0.36;
+        ctx.fillStyle = '#0b0708';
+        for (var s = 0; s < 30; s++) {
+          var gx = x + rand() * w;
+          var gy = y + rand() * h;
+          ctx.fillRect(gx, gy, 3 + rand() * 16, 1.5 + rand() * 5);
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      function renderPaintedBackdrop() {
+        var W = sceneEl.clientWidth || 1920;
+        var H = sceneEl.clientHeight || 1080;
+        bgCanvas.width = W;
+        bgCanvas.height = H;
+
+        var rand = mulberry32(39104);
+        var sx = W / 1600;
+        var sy = H / 900;
+
+        bgCtx.fillStyle = '#0b0708';
+        bgCtx.fillRect(0, 0, W, H);
+
+        drawDryBrushBlock(bgCtx, 410 * sx, 25 * sy, 680 * sx, 90 * sy, '#1fc1e6', rand, true);
+        drawDryBrushBlock(bgCtx, 130 * sx, 165 * sy, 220 * sx, 380 * sy, '#ef7d14', rand, false);
+        drawDryBrushBlock(bgCtx, 490 * sx, 170 * sy, 310 * sx, 210 * sy, '#e92426', rand, true);
+
+        drawDryBrushBlock(bgCtx, 55 * sx, 540 * sy, 320 * sx, 285 * sy, '#e92426', rand, false);
+        drawDryBrushBlock(bgCtx, 420 * sx, 685 * sy, 520 * sx, 110 * sy, '#1fc1e6', rand, true);
+
+        drawDryBrushBlock(bgCtx, 1080 * sx, 80 * sy, 430 * sx, 250 * sy, '#ef7d14', rand, true);
+        drawDryBrushBlock(bgCtx, 1140 * sx, 480 * sy, 410 * sx, 310 * sy, '#efb91a', rand, true);
+
+        var palette = ['#f5f5ef', '#1fc1e6', '#e92426', '#efb91a', '#ef7d14', '#0b0708'];
+        for (var k = 0; k < 1000; k++) {
+          bgCtx.fillStyle = palette[Math.floor(rand() * palette.length)];
+          bgCtx.globalAlpha = 0.25 + rand() * 0.65;
+          var px = rand() * W;
+          var py = rand() * H;
+          var pr = 0.8 + rand() * 3.4;
+          bgCtx.beginPath();
+          bgCtx.arc(px, py, pr, 0, Math.PI * 2);
+          bgCtx.fill();
+        }
+        bgCtx.globalAlpha = 1;
+      }
+
+      var fxCanvas = document.getElementById('fx-canvas');
+      var fxCtx = fxCanvas.getContext('2d');
+      var fxColors = ['#f5f5ef', '#1fc1e6', '#e92426', '#f4dc1a'];
+      var specks = [];
+
+      function resizeAll() {
+        renderPaintedBackdrop();
+        fxCanvas.width = sceneEl.clientWidth || 1920;
+        fxCanvas.height = sceneEl.clientHeight || 1080;
+      }
+
+      function spawnSpeck(randomY) {
+        return {
+          x: Math.random() * (fxCanvas.width || 1920),
+          y: randomY ? Math.random() * (fxCanvas.height || 1080) : (fxCanvas.height || 1080) + 10,
+          size: 1.5 + Math.random() * 3,
+          vx: (Math.random() - 0.5) * 0.45,
+          vy: -(0.3 + Math.random() * 0.7),
+          alpha: 0.25 + Math.random() * 0.55,
+          color: fxColors[Math.floor(Math.random() * fxColors.length)],
+          isCross: Math.random() > 0.86
+        };
+      }
+
+      resizeAll();
+      window.addEventListener('resize', resizeAll);
+
+      for (var n = 0; n < 36; n++) {
+        specks.push(spawnSpeck(true));
+      }
+
+      function tickFx() {
+        fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+        for (var i = 0; i < specks.length; i++) {
+          var p = specks[i];
+          p.x += p.vx;
+          p.y += p.vy;
+
+          if (p.y < -15 || p.x < -15 || p.x > fxCanvas.width + 15) {
+            specks[i] = spawnSpeck(false);
+            p = specks[i];
+          }
+
+          fxCtx.globalAlpha = p.alpha;
+          if (p.isCross) {
+            fxCtx.strokeStyle = p.color;
+            fxCtx.lineWidth = 2;
+            fxCtx.beginPath();
+            fxCtx.moveTo(p.x - p.size * 1.6, p.y - p.size * 1.6);
+            fxCtx.lineTo(p.x + p.size * 1.6, p.y + p.size * 1.6);
+            fxCtx.moveTo(p.x + p.size * 1.6, p.y - p.size * 1.6);
+            fxCtx.lineTo(p.x - p.size * 1.6, p.y + p.size * 1.6);
+            fxCtx.stroke();
+          } else {
+            fxCtx.fillStyle = p.color;
+            fxCtx.fillRect(p.x, p.y, p.size, p.size);
+          }
+        }
+        fxCtx.globalAlpha = 1;
+        requestAnimationFrame(tickFx);
+      }
+
+      requestAnimationFrame(tickFx);
+    })();
+  </script>
+</body>
+</html>

@@ -1,42 +1,86 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jaden Bahtera — Postmodern Starting + Transparent YouTube Chat</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Postmodern Bauhaus — Starting Soon</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --paper: #F2EFE9;
-      --ink: #0D0D0D;
-      --vermilion: #FF3B1D;
-      --cobalt: #1836FF;
-      --acid: #DCFF00;
-      --magenta: #FF2E93;
-      --border-w: 3px;
+      --paper: #f0ece1;
+      --paper-dim: #e5e0d3;
+      --ink: #121212;
+      --red: #e63926;
+      --blue: #1a4bb3;
+      --yellow: #f2be22;
+      --green: #1a8a4b;
+      --border-w: 4px;
+      --border-thin: 2px;
+      --grid-line: rgba(18, 18, 18, 0.08);
+      --halftone-dot: #121212;
+      --stripe-ink: #121212;
+      --chat-bg: #ffffff;
+      --chat-ink: #121212;
+      --chat-muted: #555555;
+      --chat-sub: #777777;
+      --chat-bubble-bg: var(--paper-dim);
+      --chat-badge-bg: var(--ink);
+      --chat-badge-ink: var(--paper);
+      --rail-block-ink: #121212;
+    }
+
+    :root[data-theme="dark"] {
+      --paper: #121212;
+      --paper-dim: #1c1c1c;
+      --ink: #f0ece1;
+      --grid-line: rgba(240, 236, 225, 0.08);
+      --halftone-dot: #f0ece1;
+      --stripe-ink: #f0ece1;
+      --rail-block-ink: #f0ece1;
+    }
+
+    :root[data-chat-bg="light"] {
+      --chat-bg: #ffffff;
+      --chat-ink: #121212;
+      --chat-muted: #555555;
+      --chat-sub: #777777;
+      --chat-bubble-bg: #e5e0d3;
+      --chat-badge-bg: #121212;
+      --chat-badge-ink: #f0ece1;
+    }
+
+    :root[data-chat-bg="dark"] {
+      --chat-bg: #161616;
+      --chat-ink: #f0ece1;
+      --chat-muted: #b5b0a5;
+      --chat-sub: #8d887e;
+      --chat-bubble-bg: #222222;
+      --chat-badge-bg: #f0ece1;
+      --chat-badge-ink: #121212;
     }
 
     * {
-      box-sizing: border-box;
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
     }
 
     html, body {
       width: 100%;
       height: 100%;
+      background: transparent;
       overflow: hidden;
-      background: transparent !important;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
       color: var(--ink);
-      user-select: none;
     }
 
     .stage-wrapper {
-      width: 100vw;
-      height: 100vh;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -44,1085 +88,1147 @@
     }
 
     .stage {
-      width: 1920px;
-      height: 1080px;
       position: relative;
-      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
       background-color: var(--paper);
-      transform-origin: center center;
-      flex-shrink: 0;
+      display: grid;
+      grid-template-columns: 1.05fr 64px 0.95fr;
+      grid-template-rows: 72px 1fr 56px;
+      overflow: hidden;
     }
 
-    /* ================= POSTMODERN PRINT TEXTURES & GRAPHICS ================= */
-    .print-grid {
+    :root[data-bg="transparent"] .stage {
+      background-color: transparent !important;
+    }
+
+    :root[data-bg="transparent"] .bg-grid,
+    :root[data-bg="transparent"] .halftone-layer {
+      display: none !important;
+    }
+
+    :root[data-bg="transparent"] .center-rail {
+      background: transparent;
+    }
+
+    .stage::before {
+      content: '';
       position: absolute;
       inset: 0;
-      background-image:
-        linear-gradient(to right, rgba(13, 13, 13, 0.08) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(13, 13, 13, 0.08) 1px, transparent 1px);
-      background-size: 96px 96px;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .halftone-block {
-      position: absolute;
-      width: 520px;
-      height: 520px;
-      right: -80px;
-      top: -60px;
-      background-image: radial-gradient(var(--cobalt) 2.5px, transparent 2.5px);
-      background-size: 16px 16px;
-      opacity: 0.22;
-      transform: rotate(12deg);
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .halftone-bottom {
-      position: absolute;
-      width: 440px;
-      height: 300px;
-      left: -40px;
-      bottom: 40px;
-      background-image: radial-gradient(var(--vermilion) 2.2px, transparent 2.2px);
-      background-size: 14px 14px;
-      opacity: 0.25;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .noise-overlay {
-      position: absolute;
-      inset: 0;
-      opacity: 0.045;
+      border: var(--border-w) solid var(--ink);
       pointer-events: none;
       z-index: 50;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     }
 
-    /* Registration Marks */
-    .reg-mark {
+    .bg-grid {
       position: absolute;
-      width: 28px;
-      height: 28px;
-      z-index: 12;
+      inset: 0;
       pointer-events: none;
+      z-index: 1;
+      opacity: 0.4;
     }
-    .reg-mark::before, .reg-mark::after {
-      content: "";
-      position: absolute;
-      background: var(--ink);
-    }
-    .reg-mark::before { width: 100%; height: 2px; top: 50%; left: 0; transform: translateY(-50%); }
-    .reg-mark::after { height: 100%; width: 2px; left: 50%; top: 0; transform: translateX(-50%); }
-    .reg-tl { top: 24px; left: 24px; }
-    .reg-tr { top: 24px; right: 24px; }
-    .reg-bl { bottom: 68px; left: 24px; }
-    .reg-br { bottom: 68px; right: 24px; }
 
-    .bg-giant-type {
+    .bg-grid svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .bg-grid line {
+      stroke: var(--grid-line);
+    }
+
+    .halftone-layer {
       position: absolute;
-      font-family: 'Anton', sans-serif;
-      font-size: 430px;
-      line-height: 0.8;
-      color: transparent;
-      -webkit-text-stroke: 2px rgba(13, 13, 13, 0.11);
-      top: 160px;
-      left: -30px;
-      letter-spacing: -0.02em;
-      white-space: nowrap;
+      inset: 0;
+      background-image: radial-gradient(var(--halftone-dot) 1px, transparent 1px);
+      background-size: 16px 16px;
+      opacity: 0.03;
       pointer-events: none;
-      z-index: 2;
-      transform: rotate(-4deg);
+      z-index: 1;
     }
 
-    /* ================= TOP UTILITY HEADER BAR ================= */
     .top-bar {
-      position: relative;
-      z-index: 10;
+      grid-column: 1 / -1;
+      grid-row: 1;
       display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      padding: 24px 68px 18px;
+      grid-template-columns: 1.05fr 64px 0.95fr;
       border-bottom: var(--border-w) solid var(--ink);
       background: var(--paper);
+      z-index: 10;
     }
 
-    .meta-left {
+    .top-cell {
       display: flex;
       align-items: center;
-      gap: 18px;
-      font-family: 'Space Mono', monospace;
-      font-size: 14px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .tag-solid {
-      background: var(--ink);
-      color: var(--acid);
-      padding: 6px 14px;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .live-square {
-      width: 10px;
-      height: 10px;
-      background: var(--vermilion);
-      animation: blinkHard 1s steps(2, start) infinite;
-    }
-
-    .brand-center {
-      font-family: 'Anton', sans-serif;
-      font-size: 34px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      padding: 4px 24px;
-      background: var(--acid);
-      border: var(--border-w) solid var(--ink);
-      box-shadow: 5px 5px 0 var(--ink);
-      transform: rotate(-1.2deg);
-    }
-
-    .meta-right {
-      justify-self: end;
-      font-family: 'Space Mono', monospace;
-      font-size: 14px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .clock-box {
-      border: 2px solid var(--ink);
-      padding: 5px 12px;
-      background: #FFFFFF;
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* ================= MAIN ASYMMETRIC DECONSTRUCTED GRID ================= */
-    .main-canvas {
-      position: relative;
-      z-index: 8;
-      height: calc(100% - 140px);
-      padding: 36px 68px 34px;
-      display: grid;
-      grid-template-columns: 620px 1fr;
-      gap: 54px;
-    }
-
-    /* ================= LEFT COLUMN: TRANSPARENT YOUTUBE CHATBOX + SOCIAL MEDIA ================= */
-    .left-col {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 22px;
-      min-height: 0;
-    }
-
-    .sticker-badge {
-      position: absolute;
-      top: -18px;
-      right: -18px;
-      z-index: 20;
-      background: var(--vermilion);
-      color: #FFFFFF;
-      font-family: 'Space Mono', monospace;
-      font-weight: 700;
+      padding: 0 28px;
+      border-right: var(--border-w) solid var(--ink);
+      font-family: 'IBM Plex Mono', monospace;
       font-size: 13px;
+      font-weight: 700;
       letter-spacing: 0.1em;
-      padding: 9px 16px;
-      border: var(--border-w) solid var(--ink);
-      box-shadow: 5px 5px 0 var(--ink);
-      transform: rotate(5deg);
       text-transform: uppercase;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
     }
 
-    .yt-play-tri {
-      width: 0;
-      height: 0;
-      border-top: 5px solid transparent;
-      border-bottom: 5px solid transparent;
-      border-left: 9px solid #FFFFFF;
+    .top-cell:last-child {
+      border-right: none;
+      justify-content: space-between;
     }
 
-    /* Postmodern Chatbox Frame */
-    .chat-zine {
-      position: relative;
-      flex: 1;
-      min-height: 0;
-      background: #FFFFFF;
-      border: var(--border-w) solid var(--ink);
-      box-shadow: 12px 12px 0 var(--ink);
-      padding: 20px 22px;
+    .top-brand-group {
       display: flex;
-      flex-direction: column;
+      align-items: center;
       gap: 14px;
     }
 
-    .chat-header-strip {
-      display: flex;
-      justify-content: flex-start;
-      align-items: center;
-      gap: 16px;
-      border-bottom: var(--border-w) solid var(--ink);
-      padding-bottom: 12px;
-      padding-right: 170px;
-      font-family: 'Space Mono', monospace;
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    .chat-header-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .yt-tag {
-      background: var(--ink);
-      color: #FFFFFF;
-      padding: 4px 10px;
-      font-size: 11px;
-      letter-spacing: 0.08em;
-    }
-
-    .checker-strip {
-      height: 12px;
-      width: 84px;
-      background-image: conic-gradient(var(--ink) 90deg, transparent 90deg 180deg, var(--ink) 180deg 270deg, transparent 270deg);
-      background-size: 12px 12px;
-      border: 1.5px solid var(--ink);
-    }
-
-    /* 100% Alpha-Transparent Cutout Viewport */
-    .chat-viewport {
-      position: relative;
-      flex: 1;
-      min-height: 0;
-      background: transparent !important;
-      border: 2px solid var(--ink);
-    }
-
-    /* Chat Footer Status */
-    .chat-footer-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding-top: 2px;
-    }
-
-    .chat-prompt-fake {
-      flex: 1;
-      border: 2px solid var(--ink);
-      background: var(--paper);
-      padding: 8px 12px;
-      font-family: 'Space Mono', monospace;
-      font-size: 12px;
-      font-weight: 700;
-      color: #555555;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .cursor-block {
-      display: inline-block;
-      width: 8px;
-      height: 14px;
-      background: var(--vermilion);
-      animation: blinkHard 0.9s steps(2, start) infinite;
-    }
-
-    .yt-status-pill {
+    .brand-mark {
+      width: 36px;
       height: 36px;
-      padding: 0 14px;
-      border: 2px solid var(--ink);
-      background: var(--acid);
-      box-shadow: 3px 3px 0 var(--ink);
-      font-family: 'Space Mono', monospace;
-      font-weight: 700;
-      font-size: 11px;
-      text-transform: uppercase;
+      background: var(--ink);
+      color: var(--paper);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .status-pill {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-    }
-
-    /* Bottom Social (1/1 Spotlight) + Host Panel */
-    .bottom-left-panel {
-      display: grid;
-      grid-template-columns: 1.48fr 1fr;
-      gap: 20px;
-    }
-
-    .social-box {
-      background: var(--ink);
-      color: var(--paper);
-      border: var(--border-w) solid var(--ink);
-      box-shadow: 8px 8px 0 var(--vermilion);
-      padding: 14px 18px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 10px;
-      min-height: 132px;
-      overflow: hidden;
-    }
-
-    .social-top-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1.5px solid rgba(242, 239, 233, 0.22);
-      padding-bottom: 6px;
-    }
-
-    .social-label {
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      color: var(--acid);
-      text-transform: uppercase;
-    }
-
-    .social-index-wrap {
-      display: flex;
-      align-items: center;
       gap: 8px;
-    }
-
-    .social-dots {
-      display: flex;
-      gap: 4px;
-    }
-
-    .social-dot {
-      width: 10px;
-      height: 6px;
-      background: rgba(242, 239, 233, 0.25);
-      transition: background 0.2s ease, width 0.2s ease;
-    }
-
-    .social-dot.active {
-      width: 18px;
-      background: var(--acid);
-    }
-
-    .social-counter {
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
+      background: var(--red);
+      color: #ffffff;
+      padding: 6px 14px;
+      border: var(--border-thin) solid var(--ink);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
       font-weight: 700;
-      color: var(--paper);
     }
 
-    /* 1/1 Spotlight Container */
-    .social-spotlight {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 4px 0;
-      transition: opacity 0.22s ease, transform 0.22s ease;
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #ffffff;
+      border-radius: 50%;
+      animation: blink-dot 1.2s infinite ease-in-out;
     }
 
-    .social-spotlight.switching {
-      opacity: 0;
-      transform: translateY(8px);
+    @keyframes blink-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.7); }
     }
 
-    .social-icon-hero {
-      width: 56px;
-      height: 56px;
-      border: 2px solid #FFFFFF;
+    .top-center-block {
       display: flex;
       align-items: center;
       justify-content: center;
+      border-right: var(--border-w) solid var(--ink);
+      background: var(--yellow);
+      color: #121212;
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .col-1-content {
+      grid-column: 1;
+      grid-row: 2;
+      border-right: var(--border-w) solid var(--ink);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      position: relative;
+      z-index: 5;
+      min-height: 0;
+    }
+
+    .brand-center {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 36px;
+      border-bottom: var(--border-w) solid var(--ink);
+      background: var(--paper);
+    }
+
+    .brand-center-icon {
+      width: 48px;
+      height: 48px;
       flex-shrink: 0;
-      box-shadow: 4px 4px 0 rgba(255, 255, 255, 0.22);
+      background: var(--red);
+      border: 3px solid var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 4px 4px 0 var(--ink);
     }
 
-    .social-icon-hero.theme-tt {
-      background: var(--acid);
+    .brand-center-text {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 26px;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
       color: var(--ink);
-      border-color: var(--acid);
-      box-shadow: 4px 4px 0 var(--magenta);
     }
 
-    .social-icon-hero.theme-ig {
-      background: var(--magenta);
-      color: #FFFFFF;
-      border-color: #FFFFFF;
-      box-shadow: 4px 4px 0 var(--acid);
-    }
-
-    .social-icon-hero.theme-yt {
-      background: var(--vermilion);
-      color: #FFFFFF;
-      border-color: #FFFFFF;
-      box-shadow: 4px 4px 0 var(--acid);
-    }
-
-    .social-text-col {
+    .hero-block {
+      padding: 36px 36px 28px 36px;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      min-width: 0;
+      border-bottom: var(--border-w) solid var(--ink);
+      position: relative;
+      background: var(--paper);
     }
 
-    .social-plat-name {
-      font-family: 'Space Mono', monospace;
-      font-size: 12px;
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--acid);
+      color: var(--red);
+      margin-bottom: 14px;
     }
 
-    .social-handle-big {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 29px;
+    .kicker-line {
+      width: 36px;
+      height: 3px;
+      background: var(--ink);
+    }
+
+    .headline {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 78px;
+      line-height: 0.92;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+      color: var(--ink);
+      margin-bottom: 24px;
+    }
+
+    .headline .dot {
+      color: var(--red);
+      display: inline-block;
+      animation: bounce-dot 1.8s infinite cubic-bezier(0.28, 0.84, 0.42, 1);
+    }
+
+    @keyframes bounce-dot {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .countdown-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 20px 28px;
+      border: var(--border-w) solid var(--ink);
+      box-shadow: 8px 8px 0 var(--red);
+    }
+
+    .cd-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .cd-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--yellow);
+    }
+
+    .cd-sub {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--paper);
+      opacity: 0.85;
+    }
+
+    .cd-timer {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 62px;
       font-weight: 700;
-      line-height: 1.1;
+      line-height: 1;
       letter-spacing: -0.02em;
-      color: #FFFFFF;
+      color: var(--paper);
+    }
+
+    .bauhaus-art {
+      position: relative;
+      height: 220px;
+      background: var(--paper);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .bauhaus-art svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .rot-slow {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: spin-cw 24s linear infinite;
+    }
+
+    .rot-rev {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: spin-ccw 18s linear infinite;
+    }
+
+    .float-geo {
+      animation: float-y 5s ease-in-out infinite;
+    }
+
+    @keyframes spin-cw {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes spin-ccw {
+      from { transform: rotate(360deg); }
+      to { transform: rotate(0deg); }
+    }
+
+    @keyframes float-y {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .center-rail {
+      grid-column: 2;
+      grid-row: 2;
+      border-right: var(--border-w) solid var(--ink);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+      background: var(--paper-dim);
+      z-index: 5;
+    }
+
+    .rail-text {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+
+    .rail-blocks {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .rail-block {
+      width: 22px;
+      height: 22px;
+      border: var(--border-thin) solid var(--ink);
+    }
+
+    .col-3-content {
+      grid-column: 3;
+      grid-row: 2;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 0;
+      min-height: 0;
+      z-index: 5;
+      background: transparent;
+    }
+
+    .session-box {
+      grid-row: 1;
+      padding: 20px 28px;
+      border-bottom: var(--border-w) solid var(--ink);
+      background: var(--paper);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .session-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .session-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--blue);
+    }
+
+    .session-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 28px;
+      line-height: 1.05;
+      color: var(--ink);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    .social-progress-track {
-      width: 100%;
-      height: 4px;
-      background: rgba(242, 239, 233, 0.16);
-      overflow: hidden;
-    }
-
-    .social-progress-fill {
-      height: 100%;
-      width: 0%;
-      background: var(--acid);
-    }
-
-    .session-box {
-      background: var(--cobalt);
-      color: #FFFFFF;
-      border: var(--border-w) solid var(--ink);
-      box-shadow: 8px 8px 0 var(--ink);
-      padding: 16px 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transform: rotate(1.5deg);
-    }
-
-    .session-box .s-top {
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--acid);
-    }
-
-    .session-box .s-main {
-      font-family: 'Instrument Serif', serif;
-      font-style: italic;
-      font-size: 34px;
-      line-height: 1.05;
-    }
-
-    .session-box .s-foot {
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      opacity: 0.9;
-    }
-
-    /* ================= RIGHT COLUMN: RADICAL POSTMODERN TYPOGRAPHY ================= */
-    .right-col {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding-left: 16px;
-    }
-
-    .editorial-kicker-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .cutout-pill {
-      background: var(--vermilion);
-      color: #FFFFFF;
-      font-family: 'Space Mono', monospace;
-      font-weight: 700;
-      font-size: 14px;
-      padding: 8px 18px;
-      border: var(--border-w) solid var(--ink);
-      box-shadow: 5px 5px 0 var(--ink);
-      transform: rotate(-1.5deg);
-      text-transform: uppercase;
-    }
-
-    .barcode-block {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      font-family: 'Space Mono', monospace;
+    .session-sub {
+      font-family: 'IBM Plex Mono', monospace;
       font-size: 12px;
-      font-weight: 700;
-    }
-
-    .barcode-lines {
-      display: flex;
-      height: 32px;
-      gap: 3px;
-      align-items: stretch;
-    }
-    .barcode-lines span { background: var(--ink); display: block; }
-
-    .hero-collage {
-      position: relative;
-      margin: 6px 0;
-    }
-
-    .hero-line-1 {
-      font-family: 'Anton', sans-serif;
-      font-size: 156px;
-      line-height: 0.84;
-      letter-spacing: -0.02em;
+      font-weight: 600;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--ink);
+      opacity: 0.72;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .session-badge {
+      padding: 8px 14px;
+      background: var(--yellow);
+      color: #121212;
+      border: var(--border-thin) solid var(--ink);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      box-shadow: 4px 4px 0 var(--ink);
+      flex-shrink: 0;
+    }
+
+    .chat-viewport {
+      grid-row: 2;
+      position: relative;
+      background: var(--chat-bg);
+      color: var(--chat-ink);
+      border-bottom: var(--border-w) solid var(--ink);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .chat-box-placeholder {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      text-align: center;
       position: relative;
       z-index: 2;
     }
 
-    .hero-line-2-wrap {
+    .chat-box-frame {
+      width: 100%;
+      height: 100%;
+      border: 2px dashed var(--chat-ink);
+      opacity: 0.85;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 24px;
-      margin-top: -12px;
+      justify-content: center;
+      gap: 12px;
+      padding: 24px;
       position: relative;
-      z-index: 4;
     }
 
-    .hero-line-2 {
-      font-family: 'Instrument Serif', serif;
-      font-style: italic;
-      font-size: 164px;
-      line-height: 0.85;
-      color: var(--cobalt);
-      background: var(--acid);
-      padding: 0 28px 10px 18px;
-      border: var(--border-w) solid var(--ink);
-      box-shadow: 10px 10px 0 var(--ink);
-      transform: rotate(-2deg);
-    }
-
-    .hero-vertical-tag {
-      writing-mode: vertical-rl;
-      transform: rotate(180deg);
-      font-family: 'Space Mono', monospace;
+    .chat-box-badge {
+      background: var(--chat-badge-bg);
+      color: var(--chat-badge-ink);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
       font-weight: 700;
-      font-size: 14px;
-      letter-spacing: 0.18em;
-      border-left: 3px solid var(--ink);
-      padding-left: 10px;
-      height: 120px;
+      padding: 5px 12px;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
     }
 
-    .hero-line-3 {
-      font-family: 'Anton', sans-serif;
-      font-size: 132px;
-      line-height: 0.9;
-      color: transparent;
-      -webkit-text-stroke: 3.5px var(--ink);
-      letter-spacing: 0.02em;
-      margin-left: 110px;
-      margin-top: -6px;
-      position: relative;
-      z-index: 3;
+    .chat-box-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--chat-ink);
     }
 
-    .hero-line-3 .fill-soon {
-      color: var(--vermilion);
-      -webkit-text-stroke: 3px var(--ink);
+    .chat-box-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--chat-muted);
+      max-width: 340px;
+      line-height: 1.5;
     }
 
-    .statement-box {
-      position: relative;
-      background: #FFFFFF;
-      border: var(--border-w) solid var(--ink);
-      box-shadow: 10px 10px 0 var(--cobalt);
-      padding: 28px 32px;
-      min-height: 215px;
+    .chat-sample-msg {
+      width: 100%;
+      max-width: 360px;
+      margin-top: 8px;
+      padding: 10px 14px;
+      background: var(--chat-bubble-bg);
+      color: var(--chat-ink);
+      border-left: 4px solid var(--red);
+      text-align: left;
+      font-size: 13px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      gap: 10px;
+      gap: 2px;
     }
 
-    .statement-tag {
+    .chat-sample-author {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--blue);
+    }
+
+    .chat-iframe-wrap {
+      display: none;
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .chat-iframe-wrap.active {
+      display: block;
+    }
+
+    .chat-crop-inner {
       position: absolute;
-      top: -16px;
-      left: 24px;
-      background: var(--ink);
-      color: #FFFFFF;
-      font-family: 'Space Mono', monospace;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    :root[data-chat-crop="1"] .chat-crop-inner {
+      top: -54px;
+      bottom: -86px;
+      height: calc(100% + 140px);
+    }
+
+    .chat-crop-inner iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    :root[data-iframe-tone="light"] .chat-crop-inner iframe {
+      filter: contrast(1.03) saturate(0.95);
+    }
+
+    :root[data-iframe-tone="dark"] .chat-crop-inner iframe {
+      filter: contrast(1.06) brightness(0.98) saturate(0.95);
+    }
+
+    :root[data-chat-cutout="1"] .chat-viewport {
+      background: transparent !important;
+    }
+
+    :root[data-chat-cutout="1"] .chat-box-placeholder {
+      display: none !important;
+    }
+
+    body.chat-hidden .chat-viewport {
+      display: none;
+    }
+
+    body.chat-hidden .col-3-content {
+      grid-template-rows: auto 1fr;
+    }
+
+    body.chat-hidden .social-box {
+      grid-row: 2;
+      align-self: end;
+    }
+
+    .corner-bracket {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-color: var(--ink);
+      border-style: solid;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .cb-tl { top: 8px; left: 8px; border-width: 3px 0 0 3px; }
+    .cb-tr { top: 8px; right: 8px; border-width: 3px 3px 0 0; }
+    .cb-bl { bottom: 8px; left: 8px; border-width: 0 0 3px 3px; }
+    .cb-br { bottom: 8px; right: 8px; border-width: 0 3px 3px 0; }
+
+    .social-box {
+      grid-row: 3;
+      padding: 20px 28px;
+      background: var(--paper);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .social-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .social-platform {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'IBM Plex Mono', monospace;
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.14em;
-      padding: 4px 12px;
       text-transform: uppercase;
+      color: var(--blue);
     }
 
-    .stmt-past {
-      font-family: 'Space Mono', monospace;
-      font-size: 16px;
-      color: #7A7A7A;
-      text-decoration: line-through;
-    }
-
-    .stmt-active {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 40px;
-      font-weight: 700;
-      line-height: 1.12;
-      letter-spacing: -0.025em;
+    .social-handle {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
       color: var(--ink);
-      transition: opacity 0.2s ease, transform 0.2s ease;
+      transition: opacity 0.3s ease, transform 0.3s ease;
     }
 
-    .stmt-active .hl {
-      background: var(--acid);
-      padding: 0 8px;
-      border-bottom: 3px solid var(--ink);
+    .social-handle.fade-out {
+      opacity: 0;
+      transform: translateY(-6px);
     }
 
-    .stmt-active .hl-italic {
-      font-family: 'Instrument Serif', serif;
-      font-style: italic;
-      font-weight: 400;
-      font-size: 48px;
-      color: var(--vermilion);
+    .social-dots {
+      display: flex;
+      gap: 8px;
     }
 
-    .stmt-next {
-      font-family: 'Space Mono', monospace;
-      font-size: 15px;
-      color: var(--cobalt);
-      font-weight: 700;
+    .s-dot {
+      width: 12px;
+      height: 12px;
+      border: 2px solid var(--ink);
+      background: transparent;
+      transition: background 0.3s ease;
     }
 
-    .zigzag-svg {
+    .s-dot.active {
+      background: var(--red);
+    }
+
+    .diagonal-stripes {
       position: absolute;
-      right: 18px;
-      bottom: 18px;
-      width: 92px;
-    }
-
-    /* ================= BOTTOM RUNNING MARQUEE TICKER ================= */
-    .bottom-ticker {
-      position: absolute;
+      right: 0;
+      top: 0;
       bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 52px;
+      width: 90px;
+      background: repeating-linear-gradient(
+        -45deg,
+        var(--stripe-ink),
+        var(--stripe-ink) 6px,
+        transparent 6px,
+        transparent 14px
+      );
+      opacity: 0.12;
+      pointer-events: none;
+    }
+
+    .bottom-ticker {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      border-top: var(--border-w) solid var(--ink);
       background: var(--ink);
       color: var(--paper);
-      border-top: var(--border-w) solid var(--ink);
-      z-index: 20;
       display: flex;
       align-items: center;
       overflow: hidden;
+      z-index: 10;
+    }
+
+    .ticker-tag {
+      background: var(--red);
+      color: #ffffff;
+      height: 100%;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      border-right: var(--border-w) solid var(--paper);
+      flex-shrink: 0;
+      z-index: 2;
     }
 
     .ticker-track {
       display: flex;
+      align-items: center;
       white-space: nowrap;
-      font-family: 'Space Mono', monospace;
-      font-weight: 700;
-      font-size: 16px;
+      animation: marquee 28s linear infinite;
+    }
+
+    .ticker-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      animation: marquee 24s linear infinite;
+      padding-right: 48px;
     }
 
-    .ticker-track span {
-      margin-right: 48px;
-    }
-
-    .ticker-track .t-acid { color: var(--acid); }
-    .ticker-track .t-red { color: var(--vermilion); }
-
-    @keyframes blinkHard {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
+    .ticker-sep {
+      color: var(--yellow);
+      margin: 0 18px;
     }
 
     @keyframes marquee {
-      0% { transform: translateX(0%); }
+      0% { transform: translateX(0); }
       100% { transform: translateX(-50%); }
+    }
+
+    .timer-pulse {
+      animation: pulse-end 0.8s infinite alternate;
+      color: var(--yellow);
+    }
+
+    @keyframes pulse-end {
+      from { opacity: 1; }
+      to { opacity: 0.5; }
     }
   </style>
 </head>
 <body>
   <div class="stage-wrapper">
     <div class="stage" id="stage">
-      <!-- Background Print Layers -->
-      <div class="print-grid"></div>
-      <div class="halftone-block"></div>
-      <div class="halftone-bottom"></div>
-      <div class="bg-giant-type">STARTING</div>
-      <div class="noise-overlay"></div>
+      <div class="bg-grid">
+        <svg viewBox="0 0 1920 1080" preserveAspectRatio="none">
+          <defs>
+            <pattern id="smallGrid" width="48" height="48" patternUnits="userSpaceOnUse">
+              <path d="M 48 0 L 0 0 0 48" fill="none" stroke="currentColor" stroke-width="1"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#smallGrid)"/>
+        </svg>
+      </div>
+      <div class="halftone-layer"></div>
 
-      <!-- Registration Marks -->
-      <div class="reg-mark reg-tl"></div>
-      <div class="reg-mark reg-tr"></div>
-      <div class="reg-mark reg-bl"></div>
-      <div class="reg-mark reg-br"></div>
-
-      <!-- Top Editorial Bar -->
       <header class="top-bar">
-        <div class="meta-left">
-          <div class="tag-solid">
-            <span class="live-square"></span>
-            ON AIR // STANDBY
+        <div class="top-cell">
+          <div class="top-brand-group">
+            <div class="brand-mark" id="brandInitials">JB</div>
+            <span>DESIGN SYSTEM // V2.01</span>
           </div>
-          <span>ISSUE NO. 01</span>
+          <div class="status-pill" style="margin-left:auto">
+            <span class="status-dot"></span>
+            <span>PRE-SHOW</span>
+          </div>
         </div>
-
-        <div class="brand-center">JADEN BAHTERA</div>
-
-        <div class="meta-right">
-          <span>YT // LIVE CHAT</span>
-          <div class="clock-box" id="localClock">00:00:00</div>
+        <div class="top-center-block">★</div>
+        <div class="top-cell">
+          <span>STREAMING SEQUENCE: 01</span>
+          <span id="clockDisplay">00:00:00</span>
         </div>
       </header>
 
-      <!-- Main Deconstructed Grid -->
-      <main class="main-canvas">
-
-        <!-- LEFT: Transparent YouTube Chat Cutout + 1/1 Social Media -->
-        <section class="left-col">
-          <div class="sticker-badge">
-            <span class="yt-play-tri"></span>
-            YouTube Chat ★
-          </div>
-
-          <div class="chat-zine">
-            <div class="chat-header-strip">
-              <div class="chat-header-left">
-                <span class="yt-tag">TOP CHAT</span>
-                <span>LIVE STREAM FEED</span>
-              </div>
-              <div class="checker-strip"></div>
-            </div>
-
-            <!-- Transparent Alpha Cutout Viewport -->
-            <div class="chat-viewport" id="chatViewport"></div>
-
-            <div class="chat-footer-bar">
-              <div class="chat-prompt-fake">
-                <span>SAY SOMETHING IN YOUTUBE CHAT...</span>
-                <span class="cursor-block"></span>
-              </div>
-              <div class="yt-status-pill">● LIVE FEED</div>
-            </div>
-          </div>
-
-          <!-- 1/1 Social Media Spotlight + Host Card -->
-          <div class="bottom-left-panel">
-            <div class="social-box">
-              <div class="social-top-row">
-                <span class="social-label">FOLLOW // SOCIAL</span>
-                <div class="social-index-wrap">
-                  <div class="social-dots">
-                    <span class="social-dot active" id="dot0"></span>
-                    <span class="social-dot" id="dot1"></span>
-                    <span class="social-dot" id="dot2"></span>
-                  </div>
-                  <span class="social-counter" id="socialCounter">01/03</span>
-                </div>
-              </div>
-
-              <div class="social-spotlight" id="socialSpotlight">
-                <div class="social-icon-hero theme-tt" id="socialIconBox"></div>
-                <div class="social-text-col">
-                  <span class="social-plat-name" id="socialPlatform">TIKTOK</span>
-                  <span class="social-handle-big" id="socialHandle">@jadenbahtera</span>
-                </div>
-              </div>
-
-              <div class="social-progress-track">
-                <div class="social-progress-fill" id="socialProgress"></div>
-              </div>
-            </div>
-
-            <div class="session-box">
-              <div class="s-top">HOSTED BY</div>
-              <div class="s-main">Jaden Bahtera</div>
-              <div class="s-foot">YT CHAT READY // SAY HI</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- RIGHT: Experimental Postmodern Collage -->
-        <section class="right-col">
-          <div class="editorial-kicker-row">
-            <div class="cutout-pill">BROADCAST INITIALIZING — DO NOT ADJUST</div>
-            <div class="barcode-block">
-              <div class="barcode-lines" aria-hidden="true">
-                <span style="width:4px"></span><span style="width:2px"></span><span style="width:6px"></span>
-                <span style="width:2px"></span><span style="width:3px"></span><span style="width:5px"></span>
-                <span style="width:2px"></span><span style="width:4px"></span><span style="width:2px"></span>
-              </div>
-              <span>JB-2026</span>
-            </div>
-          </div>
-
-          <div class="hero-collage">
-            <div class="hero-line-1">STREAM</div>
-            <div class="hero-line-2-wrap">
-              <div class="hero-line-2">Starting</div>
-              <div class="hero-vertical-tag">LIVE EXPERIENCE</div>
-            </div>
-            <div class="hero-line-3">RIGHT <span class="fill-soon">SOON!</span></div>
-          </div>
-
-          <div class="statement-box">
-            <div class="statement-tag">LIVE FEED // KINETIC TEXT</div>
-            <div class="stmt-past" id="stmtPast">Calibrating audio channels &amp; visual decks</div>
-            <div class="stmt-active" id="stmtActive">
-              Welcome to <span class="hl">Jaden Bahtera</span> — <span class="hl-italic">stay tuned</span>
-            </div>
-            <div class="stmt-next" id="stmtNext">NEXT >> Grab snacks, drop a message in chat</div>
-
-            <svg class="zigzag-svg" viewBox="0 0 100 24" fill="none">
-              <path d="M2 18L16 4L30 18L44 4L58 18L72 4L86 18L98 6" stroke="#FF3B1D" stroke-width="5" stroke-linecap="square"/>
+      <section class="col-1-content">
+        <div class="brand-center">
+          <div class="brand-center-icon">
+            <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+              <circle cx="13" cy="13" r="8" fill="#f2be22" stroke="#121212" stroke-width="2.5"/>
+              <rect x="3" y="3" width="8" height="8" fill="#ffffff" stroke="#121212" stroke-width="2"/>
             </svg>
           </div>
-        </section>
-      </main>
+          <div class="brand-center-text" id="brandCenter">JADEN<br>BAHTERA</div>
+        </div>
 
-      <!-- Bottom Scrolling Marquee -->
+        <div class="hero-block">
+          <div class="kicker">
+            <span class="kicker-line"></span>
+            <span>TRANSMISSION INITIALIZING</span>
+          </div>
+          <h1 class="headline">STARTING<br>SOON<span class="dot">.</span></h1>
+          <div class="countdown-box">
+            <div class="cd-meta">
+              <span class="cd-label">TIME TO LIVE</span>
+              <span class="cd-sub" id="cdSub">STAND BY FOR BROADCAST</span>
+            </div>
+            <div class="cd-timer" id="countdownDisplay">05:00</div>
+          </div>
+        </div>
+
+        <div class="bauhaus-art">
+          <svg viewBox="0 0 800 220" preserveAspectRatio="xMidYMid slice">
+            <rect x="0" y="0" width="800" height="220" fill="none"/>
+            <line x1="200" y1="0" x2="200" y2="220" stroke="var(--ink)" stroke-width="4"/>
+            <line x1="480" y1="0" x2="480" y2="220" stroke="var(--ink)" stroke-width="4"/>
+
+            <rect x="36" y="36" width="128" height="148" fill="var(--blue)" stroke="var(--ink)" stroke-width="4"/>
+            <circle cx="100" cy="110" r="44" fill="var(--yellow)" stroke="var(--ink)" stroke-width="4"/>
+            <path d="M 100 66 A 44 44 0 0 1 144 110 L 100 110 Z" fill="var(--red)" stroke="var(--ink)" stroke-width="3"/>
+
+            <g class="rot-slow">
+              <circle cx="340" cy="110" r="76" fill="none" stroke="var(--ink)" stroke-width="4" stroke-dasharray="14 10"/>
+              <circle cx="340" cy="110" r="52" fill="var(--red)" stroke="var(--ink)" stroke-width="4"/>
+              <rect x="326" y="96" width="28" height="28" fill="var(--paper)" stroke="var(--ink)" stroke-width="3"/>
+            </g>
+
+            <g class="float-geo">
+              <polygon points="550,180 630,40 710,180" fill="var(--yellow)" stroke="var(--ink)" stroke-width="4"/>
+              <circle cx="710" cy="70" r="32" fill="var(--green)" stroke="var(--ink)" stroke-width="4"/>
+              <rect x="520" y="36" width="44" height="44" fill="var(--ink)"/>
+            </g>
+
+            <g class="rot-rev">
+              <line x1="740" y1="150" x2="780" y2="150" stroke="var(--ink)" stroke-width="4"/>
+              <line x1="760" y1="130" x2="760" y2="170" stroke="var(--ink)" stroke-width="4"/>
+            </g>
+          </svg>
+        </div>
+      </section>
+
+      <aside class="center-rail">
+        <div class="rail-blocks">
+          <div class="rail-block" style="background: var(--red);"></div>
+          <div class="rail-block" style="background: var(--blue);"></div>
+          <div class="rail-block" style="background: var(--yellow);"></div>
+        </div>
+        <div class="rail-text">BRUTALISMUS // OBS STUDIO</div>
+        <div class="rail-blocks">
+          <div class="rail-block" style="background: var(--rail-block-ink);"></div>
+          <div class="rail-block" style="background: var(--green);"></div>
+        </div>
+      </aside>
+
+      <section class="col-3-content">
+        <div class="session-box">
+          <div class="session-info">
+            <span class="session-label">Session Host</span>
+            <div class="session-name" id="streamerName">Jaden Bahtera</div>
+            <div class="session-sub" id="sceneTitle">STREAMING LIVE SOON</div>
+          </div>
+          <div class="session-badge">PRE-SHOW</div>
+        </div>
+
+        <div class="chat-viewport" id="chatViewport">
+          <div class="corner-bracket cb-tl"></div>
+          <div class="corner-bracket cb-tr"></div>
+          <div class="corner-bracket cb-bl"></div>
+          <div class="corner-bracket cb-br"></div>
+
+          <div class="chat-box-placeholder" id="chatPlaceholder">
+            <div class="chat-box-frame">
+              <span class="chat-box-badge">CHAT VIEWPORT</span>
+              <h2 class="chat-box-title">LIVE CHAT AREA</h2>
+              <p class="chat-box-sub">Area khusus chat stream. Atur mode via URL parameter: ?chatId=VIDEO_ID atau ?chatBg=transparent</p>
+              <div class="chat-sample-msg">
+                <span class="chat-sample-author">@BAUHAUS_FAN</span>
+                <span>Form follows function! Menunggu stream dimulai 🔥</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-iframe-wrap" id="chatIframeWrap">
+            <div class="chat-crop-inner" id="chatCropInner">
+              <iframe id="chatIframe" allow="autoplay"></iframe>
+            </div>
+          </div>
+        </div>
+
+        <div class="social-box">
+          <div class="social-left">
+            <span class="social-platform" id="socialPlatform">
+              <span>●</span> <span id="platformName">INSTAGRAM</span>
+            </span>
+            <div class="social-handle" id="socialHandle">@jadenbahtera</div>
+          </div>
+          <div class="social-dots" id="socialDots"></div>
+          <div class="diagonal-stripes"></div>
+        </div>
+      </section>
+
       <footer class="bottom-ticker">
-        <div class="ticker-track">
-          <span>JADEN BAHTERA LIVE STREAM</span>
-          <span class="t-acid">/// STREAM STARTING SOON</span>
-          <span>TIKTOK: @JADENBAHTERA</span>
-          <span class="t-red">★ IG: JADENBAHTERA // YT: JADENBAHTERA</span>
-          <span>DROP A MESSAGE IN CHAT</span>
-          <span class="t-acid">/// JADEN BAHTERA LIVE STREAM</span>
-          <span>STREAM STARTING SOON</span>
-          <span class="t-red">★ TIKTOK: @JADENBAHTERA</span>
-          <span>IG: JADENBAHTERA // YT: JADENBAHTERA</span>
-          <span>DROP A MESSAGE IN CHAT</span>
+        <div class="ticker-tag">LIVE ALERT</div>
+        <div style="flex:1; overflow:hidden; display:flex;">
+          <div class="ticker-track">
+            <span class="ticker-text">STREAM STARTING SOON <span class="ticker-sep">■</span> GRAB YOUR COFFEE <span class="ticker-sep">▲</span> AUDIO & VIDEO CHECK IN PROGRESS <span class="ticker-sep">●</span> SAY HI IN THE CHAT <span class="ticker-sep">■</span></span>
+            <span class="ticker-text">STREAM STARTING SOON <span class="ticker-sep">■</span> GRAB YOUR COFFEE <span class="ticker-sep">▲</span> AUDIO & VIDEO CHECK IN PROGRESS <span class="ticker-sep">●</span> SAY HI IN THE CHAT <span class="ticker-sep">■</span></span>
+          </div>
         </div>
       </footer>
     </div>
   </div>
 
   <script>
-    // 1. Scale Stage 1920x1080 + Punch exact transparent hole for YouTube Live Chat
+    const root = document.documentElement;
+    const stageEl = document.getElementById('stage');
+    const chatViewportEl = document.getElementById('chatViewport');
+
     function updateCutoutMask() {
-      const stage = document.getElementById('stage');
-      const vp = document.getElementById('chatViewport');
-      if (!stage || !vp) return;
-
-      const stageRect = stage.getBoundingClientRect();
-      const vpRect = vp.getBoundingClientRect();
-      const scale = stageRect.width / 1920 || 1;
-
-      const border = 2;
-      const x = Math.round((vpRect.left - stageRect.left) / scale) + border;
-      const y = Math.round((vpRect.top - stageRect.top) / scale) + border;
-      const w = Math.round(vpRect.width / scale) - border * 2;
-      const h = Math.round(vpRect.height / scale) - border * 2;
-
-      const maskImg = 'linear-gradient(#fff, #fff), linear-gradient(#fff, #fff)';
-      const maskPos = `0 0, ${x}px ${y}px`;
-      const maskSize = `100% 100%, ${w}px ${h}px`;
-
-      if (CSS.supports('mask-composite', 'exclude')) {
-        stage.style.maskImage = maskImg;
-        stage.style.maskPosition = maskPos;
-        stage.style.maskSize = maskSize;
-        stage.style.maskRepeat = 'no-repeat';
-        stage.style.maskComposite = 'exclude';
-      } else {
-        stage.style.webkitMaskImage = maskImg;
-        stage.style.webkitMaskPosition = maskPos;
-        stage.style.webkitMaskSize = maskSize;
-        stage.style.webkitMaskRepeat = 'no-repeat';
-        stage.style.webkitMaskComposite = 'xor';
+      const isSceneTransparent = root.getAttribute('data-bg') === 'transparent';
+      const isChatCutout = root.getAttribute('data-chat-cutout') === '1';
+      if (isSceneTransparent || !isChatCutout || document.body.classList.contains('chat-hidden')) {
+        stageEl.style.webkitMaskImage = 'none';
+        stageEl.style.maskImage = 'none';
+        return;
       }
+
+      const stageRect = stageEl.getBoundingClientRect();
+      const chatRect = chatViewportEl.getBoundingClientRect();
+      const w = Math.round(stageRect.width);
+      const h = Math.round(stageRect.height);
+      if (w <= 0 || h <= 0) return;
+
+      const x = Math.round(chatRect.left - stageRect.left);
+      const y = Math.round(chatRect.top - stageRect.top);
+      const cw = Math.round(chatRect.width);
+      const ch = Math.round(chatRect.height);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillRect(x, y, cw, ch);
+
+      const dataUrl = canvas.toDataURL('image/png');
+      stageEl.style.webkitMaskImage = `url(${dataUrl})`;
+      stageEl.style.maskImage = `url(${dataUrl})`;
+      stageEl.style.webkitMaskSize = '100% 100%';
+      stageEl.style.maskSize = '100% 100%';
+      stageEl.style.webkitMaskRepeat = 'no-repeat';
+      stageEl.style.maskRepeat = 'no-repeat';
     }
 
-    function scaleStage() {
-      const stage = document.getElementById('stage');
-      const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-      stage.style.transform = `scale(${scale})`;
-      updateCutoutMask();
-    }
-
-    window.addEventListener('resize', scaleStage);
-    scaleStage();
-
+    window.addEventListener('resize', updateCutoutMask);
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(updateCutoutMask);
     }
 
-    const vpObserver = new ResizeObserver(updateCutoutMask);
-    vpObserver.observe(document.getElementById('chatViewport'));
+    const params = new URLSearchParams(window.location.search);
 
-    // 2. Live Clock
-    function updateClock() {
-      const now = new Date();
-      const hh = String(now.getHours()).padStart(2, '0');
-      const mm = String(now.getMinutes()).padStart(2, '0');
-      const ss = String(now.getSeconds()).padStart(2, '0');
-      document.getElementById('localClock').textContent = `${hh}:${mm}:${ss}`;
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    // 3. 1/1 Social Media Spotlight Rotator (Exact Vector Icons)
-    const socials = [
-      {
-        platform: 'TIKTOK',
-        handle: '@jadenbahtera',
-        themeClass: 'theme-tt',
-        accent: '#DCFF00',
-        svg: `<svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.74a4.85 4.85 0 0 1-1.01-.05z"/>
-        </svg>`
-      },
-      {
-        platform: 'INSTAGRAM',
-        handle: 'jadenbahtera',
-        themeClass: 'theme-ig',
-        accent: '#FF2E93',
-        svg: `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="currentColor" stroke-width="2.3"/>
-          <circle cx="12" cy="12" r="4.3" stroke="currentColor" stroke-width="2.3"/>
-          <circle cx="17.5" cy="6.5" r="1.4" fill="currentColor"/>
-        </svg>`
-      },
-      {
-        platform: 'YOUTUBE',
-        handle: 'Jadenbahtera',
-        themeClass: 'theme-yt',
-        accent: '#FF3B1D',
-        svg: `<svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-        </svg>`
+    const rawMinus = params.get('minus') ?? params.get('min') ?? params.get('minutes');
+    let durationMinutes = 5;
+    if (rawMinus !== null) {
+      const parsed = parseFloat(rawMinus);
+      if (Number.isFinite(parsed) && parsed >= 0) {
+        durationMinutes = parsed;
       }
-    ];
+    }
 
-    const SOCIAL_INTERVAL = 4000;
-    let socialIdx = 0;
+    const totalMs = Math.round(durationMinutes * 60 * 1000);
+    const targetTime = Date.now() + totalMs;
 
-    const spotlightEl = document.getElementById('socialSpotlight');
-    const iconBoxEl = document.getElementById('socialIconBox');
-    const platformEl = document.getElementById('socialPlatform');
-    const handleEl = document.getElementById('socialHandle');
-    const counterEl = document.getElementById('socialCounter');
-    const progressEl = document.getElementById('socialProgress');
-    const dots = [
-      document.getElementById('dot0'),
-      document.getElementById('dot1'),
-      document.getElementById('dot2')
-    ];
+    const countdownEl = document.getElementById('countdownDisplay');
+    const cdSubEl = document.getElementById('cdSub');
+    const clockEl = document.getElementById('clockDisplay');
 
-    function renderSocial(i) {
-      const item = socials[i];
-      iconBoxEl.className = `social-icon-hero ${item.themeClass}`;
-      iconBoxEl.innerHTML = item.svg;
-      platformEl.textContent = item.platform;
-      platformEl.style.color = item.accent;
-      handleEl.textContent = item.handle;
-      counterEl.textContent = `0${i + 1}/0${socials.length}`;
+    function pad(n) {
+      return String(n).padStart(2, '0');
+    }
 
-      dots.forEach((d, idx) => {
-        d.classList.toggle('active', idx === i);
-        d.style.background = idx === i ? item.accent : 'rgba(242, 239, 233, 0.25)';
+    function updateTimers() {
+      const now = new Date();
+      clockEl.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+      const diff = targetTime - Date.now();
+      if (diff <= 0) {
+        countdownEl.textContent = '00:00';
+        countdownEl.classList.add('timer-pulse');
+        cdSubEl.textContent = 'GOING LIVE ANY MOMENT!';
+        return;
+      }
+
+      const totalSeconds = Math.ceil(diff / 1000);
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      countdownEl.textContent = `${pad(mins)}:${pad(secs)}`;
+      countdownEl.classList.remove('timer-pulse');
+    }
+
+    const chatPlaceholderEl = document.getElementById('chatPlaceholder');
+    const chatIframeWrapEl = document.getElementById('chatIframeWrap');
+    const chatIframeEl = document.getElementById('chatIframe');
+    const streamerNameEl = document.getElementById('streamerName');
+    const sceneTitleEl = document.getElementById('sceneTitle');
+    const brandInitialsEl = document.getElementById('brandInitials');
+    const brandCenterEl = document.getElementById('brandCenter');
+
+    function syncParams() {
+      const theme = (params.get('theme') || 'light').trim().toLowerCase() === 'dark' ? 'dark' : 'light';
+      root.setAttribute('data-theme', theme);
+
+      const rawBg = (params.get('bg') || '').trim().toLowerCase();
+      if (rawBg === 'transparent') {
+        root.setAttribute('data-bg', 'transparent');
+      } else {
+        root.removeAttribute('data-bg');
+      }
+
+      const rawChat = (params.get('chat') || params.get('chatMode') || '').trim().toLowerCase();
+      const legacyShowChat = (params.get('showChat') || '').trim().toLowerCase();
+      const chatId = (params.get('chatId') || '').trim();
+      const rawChatBg = (params.get('chatBg') || '').trim().toLowerCase();
+      const chatCrop = params.get('chatCrop') === '1';
+
+      let resolvedChatMode = 'box';
+      if (
+        rawChat === 'off' ||
+        rawChat === 'none' ||
+        rawChat === 'hide' ||
+        legacyShowChat === '0' ||
+        legacyShowChat === 'false'
+      ) {
+        resolvedChatMode = 'off';
+      } else if (rawChat === 'box') {
+        resolvedChatMode = 'box';
+      } else if (chatId) {
+        resolvedChatMode = 'iframe';
+      }
+
+      const isChatCutout = resolvedChatMode === 'box' && rawChatBg === 'transparent';
+      const effectiveChatBg = (rawChatBg === 'light' || rawChatBg === 'dark') ? rawChatBg : theme;
+
+      root.setAttribute('data-chat-bg', effectiveChatBg);
+      root.setAttribute('data-iframe-tone', effectiveChatBg);
+
+      if (isChatCutout) {
+        root.setAttribute('data-chat-cutout', '1');
+      } else {
+        root.removeAttribute('data-chat-cutout');
+      }
+
+      if (resolvedChatMode === 'iframe' && chatCrop) {
+        root.setAttribute('data-chat-crop', '1');
+      } else {
+        root.removeAttribute('data-chat-crop');
+      }
+
+      if (resolvedChatMode === 'off') {
+        document.body.classList.add('chat-hidden');
+        chatPlaceholderEl.style.display = 'none';
+        chatIframeWrapEl.classList.remove('active');
+        chatIframeEl.removeAttribute('src');
+      } else if (resolvedChatMode === 'iframe') {
+        document.body.classList.remove('chat-hidden');
+        chatPlaceholderEl.style.display = 'none';
+        chatIframeWrapEl.classList.add('active');
+        const host = window.location.hostname || 'localhost';
+        const darkParam = effectiveChatBg === 'dark' ? '&dark_theme=1' : '';
+        chatIframeEl.src = `https://www.youtube.com/live_chat?is_popout=1&v=${encodeURIComponent(chatId)}&embed_domain=${encodeURIComponent(host)}${darkParam}`;
+      } else {
+        document.body.classList.remove('chat-hidden');
+        chatPlaceholderEl.style.display = 'flex';
+        chatIframeWrapEl.classList.remove('active');
+        chatIframeEl.removeAttribute('src');
+      }
+
+      const streamer = (params.get('streamer') || '').trim() || 'Jaden Bahtera';
+      streamerNameEl.textContent = streamer;
+      brandCenterEl.replaceChildren();
+      const words = streamer.toUpperCase().split(/\s+/);
+      words.forEach((word, index) => {
+        if (index > 0) brandCenterEl.appendChild(document.createElement('br'));
+        brandCenterEl.appendChild(document.createTextNode(word));
+      });
+      const initials = words.map(w => w[0]).join('').slice(0, 2) || 'JB';
+      brandInitialsEl.textContent = initials;
+
+      const title = (params.get('title') || '').trim() || 'STREAMING LIVE SOON';
+      sceneTitleEl.textContent = title;
+    }
+
+    const platformNameEl = document.getElementById('platformName');
+    const socialHandleEl = document.getElementById('socialHandle');
+    const socialDotsEl = document.getElementById('socialDots');
+
+    function initSocials() {
+      const ig = (params.get('ig') || '').trim();
+      const tt = (params.get('tt') || '').trim();
+      const yt = (params.get('yt') || '').trim();
+      const socials = [];
+      if (ig) socials.push({ platform: 'INSTAGRAM', handle: ig.startsWith('@') ? ig : '@' + ig });
+      if (tt) socials.push({ platform: 'TIKTOK', handle: tt.startsWith('@') ? tt : '@' + tt });
+      if (yt) socials.push({ platform: 'YOUTUBE', handle: yt.startsWith('@') ? yt : '@' + yt });
+
+      if (socials.length === 0) {
+        socials.push(
+          { platform: 'INSTAGRAM', handle: '@jadenbahtera' },
+          { platform: 'TIKTOK', handle: '@jadenbahtera' },
+          { platform: 'YOUTUBE', handle: '@jadenbahtera' }
+        );
+      }
+
+      socialDotsEl.innerHTML = '';
+      socials.forEach((_, idx) => {
+        const dot = document.createElement('div');
+        dot.className = 's-dot' + (idx === 0 ? ' active' : '');
+        socialDotsEl.appendChild(dot);
       });
 
-      progressEl.style.transition = 'none';
-      progressEl.style.width = '0%';
-      progressEl.style.background = item.accent;
-      void progressEl.offsetWidth;
-      progressEl.style.transition = `width ${SOCIAL_INTERVAL}ms linear`;
-      progressEl.style.width = '100%';
+      let currentIdx = 0;
+      platformNameEl.textContent = socials[0].platform;
+      socialHandleEl.textContent = socials[0].handle;
+
+      if (socials.length <= 1) return;
+
+      setInterval(() => {
+        socialHandleEl.classList.add('fade-out');
+        setTimeout(() => {
+          currentIdx = (currentIdx + 1) % socials.length;
+          platformNameEl.textContent = socials[currentIdx].platform;
+          socialHandleEl.textContent = socials[currentIdx].handle;
+
+          const dots = socialDotsEl.querySelectorAll('.s-dot');
+          dots.forEach((d, i) => d.classList.toggle('active', i === currentIdx));
+
+          socialHandleEl.classList.remove('fade-out');
+        }, 300);
+      }, 4500);
     }
 
-    renderSocial(0);
-
-    setInterval(() => {
-      spotlightEl.classList.add('switching');
-      setTimeout(() => {
-        socialIdx = (socialIdx + 1) % socials.length;
-        renderSocial(socialIdx);
-        spotlightEl.classList.remove('switching');
-      }, 220);
-    }, SOCIAL_INTERVAL);
-
-    // 4. Kinetic Postmodern Feed Cycling
-    const statements = [
-      {
-        text: 'Calibrating <span class="hl">audio</span> &amp; <span class="hl-italic">visual</span> decks',
-        plain: 'Calibrating audio & visual decks'
-      },
-      {
-        text: 'Welcome to <span class="hl">Jaden Bahtera</span> — <span class="hl-italic">stay tuned</span>',
-        plain: 'Welcome to Jaden Bahtera — stay tuned'
-      },
-      {
-        text: 'Drop a <span class="hl">message</span> in <span class="hl-italic">YouTube Chat</span>',
-        plain: 'Drop a message in YouTube Chat'
-      },
-      {
-        text: 'Broadcast <span class="hl">signal</span> locking in <span class="hl-italic">real time</span>',
-        plain: 'Broadcast signal locking in real time'
-      }
-    ];
-
-    let idx = 1;
-    const pastEl = document.getElementById('stmtPast');
-    const activeEl = document.getElementById('stmtActive');
-    const nextEl = document.getElementById('stmtNext');
-
-    setInterval(() => {
-      idx = (idx + 1) % statements.length;
-      const prev = (idx - 1 + statements.length) % statements.length;
-      const next = (idx + 1) % statements.length;
-
-      activeEl.style.opacity = '0';
-      activeEl.style.transform = 'translateX(-8px)';
-
-      setTimeout(() => {
-        pastEl.textContent = statements[prev].plain;
-        activeEl.innerHTML = statements[idx].text;
-        nextEl.textContent = `NEXT >> ${statements[next].plain}`;
-        activeEl.style.opacity = '1';
-        activeEl.style.transform = 'translateX(0)';
-      }, 220);
-    }, 4000);
+    syncParams();
+    initSocials();
+    updateCutoutMask();
+    updateTimers();
+    setInterval(updateTimers, 200);
+    setTimeout(updateCutoutMask, 100);
   </script>
 </body>
 </html>

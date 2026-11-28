@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARDYHIM — Tako Alert (Bitmap Dithering)</title>
+  <style>
+    :root {
+      --ink: #0c0c0c;
+      --paper: #dfdedc;
+      --paper-hi: #ecebe9;
+    }
+
+    html {
+      font-size: 16px;
+    }
+
+    body {
+      margin: 0;
+      padding: 0.5rem 0.75rem 0.75rem 0.5rem;
+      width: 100%;
+      box-sizing: border-box;
+      background: transparent;
+      overflow: hidden;
+      font-family: ui-monospace, "Cascadia Mono", "Consolas", "Liberation Mono", Menlo, monospace;
+      color: var(--ink);
+      -webkit-font-smoothing: none;
+    }
+
+    img[src=""],
+    img[src*="{"] {
+      display: none !important;
+    }
+
+    .alert-card {
+      width: 100%;
+      box-sizing: border-box;
+      background-color: var(--paper);
+      background-image: radial-gradient(rgba(12, 12, 12, 0.06) 1px, transparent 0);
+      background-size: 0.45rem 0.45rem;
+      border: 0.18rem solid var(--ink);
+      box-shadow: 0.42rem 0.42rem 0 var(--ink);
+      animation: alert-enter 0.36s steps(6, end) both;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 0.38rem 0.75rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      min-width: 0;
+    }
+
+    .pulse-square {
+      width: 0.55rem;
+      height: 0.55rem;
+      flex-shrink: 0;
+      background: var(--paper);
+      animation: blink-step 0.9s steps(2, start) infinite;
+    }
+
+    .media-tag {
+      background: var(--paper);
+      color: var(--ink);
+      padding: 0.08rem 0.4rem;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      flex-shrink: 0;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.85rem;
+      padding: 0.85rem 0.9rem;
+    }
+
+    .donor-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .avatar-box {
+      position: relative;
+      width: 3.35rem;
+      height: 3.35rem;
+      flex-shrink: 0;
+      border: 0.16rem solid var(--ink);
+      background: var(--ink);
+      color: var(--paper);
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      filter: grayscale(100%) contrast(155%);
+    }
+
+    .avatar-fallback {
+      width: 100%;
+      height: 100%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-family: "Bahnschrift", "DIN Condensed", "Arial Narrow", system-ui, sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .donor-meta {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .name-line {
+      display: flex;
+      align-items: center;
+      gap: 0.38rem;
+      min-width: 0;
+    }
+
+    .gifter-name {
+      font-family: "Bahnschrift", "DIN Condensed", "Arial Narrow", system-ui, sans-serif;
+      font-size: 1.38rem;
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .verified-badge {
+      display: none;
+      width: 1.05rem;
+      height: 1.05rem;
+      flex-shrink: 0;
+      color: var(--ink);
+    }
+
+    .badges {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+    }
+
+    .badge-icon {
+      width: 1.15rem;
+      height: 1.15rem;
+      display: block;
+      object-fit: contain;
+      filter: grayscale(100%) contrast(150%);
+    }
+
+    .badge-tag {
+      border: 0.11rem solid var(--ink);
+      background: var(--paper-hi);
+      padding: 0.06rem 0.32rem;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      line-height: 1.15;
+    }
+
+    .amount-pill {
+      flex-shrink: 0;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 0.42rem 0.78rem;
+      font-family: "Bahnschrift", "DIN Condensed", "Arial Narrow", system-ui, sans-serif;
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      line-height: 1;
+      border: 0.14rem solid var(--ink);
+      box-shadow: 0.2rem 0.2rem 0 rgba(12, 12, 12, 0.25);
+      white-space: nowrap;
+    }
+
+    .dither-divider {
+      height: 0.36rem;
+      width: 100%;
+      border-top: 0.14rem solid var(--ink);
+      border-bottom: 0.14rem solid var(--ink);
+      box-sizing: border-box;
+      background-image: linear-gradient(45deg, var(--ink) 25%, transparent 25%),
+        linear-gradient(-45deg, var(--ink) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, var(--ink) 75%),
+        linear-gradient(-45deg, transparent 75%, var(--ink) 75%);
+      background-size: 0.32rem 0.32rem;
+      background-position: 0 0, 0 0.16rem, 0.16rem -0.16rem, -0.16rem 0;
+    }
+
+    .message-wrap {
+      padding: 0.78rem 0.9rem 0.85rem 0.9rem;
+    }
+
+    .message {
+      font-size: 1.02rem;
+      font-weight: 700;
+      line-height: 1.42;
+      letter-spacing: 0.02em;
+      color: var(--ink);
+      word-break: break-word;
+    }
+
+    .footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      border-top: 0.12rem dashed rgba(12, 12, 12, 0.55);
+      padding: 0.36rem 0.9rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+
+    .stamp {
+      font-variant-numeric: tabular-nums;
+    }
+
+    @keyframes blink-step {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0.2; }
+    }
+
+    @keyframes alert-enter {
+      0% {
+        opacity: 0;
+        transform: translateY(1.1rem);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="alert-card">
+    <div class="topbar">
+      <div class="topbar-left">
+        <span class="pulse-square"></span>
+        <span>TAKO_ALERT // GIFT</span>
+      </div>
+      <div class="media-tag" id="media-tag"></div>
+    </div>
+
+    <div class="header-row">
+      <div class="donor-left">
+        <div class="avatar-box">
+          <img class="avatar-img" id="avatar-img" src="{{gifterPicture}}" alt="" />
+          <div class="avatar-fallback" id="avatar-fallback"></div>
+        </div>
+
+        <div class="donor-meta">
+          <div class="name-line">
+            <div class="gifter-name" id="gifter-name">{{gifterName}}</div>
+            <svg class="verified-badge" id="verified-badge" viewBox="0 0 16 16" aria-label="Verified">
+              <path fill="currentColor" d="M 5 1 H 11 L 15 5 V 11 L 11 15 H 5 L 1 11 V 5 Z" />
+              <path fill="#dfdedc" d="M 4.4 8.2 L 6.8 10.6 L 11.8 5.6 L 10.6 4.4 L 6.8 8.2 L 5.6 7 Z" />
+            </svg>
+          </div>
+          <div class="badges" id="badges"></div>
+        </div>
+      </div>
+
+      <div class="amount-pill">{{formattedAmount}}</div>
+    </div>
+
+    <div class="dither-divider" id="dither-divider"></div>
+
+    <div class="message-wrap" id="message-wrap">
+      <div class="message" id="message">{{message}}</div>
+    </div>
+
+    <div class="footer-row" id="footer-row">
+      <span>ARDYHIM // 1-BIT</span>
+      <span class="stamp" id="stamp">{{timestamp}}</span>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var picture = "{{gifterPicture}}".trim();
+      var badgesRaw = "{{gifterBadges}}".trim();
+      var isVerified = "{{isGifterVerified}}" === "true";
+      var mediaDuration = "{{mediaDuration}}".trim();
+      var showTimestamp = "{{showTimestamp}}" === "true";
+
+      var BADGE_ICON_URLS = {
+        "Tako Verified Partner": "https://tako.id/images/badges/partnered-creator.png",
+        "Tako Verified Creator": "https://tako.id/images/badges/verified-creator.png",
+        "Rich Rich Club": "https://tako.id/images/badges/king.png",
+        "Charity": "https://tako.id/images/badges/charity.png",
+        "VTuber": "https://tako.id/images/badges/vtuber.png",
+        "Tako Team": "https://tako.id/images/badges/admin.png"
+      };
+
+      var gifterNameEl = document.getElementById("gifter-name");
+      var rawName = (gifterNameEl.textContent || "").trim();
+      var avatarImg = document.getElementById("avatar-img");
+      var avatarFallback = document.getElementById("avatar-fallback");
+
+      function showAvatarFallback() {
+        avatarImg.style.display = "none";
+        var initial = rawName && rawName.indexOf("{") === -1 ? rawName.charAt(0).toUpperCase() : "?";
+        avatarFallback.textContent = initial;
+        avatarFallback.style.display = "flex";
+      }
+
+      if (!picture || picture.indexOf("{") !== -1) {
+        showAvatarFallback();
+      } else {
+        avatarImg.onerror = showAvatarFallback;
+      }
+
+      var verifiedEl = document.getElementById("verified-badge");
+      if (isVerified) {
+        verifiedEl.style.display = "block";
+      }
+
+      function isUrlPrefix(val) {
+        return (
+          val.indexOf("https://") === 0 ||
+          val.indexOf("http://") === 0 ||
+          val.indexOf("/") === 0
+        );
+      }
+
+      function appendBadgeTag(container, label) {
+        var tag = document.createElement("span");
+        tag.className = "badge-tag";
+        tag.textContent = label;
+        container.appendChild(tag);
+      }
+
+      var badgesEl = document.getElementById("badges");
+      if (badgesRaw && badgesRaw.indexOf("{") === -1) {
+        var parts = badgesRaw.split(",");
+        for (var i = 0; i < parts.length; i++) {
+          var token = parts[i].trim();
+          if (!token) continue;
+
+          if (isUrlPrefix(token)) {
+            var imgDirect = document.createElement("img");
+            imgDirect.className = "badge-icon";
+            imgDirect.src = token;
+            imgDirect.alt = "";
+            imgDirect.onerror = function () {
+              this.style.display = "none";
+            };
+            badgesEl.appendChild(imgDirect);
+          } else if (BADGE_ICON_URLS[token]) {
+            (function (badgeName, badgeUrl) {
+              var imgMapped = document.createElement("img");
+              imgMapped.className = "badge-icon";
+              imgMapped.src = badgeUrl;
+              imgMapped.alt = badgeName;
+              imgMapped.title = badgeName;
+              imgMapped.onerror = function () {
+                this.style.display = "none";
+                appendBadgeTag(badgesEl, badgeName);
+              };
+              badgesEl.appendChild(imgMapped);
+            })(token, BADGE_ICON_URLS[token]);
+          } else {
+            appendBadgeTag(badgesEl, token);
+          }
+        }
+      }
+      if (!badgesEl.children.length) {
+        badgesEl.style.display = "none";
+      }
+
+      var mediaTagEl = document.getElementById("media-tag");
+      var parsedDur = parseFloat(mediaDuration);
+      if (!isNaN(parsedDur) && parsedDur > 0 && mediaDuration.indexOf("{") === -1) {
+        mediaTagEl.textContent = parsedDur + "S";
+      } else {
+        mediaTagEl.style.display = "none";
+      }
+
+      var msgEl = document.getElementById("message");
+      var msgWrapEl = document.getElementById("message-wrap");
+      var dividerEl = document.getElementById("dither-divider");
+      var msgText = (msgEl.textContent || "").trim();
+      if (!msgText) {
+        msgWrapEl.style.display = "none";
+        dividerEl.style.borderBottom = "none";
+      }
+
+      var stampEl = document.getElementById("stamp");
+      var stampText = (stampEl.textContent || "").trim();
+      if (!showTimestamp || !stampText || stampText.indexOf("{") !== -1) {
+        stampEl.style.display = "none";
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>CRT VHS Tako Alert</title>
+  <style>
+    :root {
+      --crt-card-bg: rgba(10, 12, 18, 0.94);
+      --crt-inner-bg: rgba(4, 7, 12, 0.82);
+      --phosphor-main: #e8f7ff;
+      --phosphor-cyan: #00f0ff;
+      --phosphor-magenta: #ff2a6d;
+      --phosphor-amber: #ffbe0b;
+      --phosphor-green: #39ff14;
+      --font-mono: "Consolas", "Lucida Console", "DejaVu Sans Mono", "Courier New", monospace;
+      --font-display: Impact, "Arial Black", "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 16px;
+    }
+
+    body {
+      margin: 0;
+      padding: 0.75rem;
+      width: 100%;
+      box-sizing: border-box;
+      background: transparent;
+      overflow: hidden;
+      font-family: var(--font-mono);
+      color: var(--phosphor-main);
+    }
+
+    img[src=""],
+    img[src*="{"],
+    img:not([src]) {
+      display: none !important;
+    }
+
+    .alert-card {
+      position: relative;
+      width: 100%;
+      box-sizing: border-box;
+      border: 0.125rem solid rgba(0, 240, 255, 0.75);
+      background: var(--crt-card-bg);
+      box-shadow:
+        -0.22rem 0 0 rgba(255, 42, 109, 0.58),
+        0.22rem 0 0 rgba(0, 240, 255, 0.58),
+        0 0 1.4rem rgba(0, 0, 0, 0.85),
+        inset 0 0 2.2rem rgba(0, 0, 0, 0.88);
+      isolation: isolate;
+      animation: alertGlitchIn 0.35s steps(4) both;
+    }
+
+    .alert-card.is-vip {
+      border-color: rgba(255, 190, 11, 0.88);
+      box-shadow:
+        -0.25rem 0 0 rgba(255, 42, 109, 0.72),
+        0.25rem 0 0 rgba(255, 190, 11, 0.72),
+        0 0 1.6rem rgba(255, 190, 11, 0.25),
+        inset 0 0 2.2rem rgba(0, 0, 0, 0.88);
+    }
+
+    .crt-scanlines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0.24;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0) 0px,
+          rgba(255, 255, 255, 0) 2px,
+          rgba(0, 0, 0, 0.65) 3px,
+          rgba(0, 0, 0, 0.65) 4px
+        ),
+        repeating-linear-gradient(
+          to right,
+          rgba(255, 0, 76, 0.06) 0px,
+          rgba(0, 255, 136, 0.06) 1px,
+          rgba(0, 170, 255, 0.06) 2px
+        );
+    }
+
+    .crt-vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 11;
+      background: radial-gradient(
+        ellipse at center,
+        rgba(0, 0, 0, 0) 58%,
+        rgba(0, 0, 0, 0.58) 100%
+      );
+    }
+
+    .osd-bar {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.45rem 0.95rem;
+      border-bottom: 0.125rem solid rgba(0, 240, 255, 0.35);
+      background: rgba(0, 240, 255, 0.09);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .osd-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: var(--phosphor-green);
+      text-shadow: 0 0 0.5rem rgba(57, 255, 20, 0.55);
+    }
+
+    .play-tri {
+      display: inline-block;
+      width: 0;
+      height: 0;
+      border-top: 0.32rem solid transparent;
+      border-bottom: 0.32rem solid transparent;
+      border-left: 0.52rem solid var(--phosphor-green);
+    }
+
+    .osd-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: var(--phosphor-amber);
+    }
+
+    .rec-dot {
+      display: inline-block;
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: var(--phosphor-magenta);
+      box-shadow: 0 0 0.5rem var(--phosphor-magenta);
+      animation: recBlink 0.9s steps(1) infinite;
+    }
+
+    .card-body {
+      position: relative;
+      z-index: 2;
+      padding: 0.95rem 1.05rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .gifter-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.85rem;
+      min-width: 0;
+    }
+
+    .avatar-wrap {
+      position: relative;
+      width: 3.4rem;
+      height: 3.4rem;
+      flex: 0 0 3.4rem;
+      border: 0.125rem solid var(--phosphor-cyan);
+      background: var(--crt-inner-bg);
+      box-shadow:
+        -0.125rem 0 0 rgba(255, 42, 109, 0.5),
+        0.125rem 0 0 rgba(0, 240, 255, 0.5);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar-img {
+      width: 3.4rem;
+      height: 3.4rem;
+      object-fit: cover;
+      display: block;
+    }
+
+    .avatar-fallback {
+      display: none;
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      color: var(--phosphor-cyan);
+      text-transform: uppercase;
+      text-shadow:
+        -1px 0 var(--phosphor-magenta),
+        1px 0 var(--phosphor-cyan);
+    }
+
+    .avatar-wrap.is-fallback .avatar-img {
+      display: none !important;
+    }
+
+    .avatar-wrap.is-fallback .avatar-fallback {
+      display: block;
+    }
+
+    .gifter-meta {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.28rem;
+    }
+
+    .name-line {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      min-width: 0;
+    }
+
+    .gifter-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--phosphor-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow:
+        -1.5px 0 rgba(255, 42, 109, 0.75),
+        1.5px 0 rgba(0, 240, 255, 0.75),
+        0 0 0.6rem rgba(232, 247, 255, 0.35);
+    }
+
+    .verified-chip {
+      display: none;
+      flex: 0 0 auto;
+      align-items: center;
+      justify-content: center;
+      padding: 0.1rem 0.35rem;
+      border: 1px solid var(--phosphor-cyan);
+      background: rgba(0, 240, 255, 0.14);
+      color: var(--phosphor-cyan);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .verified-chip.is-visible {
+      display: inline-flex;
+    }
+
+    .badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.3rem;
+      min-height: 1.15rem;
+    }
+
+    .badges-row:empty {
+      display: none;
+    }
+
+    .badge-icon {
+      width: 1.15rem;
+      height: 1.15rem;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 0 0.25rem rgba(0, 240, 255, 0.4));
+    }
+
+    .badge-tag {
+      display: inline-block;
+      padding: 0.08rem 0.38rem;
+      border: 1px solid rgba(255, 190, 11, 0.65);
+      background: rgba(255, 190, 11, 0.12);
+      color: var(--phosphor-amber);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      line-height: 1.25;
+    }
+
+    .amount-box {
+      flex: 0 0 auto;
+      padding: 0.4rem 0.75rem;
+      border: 0.1rem solid rgba(57, 255, 20, 0.65);
+      background: rgba(8, 22, 12, 0.8);
+      text-align: right;
+      box-shadow:
+        -0.125rem 0 0 rgba(255, 42, 109, 0.4),
+        0.125rem 0 0 rgba(0, 240, 255, 0.4);
+    }
+
+    .amount-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      color: rgba(232, 247, 255, 0.72);
+      text-transform: uppercase;
+      margin-bottom: 0.12rem;
+    }
+
+    .amount-value {
+      font-family: var(--font-display);
+      font-size: 1.38rem;
+      line-height: 1;
+      letter-spacing: 0.04em;
+      color: var(--phosphor-green);
+      text-shadow:
+        -1.5px 0 rgba(255, 42, 109, 0.65),
+        1.5px 0 rgba(0, 240, 255, 0.65),
+        0 0 0.7rem rgba(57, 255, 20, 0.45);
+    }
+
+    .tape-divider {
+      width: 100%;
+      height: 0.125rem;
+      background: repeating-linear-gradient(
+        to right,
+        rgba(0, 240, 255, 0.55) 0,
+        rgba(0, 240, 255, 0.55) 0.5rem,
+        transparent 0.5rem,
+        transparent 0.8rem
+      );
+    }
+
+    .message-box {
+      padding: 0.7rem 0.85rem;
+      border-left: 0.22rem solid var(--phosphor-magenta);
+      background: var(--crt-inner-bg);
+      font-size: 1rem;
+      line-height: 1.45;
+      color: var(--phosphor-main);
+      word-break: break-word;
+      text-shadow: 0 0 0.45rem rgba(232, 247, 255, 0.25);
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(232, 247, 255, 0.68);
+    }
+
+    .card-footer.is-hidden {
+      display: none;
+    }
+
+    .timestamp-text {
+      color: var(--phosphor-cyan);
+    }
+
+    @keyframes alertGlitchIn {
+      0% {
+        opacity: 0;
+        transform: translateX(-0.75rem) skewX(-3deg);
+      }
+      40% {
+        opacity: 0.9;
+        transform: translateX(0.35rem) skewX(2deg);
+      }
+      75% {
+        opacity: 1;
+        transform: translateX(-0.15rem) skewX(-1deg);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0) skewX(0deg);
+      }
+    }
+
+    @keyframes recBlink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0.2; }
+    }
+  </style>
+</head>
+<body>
+  <div class="alert-card" id="alert-card">
+    <div class="crt-scanlines"></div>
+    <div class="crt-vignette"></div>
+
+    <div class="osd-bar">
+      <span class="osd-left">
+        <span class="play-tri"></span>
+        <span>NEW SIGNAL // TAKO GIFT</span>
+      </span>
+      <span class="osd-right">
+        <span id="duration-tag">CH 03</span>
+        <span class="rec-dot"></span>
+      </span>
+    </div>
+
+    <div class="card-body">
+      <div class="gifter-row">
+        <div class="avatar-wrap" id="avatar-wrap">
+          <img class="avatar-img" id="avatar-img" src="{{gifterPicture}}" alt="" />
+          <span class="avatar-fallback" id="avatar-fallback">?</span>
+        </div>
+
+        <div class="gifter-meta">
+          <div class="name-line">
+            <div class="gifter-name" id="gifter-name">{{gifterName}}</div>
+            <span class="verified-chip" id="verified-chip">VERIFIED</span>
+          </div>
+          <div class="badges-row" id="badges-row"></div>
+        </div>
+
+        <div class="amount-box">
+          <div class="amount-label">AMOUNT</div>
+          <div class="amount-value">{{formattedAmount}}</div>
+        </div>
+      </div>
+
+      <div class="tape-divider" id="tape-divider"></div>
+
+      <div class="message-box" id="message-box">{{message}}</div>
+
+      <div class="card-footer" id="card-footer">
+        <span>TAPE LOG // SP</span>
+        <span class="timestamp-text" id="timestamp-el">{{timestamp}}</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var picture = "{{gifterPicture}}".trim();
+      var badgesRaw = "{{gifterBadges}}".trim();
+      var isVerified = "{{isGifterVerified}}" === "true";
+      var showTimestamp = "{{showTimestamp}}" === "true";
+      var rawAmount = Number("{{amount}}") || 0;
+      var mediaDuration = parseFloat("{{mediaDuration}}") || 0;
+
+      var BADGE_ICON_URLS = {
+        "Tako Verified Partner": "https://tako.id/images/badges/partnered-creator.png",
+        "Tako Verified Creator": "https://tako.id/images/badges/verified-creator.png",
+        "Rich Rich Club": "https://tako.id/images/badges/king.png",
+        "Charity": "https://tako.id/images/badges/charity.png",
+        "VTuber": "https://tako.id/images/badges/vtuber.png",
+        "Tako Team": "https://tako.id/images/badges/admin.png"
+      };
+
+      var cardEl = document.getElementById("alert-card");
+      if (rawAmount >= 100000) {
+        cardEl.classList.add("is-vip");
+      }
+
+      if (mediaDuration > 0) {
+        document.getElementById("duration-tag").textContent = "DUR " + Math.round(mediaDuration) + "S";
+      }
+
+      var avatarWrap = document.getElementById("avatar-wrap");
+      var avatarImg = document.getElementById("avatar-img");
+      var avatarFallback = document.getElementById("avatar-fallback");
+      var gifterNameEl = document.getElementById("gifter-name");
+      var cleanName = gifterNameEl.textContent.trim();
+      avatarFallback.textContent = cleanName ? cleanName.charAt(0).toUpperCase() : "T";
+
+      function useAvatarFallback() {
+        avatarWrap.classList.add("is-fallback");
+      }
+
+      if (!picture || picture.indexOf("{") !== -1) {
+        useAvatarFallback();
+      } else {
+        avatarImg.onerror = useAvatarFallback;
+      }
+
+      if (isVerified) {
+        document.getElementById("verified-chip").classList.add("is-visible");
+      }
+
+      var badgesRow = document.getElementById("badges-row");
+      if (badgesRaw && badgesRaw.indexOf("{") === -1) {
+        var badgeItems = badgesRaw.split(",");
+        for (var i = 0; i < badgeItems.length; i++) {
+          var item = badgeItems[i].trim();
+          if (!item) continue;
+
+          var iconUrl = "";
+          if (item.indexOf("https://") === 0 || item.indexOf("http://") === 0 || item.indexOf("/") === 0) {
+            iconUrl = item;
+          } else if (BADGE_ICON_URLS[item]) {
+            iconUrl = BADGE_ICON_URLS[item];
+          }
+
+          if (iconUrl) {
+            (function (labelText, srcUrl) {
+              var img = document.createElement("img");
+              img.className = "badge-icon";
+              img.src = srcUrl;
+              img.alt = labelText;
+              img.onerror = function () {
+                if (labelText.indexOf("http") === 0 || labelText.indexOf("/") === 0) {
+                  img.style.display = "none";
+                } else {
+                  var span = document.createElement("span");
+                  span.className = "badge-tag";
+                  span.textContent = labelText;
+                  if (img.parentNode) {
+                    img.parentNode.replaceChild(span, img);
+                  }
+                }
+              };
+              badgesRow.appendChild(img);
+            })(item, iconUrl);
+          } else {
+            var tag = document.createElement("span");
+            tag.className = "badge-tag";
+            tag.textContent = item;
+            badgesRow.appendChild(tag);
+          }
+        }
+      }
+
+      var messageBox = document.getElementById("message-box");
+      var tapeDivider = document.getElementById("tape-divider");
+      if (!messageBox.textContent.trim()) {
+        messageBox.style.display = "none";
+        tapeDivider.style.display = "none";
+      }
+
+      var cardFooter = document.getElementById("card-footer");
+      if (!showTimestamp) {
+        cardFooter.classList.add("is-hidden");
+      }
+    })();
+  </script>
+</body>
+</html>
