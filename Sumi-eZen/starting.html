@@ -940,8 +940,9 @@
         }
       }
 
-      if (params.get("sub")) {
-        document.getElementById("subtitle-label").textContent = params.get("sub");
+      const subParam = params.get("subtitle") || params.get("sub");
+      if (subParam) {
+        document.getElementById("subtitle-label").textContent = subParam;
       }
 
       // 1. Lubangi lapisan kertas Washi tepat di area #livechat-slot agar tembus hingga body
@@ -974,13 +975,18 @@
         ro.observe(sceneEl);
       }
 
-      // 2. Munculkan iframe YouTube Live Chat HANYA jika parameter ?chatId=... diisi
+      // 2. Munculkan iframe YouTube Live Chat hanya jika ?chatId=... diisi dan chat tidak dimatikan
+      const chatMode = (params.get("chat") || "box").toLowerCase();
+      const isChatHidden =
+        chatMode === "off" || chatMode === "none" || chatMode === "hide";
       const chatId = (params.get("chatId") || "").trim();
-      if (chatId) {
+      if (!isChatHidden && chatId) {
         const slot = document.getElementById("livechat-slot");
         const iframe = document.createElement("iframe");
         const embedDomain = params.get("domain") || window.location.hostname || "localhost";
-        const darkParam = params.get("chatdark") === "0" ? "" : "&dark_theme=1";
+        const chatBg = (params.get("chatBg") || "").toLowerCase();
+        const isLightChat = chatBg === "light" || params.get("chatdark") === "0";
+        const darkParam = isLightChat ? "" : "&dark_theme=1";
         iframe.className = "livechat-iframe";
         iframe.title = "YouTube Live Chat";
         iframe.referrerPolicy = "origin";
@@ -1112,7 +1118,11 @@
       });
 
       // 5. Countdown Timer & Progress Sapuan Kuas Putih
-      const minutesParam = params.has("min") ? parseFloat(params.get("min")) : 5;
+      const minutesParam = params.has("minus")
+        ? parseFloat(params.get("minus"))
+        : params.has("min")
+          ? parseFloat(params.get("min"))
+          : 5;
       const readoutEl = document.getElementById("countdown-readout");
       const brushProgressPath = document.getElementById("white-brush-progress");
       const brushLen = brushProgressPath.getTotalLength();

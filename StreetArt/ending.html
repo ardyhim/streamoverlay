@@ -696,7 +696,10 @@
 
       var sceneEl = document.getElementById('scene');
 
-      if (flag(['transparent'], false)) {
+      var isTransparent =
+        flag(['transparent'], false) ||
+        (pick(['bg'], '') || '').toLowerCase() === 'transparent';
+      if (isTransparent) {
         sceneEl.classList.add('is-transparent');
       }
 

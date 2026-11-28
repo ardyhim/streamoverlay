@@ -847,11 +847,16 @@
       // 1. Konfigurasi Parameter URL Opsional untuk fleksibilitas Scene OBS
       const sceneMode = (params.get("scene") || "overlay").toLowerCase();
       const camMode = (params.get("cam") || "none").toLowerCase();
-      const themeMode = (params.get("theme") || "sumi").toLowerCase();
+      const rawTheme = (params.get("theme") || "").toLowerCase();
+      const styleMode = (
+        params.get("style") ||
+        (rawTheme === "light" || rawTheme === "dark" ? "" : rawTheme) ||
+        "sumi"
+      ).toLowerCase();
       const customTitle = params.get("title");
-      const customSub = params.get("sub");
+      const customSub = params.get("subtitle") || params.get("sub");
 
-      if (themeMode === "washi") {
+      if (styleMode === "washi") {
         sceneRoot.classList.add("theme-washi");
       }
 

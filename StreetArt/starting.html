@@ -717,7 +717,10 @@
 
       var sceneEl = document.getElementById('scene');
 
-      if (flag(['transparent'], false)) {
+      var isTransparent =
+        flag(['transparent'], false) ||
+        (pick(['bg'], '') || '').toLowerCase() === 'transparent';
+      if (isTransparent) {
         sceneEl.classList.add('is-transparent');
       }
 
@@ -739,11 +742,23 @@
         document.getElementById('status-msg').textContent = customMsg.toUpperCase();
       }
 
-      var chatParam = pick(['chat'], null);
-      var chatId = chatParam && chatParam !== '0' ? chatParam : '4a3M-cp1wFc';
+      var chatMode = (pick(['chat'], 'box') || 'box').toLowerCase();
+      var chatIdParam = pick(['chatId', 'v'], null);
+      if (chatIdParam === null) {
+        var legacyChatId = (params.get('chat') || '').trim();
+        if (legacyChatId && ['off', 'none', 'hide', 'box'].indexOf(legacyChatId.toLowerCase()) === -1) {
+          chatIdParam = legacyChatId;
+        }
+      }
+      var chatHidden =
+        chatMode === 'off' ||
+        chatMode === 'none' ||
+        chatMode === 'hide' ||
+        chatIdParam === '0';
+      var chatId = chatIdParam && chatIdParam !== '0' ? chatIdParam : '4a3M-cp1wFc';
       var embedDomain = pick(['domain'], window.location.hostname || 'localhost');
       var chatIframe = document.getElementById('yt-chat-frame');
-      if (chatParam === '0') {
+      if (chatHidden) {
         chatIframe.style.display = 'none';
         document.getElementById('chat-id-label').textContent = 'CHAT OFF';
       } else {
@@ -757,7 +772,7 @@
       }
 
       var secondsParam = pick(['seconds', 'sec'], null);
-      var minutesParam = pick(['minutes', 'min'], null);
+      var minutesParam = pick(['minus', 'minutes', 'min'], null);
       var totalSeconds = 300;
       if (secondsParam !== null) {
         totalSeconds = Math.max(0, parseInt(secondsParam, 10) || 0);

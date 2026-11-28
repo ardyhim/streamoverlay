@@ -1332,11 +1332,15 @@
       /* ------------------------------------------------------------------
          3. Countdown
             ?start=HH:MM   -> local start time (rolls to tomorrow if passed)
-            ?minutes=5     -> countdown from now (default 5 minutes)
+            ?minus=5       -> countdown from now in minutes (default 5)
+            ?seconds=N     -> countdown in seconds (override)
+            Alias lama: ?minutes / ?min / ?sec
          ------------------------------------------------------------------ */
       const params = new URLSearchParams(window.location.search);
       const startParam = params.get("start");
-      const minutesParam = parseFloat(params.get("minutes") || params.get("min"));
+      const minutesParam = parseFloat(
+        params.get("minus") || params.get("minutes") || params.get("min")
+      );
       const secondsParam = parseFloat(params.get("seconds") || params.get("sec"));
 
       const now0 = new Date();

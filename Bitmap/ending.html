@@ -640,14 +640,16 @@
       }
 
       var CONFIG = {
-        streamer: pick(["name", "streamer", "user"], "ARDYHIM"),
-        instagram: pick(["instagram", "ig"], "ardyhim"),
-        tiktok: pick(["tiktok", "tt"], "ardyhim"),
-        youtube: pick(["youtube", "yt"], "ardyhim"),
+        streamer: pick(["streamer", "name", "user"], "ARDYHIM"),
+        instagram: pick(["ig", "instagram"], "ardyhim"),
+        tiktok: pick(["tt", "tiktok"], "ardyhim"),
+        youtube: pick(["yt", "youtube"], "ardyhim"),
         badge: pick(["badge"], "EOF"),
         title: pick(["title"], "ending"),
         subline: pick(["subtitle", "sub"], "SEE YOU NEXT STREAM"),
-        transparent: flag(["transparent"], false),
+        transparent:
+          (pick(["bg"], "") || "").toLowerCase() === "transparent" ||
+          flag(["transparent"], false),
         fps: Math.min(60, Math.max(8, number(["fps"], 24)))
       };
 

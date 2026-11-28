@@ -997,13 +997,19 @@
       const nextParam = (params.get("next") || "").trim();
       const bgParam = (params.get("bg") || "").toLowerCase();
 
-      const chatFlag = (params.get("chat") || params.get("chatbox") || "").toLowerCase();
+      const chatFlag = (params.get("chat") || "").toLowerCase();
+      const legacyChatbox = (params.get("chatbox") || "").toLowerCase();
       const showChatFlag = (params.get("showChat") || "").toLowerCase();
       const isChatHidden =
+        chatFlag === "off" ||
+        chatFlag === "none" ||
         chatFlag === "hide" ||
         chatFlag === "0" ||
-        chatFlag === "off" ||
         chatFlag === "false" ||
+        legacyChatbox === "hide" ||
+        legacyChatbox === "off" ||
+        legacyChatbox === "0" ||
+        legacyChatbox === "false" ||
         showChatFlag === "0" ||
         showChatFlag === "false";
 
@@ -1077,7 +1083,9 @@
         const slot = document.getElementById("livechat-slot");
         const iframe = document.createElement("iframe");
         const embedDomain = params.get("domain") || window.location.hostname || "localhost";
-        const darkParam = params.get("chatdark") === "0" ? "" : "&dark_theme=1";
+        const chatBg = (params.get("chatBg") || "").toLowerCase();
+        const isLightChat = chatBg === "light" || params.get("chatdark") === "0";
+        const darkParam = isLightChat ? "" : "&dark_theme=1";
         iframe.className = "livechat-iframe";
         iframe.title = "YouTube Live Chat";
         iframe.referrerPolicy = "origin";

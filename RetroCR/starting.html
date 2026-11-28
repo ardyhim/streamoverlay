@@ -768,23 +768,35 @@
       var titleText = pick(["title"], "STREAM STARTING SOON");
       var subText = pick(["subtitle", "sub"], "PLEASE STAND BY // ADJUSTING TRACKING");
       var tagText = pick(["status", "tag"], "SIGNAL LOCKED // CALIBRATING");
-      var userText = pick(["name", "streamer", "user"], "@ardyhim");
+      var userText = pick(["streamer", "name", "user"], "@ardyhim");
       var channelText = pick(["channel", "ch"], "CH 03 // AV-IN // SP");
       var doneText = pick(["cta", "done"], "STARTING NOW");
 
       // Socials
-      var igHandle = pick(["instagram", "ig"], "ardyhim");
-      var ttHandle = pick(["tiktok", "tt"], "ardyhim");
-      var ytHandle = pick(["youtube", "yt"], "ardyhim");
+      var igHandle = pick(["ig", "instagram"], "ardyhim");
+      var ttHandle = pick(["tt", "tiktok"], "ardyhim");
+      var ytHandle = pick(["yt", "youtube"], "ardyhim");
 
-      // YouTube Live Chat ID (default: O5kFGBZSVgQ)
-      var chatParam = pick(["chat", "v"], null);
-      var showChatIframe = chatParam !== "0";
-      var videoId = chatParam && chatParam !== "0" ? chatParam : "O5kFGBZSVgQ";
+      // YouTube Live Chat: ?chatId=VIDEO_ID (alias lama ?chat / ?v), ?chat=off untuk mematikan
+      var chatMode = (pick(["chat"], "box") || "box").toLowerCase();
+      var chatIdParam = pick(["chatId", "v"], null);
+      if (chatIdParam === null) {
+        var legacyChatId = (params.get("chat") || "").trim();
+        if (legacyChatId && ["off", "none", "hide", "box"].indexOf(legacyChatId.toLowerCase()) === -1) {
+          chatIdParam = legacyChatId;
+        }
+      }
+      var chatHidden =
+        chatMode === "off" ||
+        chatMode === "none" ||
+        chatMode === "hide" ||
+        chatIdParam === "0";
+      var showChatIframe = !chatHidden;
+      var videoId = chatIdParam && chatIdParam !== "0" ? chatIdParam : "O5kFGBZSVgQ";
 
-      // Durasi hitung mundur
+      // Durasi hitung mundur: ?minus=menit (alias lama ?minutes / ?min), ?seconds / ?sec override
       var secondsParam = pick(["seconds", "sec"], null);
-      var minutesParam = pick(["minutes", "min"], null);
+      var minutesParam = pick(["minus", "minutes", "min"], null);
       var totalSeconds = 300;
       if (secondsParam !== null) {
         totalSeconds = Math.max(0, parseInt(secondsParam, 10) || 0);

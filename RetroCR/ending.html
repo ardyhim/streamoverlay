@@ -855,13 +855,13 @@
       var titleText = pick(["title"], "THANKS FOR WATCHING!");
       var subText = pick(["subtitle", "sub"], "SEE YOU ON THE NEXT BROADCAST // STAY TUNED");
       var tagText = pick(["status", "tag"], "TRANSMISSION COMPLETE // SIGN-OFF");
-      var userText = pick(["name", "streamer", "user"], "@ardyhim");
+      var userText = pick(["streamer", "name", "user"], "@ardyhim");
       var channelText = pick(["channel", "ch"], "END OF TAPE // CH 03 // SP");
       var tapeLabel = pick(["label", "tape"], "TAPE #01 // @ARDYHIM");
 
-      var igHandle = pick(["instagram", "ig"], "ardyhim");
-      var ttHandle = pick(["tiktok", "tt"], "ardyhim");
-      var ytHandle = pick(["youtube", "yt"], "ardyhim");
+      var igHandle = pick(["ig", "instagram"], "ardyhim");
+      var ttHandle = pick(["tt", "tiktok"], "ardyhim");
+      var ytHandle = pick(["yt", "youtube"], "ardyhim");
 
       var opacityParam = pick(["opacity", "alpha"], null);
       if (opacityParam !== null) {
@@ -901,9 +901,21 @@
         document.getElementById("credit-3").textContent = credit3;
       }
 
-      // Opsional: iframe chat hanya aktif kalau ?chat= diisi (atau ?v= untuk URL lama)
-      var chatParam = pick(["chat", "v"], null);
-      var videoId = chatParam && chatParam !== "0" ? chatParam : null;
+      // Opsional: iframe chat aktif kalau ?chatId= diisi (alias lama ?chat / ?v), ?chat=off mematikan
+      var chatMode = (pick(["chat"], "box") || "box").toLowerCase();
+      var chatIdParam = pick(["chatId", "v"], null);
+      if (chatIdParam === null) {
+        var legacyChatId = (params.get("chat") || "").trim();
+        if (legacyChatId && ["off", "none", "hide", "box"].indexOf(legacyChatId.toLowerCase()) === -1) {
+          chatIdParam = legacyChatId;
+        }
+      }
+      var chatHidden =
+        chatMode === "off" ||
+        chatMode === "none" ||
+        chatMode === "hide" ||
+        chatIdParam === "0";
+      var videoId = chatHidden ? null : chatIdParam;
       var chatIframeEl = document.getElementById("yt-chat-iframe");
       if (videoId) {
         var embedDomain = pick(["domain"], window.location.hostname || "localhost");
