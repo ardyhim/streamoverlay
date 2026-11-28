@@ -776,6 +776,18 @@
           ]
         },
         {
+          id: "Halftone",
+          scenes: [
+            { file: "starting.html", label: "Starting", desc: "Editorial halftone — countdown, kolofon sosial, dan YouTube chat." },
+            { file: "ending.html", label: "Ending", desc: "Cinemascope halftone sign-off dengan kredit dan timer offline opsional." }
+          ],
+          extras: [
+            { kind: "css", label: "Live Chat", file: "livechat.css", desc: "Stylesheet YouTube live chat untuk browser source OBS." },
+            { kind: "source", label: "Alert", file: "tako/alert.html", desc: "Alert donasi halftone — tier, badge, dan media." },
+            { kind: "source", label: "Song Share", file: "tako/songshare.html", desc: "Now playing, progress, dan antrian lagu." }
+          ]
+        },
+        {
           id: "jadenbahtera",
           scenes: [
             { file: "starting.html", label: "Starting", desc: "1-bit bitmap starting — countdown, sosial media, dan slot YouTube chat." },
@@ -844,6 +856,8 @@
             { file: "ending.html", label: "Ending", desc: "X-Ray sign-off dengan kartu sosial dan timer opsional." }
           ],
           extras: [
+            { kind: "css", label: "Live Chat Light", file: "livechat_light.css", desc: "Stylesheet YouTube live chat tone terang." },
+            { kind: "css", label: "Live Chat Dark", file: "livechat_dark.css", desc: "Stylesheet YouTube live chat tone gelap." },
             { kind: "source", label: "Alert", file: "tako/alert.html", desc: "Alert donasi bergaya X-Ray." },
             { kind: "source", label: "Song Share", file: "tako/songshare.html", desc: "Now playing bergaya X-Ray." }
           ]
