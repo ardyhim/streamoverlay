@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ENDING — Cinemascope Halftone</title>
+  <style>
+    :root {
+      --paper: #ffffff;
+      --ink: #0b0b0d;
+      --ink-muted: rgba(11, 11, 13, 0.56);
+      --ink-hair: rgba(11, 11, 13, 0.16);
+      --light-ink: #ffffff;
+      --accent: #e0351b;
+      --chat-wash: rgba(255, 255, 255, 0.86);
+      --font-display: Impact, "Arial Narrow", "Helvetica Condensed", "Arial Black", sans-serif;
+      --font-sans: "Helvetica Neue", Arial, system-ui, -apple-system, sans-serif;
+      --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    }
+
+    [data-theme="dark"] {
+      --paper: #0c0c0e;
+      --ink: #f4f4f6;
+      --ink-muted: rgba(244, 244, 246, 0.6);
+      --ink-hair: rgba(244, 244, 246, 0.2);
+      --light-ink: #f4f4f6;
+      --accent: #ff4d30;
+      --chat-wash: rgba(12, 12, 14, 0.84);
+    }
+
+    [data-chat-bg="light"] {
+      --chat-wash: rgba(255, 255, 255, 0.92);
+    }
+
+    [data-chat-bg="dark"] {
+      --chat-wash: rgba(14, 14, 17, 0.9);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      overflow: hidden;
+      font-family: var(--font-sans);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .scene {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+    }
+
+    /* Layer backdrop (kertas + band halftone cinemascope di paruh bawah) */
+    .backdrop-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background: var(--paper);
+      overflow: hidden;
+    }
+
+    [data-bg="transparent"] .backdrop-layer {
+      display: none;
+    }
+
+    .media-stage {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 56%;
+      overflow: hidden;
+    }
+
+    .media-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    #media-canvas {
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    #media-img,
+    #media-video {
+      object-fit: cover;
+      object-position: center;
+      filter: grayscale(1) contrast(1.42) brightness(1.04);
+      z-index: 2;
+      display: none;
+    }
+
+    [data-theme="dark"] #media-img,
+    [data-theme="dark"] #media-video {
+      filter: grayscale(1) contrast(1.5) brightness(0.86);
+    }
+
+    .media-iframe-wrap {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      z-index: 2;
+      display: none;
+      background: #000;
+    }
+
+    #media-iframe {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 0;
+      pointer-events: none;
+      filter: grayscale(1) contrast(1.55);
+    }
+
+    .halftone-screen-overlay {
+      position: absolute;
+      inset: -25%;
+      z-index: 3;
+      pointer-events: none;
+      display: none;
+      background-image: radial-gradient(circle, var(--ink) 1.55px, transparent 1.7px);
+      background-size: 6px 6px;
+      transform: rotate(45deg);
+      opacity: 0.42;
+      mix-blend-mode: multiply;
+    }
+
+    [data-theme="dark"] .halftone-screen-overlay {
+      mix-blend-mode: screen;
+      opacity: 0.28;
+    }
+
+    /* Meluruhkan tepi atas band media ke kertas & menjaga keterbacaan barcode kiri bawah */
+    .media-dissolve {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, var(--paper) 0%, rgba(255, 255, 255, 0) 24%),
+        linear-gradient(0deg, rgba(0, 0, 0, 0.48) 0%, rgba(0, 0, 0, 0) 42%);
+    }
+
+    [data-theme="dark"] .media-dissolve {
+      background:
+        linear-gradient(180deg, var(--paper) 0%, rgba(12, 12, 14, 0) 24%),
+        linear-gradient(0deg, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0) 44%);
+    }
+
+    /* ================= STRUKTUR EDITORIAL CINEMASCOPE ================= */
+    .stage-layout {
+      position: relative;
+      z-index: 5;
+      width: 100%;
+      height: 100%;
+      padding: clamp(24px, 3.2%, 48px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: clamp(16px, 2.4vh, 30px);
+    }
+
+    [data-bg="transparent"] .stage-layout {
+      text-shadow: 0 2px 18px rgba(0, 0, 0, 0.5);
+    }
+
+    /* PARUH ATAS: JUDUL RAKSASA + MASTHEAD CREDITS */
+    .upper-editorial {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1.38fr) minmax(0, 0.82fr);
+      gap: clamp(22px, 3.4vw, 56px);
+      align-items: start;
+    }
+
+    .headline-group {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(8px, 1.4vh, 16px);
+    }
+
+    .eyebrow-bar {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+    }
+
+    .offair-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--ink);
+      opacity: 0.72;
+    }
+
+    .status-dot.is-counting {
+      background: var(--accent);
+      opacity: 1;
+      animation: pulseDot 1.7s ease-in-out infinite;
+    }
+
+    /* Judul besar 2-nada: kata awal solid, kata terakhir wireframe outline */
+    .closing-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(54px, 9.2vh, 118px);
+      line-height: 0.88;
+      letter-spacing: 0.015em;
+      text-transform: uppercase;
+      word-break: break-word;
+    }
+
+    .title-solid {
+      display: block;
+      color: var(--ink);
+    }
+
+    .title-outline {
+      display: block;
+      color: transparent;
+      -webkit-text-stroke: 2px var(--ink);
+    }
+
+    .closing-human-note {
+      margin: 2px 0 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+    }
+
+    /* Kanan Atas: Opsional Countdown + Masthead Credits */
+    .credits-and-timer {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(12px, 1.8vh, 20px);
+      padding-top: 2px;
+    }
+
+    .countdown-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .countdown-block.is-hidden {
+      display: none;
+    }
+
+    .countdown-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .countdown-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+    }
+
+    .countdown-value {
+      font-family: var(--font-display);
+      font-size: clamp(42px, 6.2vh, 76px);
+      line-height: 0.86;
+      letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
+    .hairline-progress {
+      width: 100%;
+      height: 2px;
+      background: var(--ink-hair);
+      overflow: hidden;
+    }
+
+    .hairline-fill {
+      height: 100%;
+      width: 100%;
+      background: var(--ink);
+      transition: width 0.25s linear;
+    }
+
+    .credits-list {
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid var(--ink-hair);
+    }
+
+    .credit-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 14px;
+      padding: clamp(6px, 0.9vh, 10px) 0;
+      border-bottom: 1px solid var(--ink-hair);
+    }
+
+    .credit-role {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      flex-shrink: 0;
+    }
+
+    .credit-value {
+      font-family: var(--font-sans);
+      font-size: clamp(13px, 1.45vh, 16px);
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--ink);
+      text-align: right;
+      word-break: break-word;
+    }
+
+    /* PARUH BAWAH: STAMP ARCHIVE KIRI + ZONA CHAT KANAN */
+    .lower-editorial {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: clamp(22px, 3.4vw, 56px);
+      align-items: end;
+    }
+
+    .scene.chat-hidden .lower-editorial {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .archive-colophon {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      padding-bottom: 2px;
+    }
+
+    .end-stamp {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: #ffffff;
+      text-shadow: 0 1px 10px rgba(0, 0, 0, 0.72);
+    }
+
+    .end-stamp-title {
+      font-family: var(--font-display);
+      font-size: clamp(26px, 3.6vh, 42px);
+      line-height: 0.88;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .end-stamp-sub {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      opacity: 0.85;
+    }
+
+    .barcode-floating {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .barcode-lines {
+      width: 110px;
+      height: 20px;
+      background: repeating-linear-gradient(
+        90deg,
+        #ffffff 0px, #ffffff 2px,
+        transparent 2px, transparent 4px,
+        #ffffff 4px, #ffffff 5px,
+        transparent 5px, transparent 8px,
+        #ffffff 8px, #ffffff 10px,
+        transparent 10px, transparent 13px,
+        #ffffff 13px, #ffffff 15px,
+        transparent 15px, transparent 17px
+      );
+      filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.65));
+    }
+
+    .barcode-serial {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      letter-spacing: 0.24em;
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    /* ================= ZONA CHAT TERBUKA ================= */
+    .chat-zone {
+      position: relative;
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .scene.chat-hidden .chat-zone {
+      display: none;
+    }
+
+    .chat-eyebrow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink);
+      background: var(--chat-wash);
+      padding: 5px 8px;
+      border-bottom: 1px solid var(--ink-hair);
+    }
+
+    [data-chat-cutout="1"] .chat-eyebrow {
+      background: transparent;
+      color: var(--ink);
+      padding: 0 0 4px 0;
+    }
+
+    .chat-open-slot {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+      overflow: hidden;
+      background: var(--chat-wash);
+    }
+
+    [data-chat-cutout="1"] .chat-open-slot {
+      background: transparent;
+    }
+
+    .crop-mark {
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      pointer-events: none;
+      opacity: 0.45;
+      z-index: 3;
+    }
+
+    .crop-mark::before,
+    .crop-mark::after {
+      content: "";
+      position: absolute;
+      background: var(--ink);
+    }
+
+    .crop-tl { top: 0; left: 0; }
+    .crop-tl::before { width: 11px; height: 1px; top: 0; left: 0; }
+    .crop-tl::after  { width: 1px; height: 11px; top: 0; left: 0; }
+
+    .crop-tr { top: 0; right: 0; }
+    .crop-tr::before { width: 11px; height: 1px; top: 0; right: 0; }
+    .crop-tr::after  { width: 1px; height: 11px; top: 0; right: 0; }
+
+    .crop-bl { bottom: 0; left: 0; }
+    .crop-bl::before { width: 11px; height: 1px; bottom: 0; left: 0; }
+    .crop-bl::after  { width: 1px; height: 11px; bottom: 0; left: 0; }
+
+    .crop-br { bottom: 0; right: 0; }
+    .crop-br::before { width: 11px; height: 1px; bottom: 0; right: 0; }
+    .crop-br::after  { width: 1px; height: 11px; bottom: 0; right: 0; }
+
+    .chat-iframe-wrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: none;
+    }
+
+    .chat-zone.mode-iframe .chat-iframe-wrap {
+      display: block;
+    }
+
+    .chat-zone.mode-iframe .crop-mark {
+      opacity: 0.2;
+    }
+
+    #yt-chat-iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+
+    [data-iframe-tone="light"] #yt-chat-iframe {
+      filter: grayscale(0.88) contrast(1.08);
+    }
+
+    [data-iframe-tone="dark"] #yt-chat-iframe {
+      filter: grayscale(0.88) contrast(1.1);
+    }
+
+    [data-chat-crop="1"] #yt-chat-iframe {
+      position: relative;
+      top: -54px;
+      height: calc(100% + 148px);
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.8); }
+    }
+  </style>
+</head>
+<body>
+  <div id="scene" class="scene">
+    <div id="backdrop-layer" class="backdrop-layer">
+      <div id="media-stage" class="media-stage">
+        <canvas id="media-canvas" class="media-layer" width="1600" height="520"></canvas>
+        <img id="media-img" class="media-layer" alt="Stream Outro Media" />
+        <video id="media-video" class="media-layer" autoplay muted loop playsinline></video>
+        <div id="media-iframe-wrap" class="media-iframe-wrap">
+          <iframe
+            id="media-iframe"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            referrerpolicy="strict-origin-when-cross-origin"
+            title="Custom Media Embed"
+          ></iframe>
+        </div>
+        <div id="halftone-screen-overlay" class="halftone-screen-overlay"></div>
+        <div class="media-dissolve"></div>
+      </div>
+    </div>
+
+    <div class="stage-layout">
+      <!-- PARUH ATAS: HEADLINE + CREDITS / OPTIONAL TIMER -->
+      <header class="upper-editorial">
+        <div class="headline-group">
+          <div class="eyebrow-bar">
+            <span>FIN // END OF STREAM</span>
+            <span class="offair-status">
+              <span id="status-dot" class="status-dot"></span>
+              <span id="status-text">OFF AIR</span>
+            </span>
+          </div>
+
+          <h1 id="closing-title" class="closing-title">
+            <span id="title-solid" class="title-solid">THANKS FOR</span>
+            <span id="title-outline" class="title-outline">WATCHING</span>
+          </h1>
+
+          <p class="closing-human-note">THAT'S ALL FOR TODAY — SEE YOU NEXT STREAM</p>
+        </div>
+
+        <div class="credits-and-timer">
+          <div id="countdown-block" class="countdown-block is-hidden">
+            <div class="countdown-row">
+              <span id="countdown-label" class="countdown-label">SIGNING OFF IN</span>
+              <span id="countdown-value" class="countdown-value">00:00</span>
+            </div>
+            <div class="hairline-progress">
+              <div id="countdown-fill" class="hairline-fill"></div>
+            </div>
+          </div>
+
+          <div id="credits-list" class="credits-list"></div>
+        </div>
+      </header>
+
+      <!-- PARUH BAWAH: STAMP PENUTUP & ZONA CHAT -->
+      <footer class="lower-editorial">
+        <div class="archive-colophon">
+          <div class="end-stamp">
+            <span class="end-stamp-title">SIGNING OFF</span>
+            <span class="end-stamp-sub">BROADCAST ARCHIVE // 30</span>
+          </div>
+
+          <div class="barcode-floating" aria-hidden="true">
+            <div class="barcode-lines"></div>
+            <div class="barcode-serial">FIN // 002</div>
+          </div>
+        </div>
+
+        <div id="chat-zone" class="chat-zone">
+          <div class="chat-eyebrow">
+            <span>FINAL CHAT</span>
+            <span id="chat-mode-tag">OBS FEED</span>
+          </div>
+          <div id="chat-open-slot" class="chat-open-slot">
+            <span class="crop-mark crop-tl"></span>
+            <span class="crop-mark crop-tr"></span>
+            <span class="crop-mark crop-bl"></span>
+            <span class="crop-mark crop-br"></span>
+            <div class="chat-iframe-wrap">
+              <iframe
+                id="yt-chat-iframe"
+                referrerpolicy="strict-origin-when-cross-origin"
+                title="YouTube Live Chat"
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const root = document.documentElement;
+      const sceneEl = document.getElementById("scene");
+      const backdropEl = document.getElementById("backdrop-layer");
+      const params = new URLSearchParams(window.location.search);
+
+      function cleanParam(key) {
+        const val = params.get(key);
+        return val ? val.trim() : "";
+      }
+
+      function normalizeHandle(val) {
+        if (!val) return "";
+        return val.startsWith("@") ? val : "@" + val;
+      }
+
+      /* 1. Theme & Background */
+      const isDarkTheme = cleanParam("theme").toLowerCase() === "dark";
+      if (isDarkTheme) {
+        root.setAttribute("data-theme", "dark");
+      } else {
+        root.removeAttribute("data-theme");
+      }
+
+      const isBgTransparent = cleanParam("bg").toLowerCase() === "transparent";
+      if (isBgTransparent) {
+        root.setAttribute("data-bg", "transparent");
+      } else {
+        root.removeAttribute("data-bg");
+      }
+
+      /* 2. Dynamic Split Title (solid -> wireframe outline) & Masthead Credits */
+      const streamer = cleanParam("streamer") || "LIVE HOST";
+      const rawTitle = cleanParam("title") || "THANKS FOR WATCHING";
+
+      const titleSolidEl = document.getElementById("title-solid");
+      const titleOutlineEl = document.getElementById("title-outline");
+      const words = rawTitle.split(/\s+/).filter(Boolean);
+
+      if (words.length >= 2) {
+        const lastWord = words.pop();
+        titleSolidEl.textContent = words.join(" ");
+        titleOutlineEl.textContent = lastWord;
+      } else {
+        titleSolidEl.textContent = rawTitle;
+        titleOutlineEl.textContent = "GOODNIGHT";
+      }
+
+      const creditsListEl = document.getElementById("credits-list");
+      const creditEntries = [
+        { role: "HOST", value: streamer },
+        { role: "INSTAGRAM", value: normalizeHandle(cleanParam("ig")) },
+        { role: "TIKTOK", value: normalizeHandle(cleanParam("tt")) },
+        { role: "YOUTUBE", value: normalizeHandle(cleanParam("yt")) }
+      ];
+
+      creditEntries.forEach(function (entry) {
+        if (!entry.value) return;
+        const row = document.createElement("div");
+        row.className = "credit-row";
+
+        const roleEl = document.createElement("span");
+        roleEl.className = "credit-role";
+        roleEl.textContent = entry.role;
+
+        const valEl = document.createElement("span");
+        valEl.className = "credit-value";
+        valEl.textContent = entry.value;
+
+        row.appendChild(roleEl);
+        row.appendChild(valEl);
+        creditsListEl.appendChild(row);
+      });
+
+      /* 3. Optional Countdown (minus opsional untuk outro) */
+      const rawMinus = cleanParam("minus");
+      const parsedMinus = rawMinus ? parseFloat(rawMinus) : NaN;
+      const hasMinus = rawMinus !== "" && Number.isFinite(parsedMinus) && parsedMinus >= 0;
+
+      const countdownBlockEl = document.getElementById("countdown-block");
+      const countdownValueEl = document.getElementById("countdown-value");
+      const countdownFillEl = document.getElementById("countdown-fill");
+      const countdownLabelEl = document.getElementById("countdown-label");
+      const statusTextEl = document.getElementById("status-text");
+      const statusDotEl = document.getElementById("status-dot");
+
+      if (hasMinus) {
+        countdownBlockEl.classList.remove("is-hidden");
+        statusTextEl.textContent = "SIGNING OFF";
+        statusDotEl.classList.add("is-counting");
+
+        const totalMs = Math.round(parsedMinus * 60 * 1000);
+        const startTime = Date.now();
+
+        function formatClock(ms) {
+          const totalSec = Math.max(0, Math.ceil(ms / 1000));
+          const mins = Math.floor(totalSec / 60);
+          const secs = totalSec % 60;
+          return (mins < 10 ? "0" : "") + mins + ":" + (secs < 10 ? "0" : "") + secs;
+        }
+
+        function tickCountdown() {
+          const elapsed = Date.now() - startTime;
+          const remaining = Math.max(0, totalMs - elapsed);
+          countdownValueEl.textContent = formatClock(remaining);
+
+          const pct = totalMs > 0 ? Math.max(0, Math.min(100, (remaining / totalMs) * 100)) : 0;
+          countdownFillEl.style.width = pct.toFixed(2) + "%";
+
+          if (remaining <= 0) {
+            countdownLabelEl.textContent = "SIGNAL CLOSED";
+            statusTextEl.textContent = "OFF AIR";
+            statusDotEl.classList.remove("is-counting");
+            return;
+          }
+          requestAnimationFrame(tickCountdown);
+        }
+        tickCountdown();
+      }
+
+      /* 4. Chat Resolution Order */
+      const chatParam = cleanParam("chat").toLowerCase();
+      const chatId = cleanParam("chatId");
+      const chatBgParam = cleanParam("chatBg").toLowerCase();
+      const chatCropParam = cleanParam("chatCrop");
+
+      let chatMode = "box";
+      if (chatParam === "off" || chatParam === "none" || chatParam === "hide") {
+        chatMode = "hidden";
+      } else if (chatParam === "box") {
+        chatMode = "box";
+      } else if (!chatParam && chatId) {
+        chatMode = "iframe";
+      } else {
+        chatMode = "box";
+      }
+
+      const chatZoneEl = document.getElementById("chat-zone");
+      const chatSlotEl = document.getElementById("chat-open-slot");
+      const chatModeTagEl = document.getElementById("chat-mode-tag");
+      const ytChatIframe = document.getElementById("yt-chat-iframe");
+
+      const effectiveChatTone =
+        chatBgParam === "dark" || chatBgParam === "light"
+          ? chatBgParam
+          : isDarkTheme
+            ? "dark"
+            : "light";
+
+      root.setAttribute("data-iframe-tone", effectiveChatTone);
+
+      if (chatBgParam === "light" || chatBgParam === "dark") {
+        root.setAttribute("data-chat-bg", chatBgParam);
+      } else {
+        root.removeAttribute("data-chat-bg");
+      }
+
+      if (chatMode === "hidden") {
+        sceneEl.classList.add("chat-hidden");
+        root.removeAttribute("data-chat-cutout");
+      } else if (chatMode === "iframe" && chatId) {
+        chatZoneEl.classList.add("mode-iframe");
+        chatModeTagEl.textContent = "YOUTUBE LIVE";
+        root.removeAttribute("data-chat-cutout");
+
+        if (chatCropParam === "1") {
+          root.setAttribute("data-chat-crop", "1");
+        } else {
+          root.removeAttribute("data-chat-crop");
+        }
+
+        const embedDomain = window.location.hostname || "localhost";
+        let chatUrl =
+          "https://www.youtube.com/live_chat?is_popout=1&v=" +
+          encodeURIComponent(chatId) +
+          "&embed_domain=" +
+          encodeURIComponent(embedDomain);
+        if (effectiveChatTone === "dark") {
+          chatUrl += "&dark_theme=1";
+        }
+        ytChatIframe.src = chatUrl;
+      } else {
+        chatModeTagEl.textContent = "OBS FEED";
+        if (chatBgParam === "transparent") {
+          root.setAttribute("data-chat-cutout", "1");
+          chatModeTagEl.textContent = "CUTOUT";
+        } else {
+          root.removeAttribute("data-chat-cutout");
+        }
+      }
+
+      function updateCutoutMask() {
+        const isCutout =
+          root.getAttribute("data-chat-cutout") === "1" &&
+          !isBgTransparent &&
+          chatMode === "box";
+
+        if (!isCutout) {
+          backdropEl.style.clipPath = "";
+          backdropEl.style.webkitClipPath = "";
+          return;
+        }
+
+        const sceneRect = sceneEl.getBoundingClientRect();
+        const holeRect = chatSlotEl.getBoundingClientRect();
+        const x1 = Math.max(0, holeRect.left - sceneRect.left);
+        const y1 = Math.max(0, holeRect.top - sceneRect.top);
+        const x2 = Math.max(x1, holeRect.right - sceneRect.left);
+        const y2 = Math.max(y1, holeRect.bottom - sceneRect.top);
+
+        const poly =
+          "polygon(evenodd, 0px 0px, 100% 0px, 100% 100%, 0px 100%, 0px 0px, " +
+          x1 + "px " + y1 + "px, " +
+          x1 + "px " + y2 + "px, " +
+          x2 + "px " + y2 + "px, " +
+          x2 + "px " + y1 + "px, " +
+          x1 + "px " + y1 + "px)";
+
+        backdropEl.style.clipPath = poly;
+        backdropEl.style.webkitClipPath = poly;
+      }
+
+      if (typeof ResizeObserver !== "undefined") {
+        const ro = new ResizeObserver(updateCutoutMask);
+        ro.observe(sceneEl);
+        ro.observe(chatSlotEl);
+      }
+      window.addEventListener("resize", updateCutoutMask);
+      requestAnimationFrame(updateCutoutMask);
+
+      /* 5. Cinemascope Halftone Renderer + Custom Media Handler */
+      const mediaCanvas = document.getElementById("media-canvas");
+      const mediaImg = document.getElementById("media-img");
+      const mediaVideo = document.getElementById("media-video");
+      const mediaIframeWrap = document.getElementById("media-iframe-wrap");
+      const mediaIframe = document.getElementById("media-iframe");
+      const halftoneOverlay = document.getElementById("halftone-screen-overlay");
+      const mediaStage = document.getElementById("media-stage");
+
+      function renderHalftone(sourceDrawFn, width, height) {
+        const off = document.createElement("canvas");
+        off.width = width;
+        off.height = height;
+        const octx = off.getContext("2d");
+        sourceDrawFn(octx, width, height);
+
+        const imgData = octx.getImageData(0, 0, width, height).data;
+        mediaCanvas.width = width;
+        mediaCanvas.height = height;
+        const ctx = mediaCanvas.getContext("2d");
+
+        const paperColor = isDarkTheme ? "#0c0c0e" : "#ffffff";
+        const inkColor = isDarkTheme ? "#f4f4f6" : "#0b0b0d";
+
+        ctx.fillStyle = paperColor;
+        ctx.fillRect(0, 0, width, height);
+        ctx.fillStyle = inkColor;
+
+        const step = 6;
+        const angle = Math.PI / 4;
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+        const cx = width / 2;
+        const cy = height / 2;
+        const halfDiag = Math.hypot(width, height) / 2 + step;
+
+        const buckets = {};
+
+        for (let u = -halfDiag; u <= halfDiag; u += step) {
+          for (let v = -halfDiag; v <= halfDiag; v += step) {
+            const x = cx + u * cosA - v * sinA;
+            const y = cy + u * sinA + v * cosA;
+            if (x < -step || x > width + step || y < -step || y > height + step) {
+              continue;
+            }
+            const px = Math.min(width - 1, Math.max(0, Math.round(x)));
+            const py = Math.min(height - 1, Math.max(0, Math.round(y)));
+            const idx = (py * width + px) * 4;
+            const lum =
+              (0.299 * imgData[idx] + 0.587 * imgData[idx + 1] + 0.114 * imgData[idx + 2]) / 255;
+
+            const darkness = isDarkTheme ? lum : 1 - lum;
+            const radius = Math.pow(Math.max(0, darkness), 0.96) * (step * 0.65);
+            if (radius < 0.36) continue;
+
+            const key = Math.round(radius * 3);
+            if (!buckets[key]) {
+              buckets[key] = { r: key / 3, pts: [] };
+            }
+            buckets[key].pts.push(x, y);
+          }
+        }
+
+        Object.keys(buckets).forEach(function (k) {
+          const b = buckets[k];
+          const r = b.r;
+          const pts = b.pts;
+          ctx.beginPath();
+          for (let i = 0; i < pts.length; i += 2) {
+            const px = pts[i];
+            const py = pts[i + 1];
+            ctx.moveTo(px + r, py);
+            ctx.arc(px, py, r, 0, Math.PI * 2);
+          }
+          ctx.fill();
+        });
+      }
+
+      /* Artwork Gerhana / Studio Spotlight Meredup & Gelombang Horizon Halftone */
+      function drawEndingHorizonArt(ctx, w, h) {
+        /* Langit meluruh mulus dari putih murni di tepi atas ke gradasi senja */
+        const sky = ctx.createLinearGradient(0, 0, 0, h * 0.62);
+        sky.addColorStop(0, "#ffffff");
+        sky.addColorStop(0.22, "#f7f7f7");
+        sky.addColorStop(0.65, "#d2d2d2");
+        sky.addColorStop(1, "#727272");
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, w, h * 0.62);
+
+        /* Pendaran halo sorot cahaya / gerhana di sisi kiri-tengah cakrawala */
+        const sunX = w * 0.31;
+        const sunY = h * 0.56;
+
+        const halo = ctx.createRadialGradient(sunX, sunY, h * 0.06, sunX, sunY, h * 0.78);
+        halo.addColorStop(0, "#ffffff");
+        halo.addColorStop(0.32, "#e8e8e8");
+        halo.addColorStop(0.68, "#949494");
+        halo.addColorStop(1, "rgba(110,110,110,0)");
+        ctx.fillStyle = halo;
+        ctx.fillRect(0, 0, w, h * 0.62);
+
+        /* Piringan gerhana / studio lens */
+        const orbGrad = ctx.createRadialGradient(sunX, sunY - h * 0.04, h * 0.02, sunX, sunY, h * 0.34);
+        orbGrad.addColorStop(0, "#ffffff");
+        orbGrad.addColorStop(0.75, "#f0f0f0");
+        orbGrad.addColorStop(1, "#bdbdbd");
+        ctx.fillStyle = orbGrad;
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, h * 0.34, Math.PI, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        /* Berkas cahaya diagonal lembut menyapu ke kanan */
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        for (let b = 0; b < 5; b++) {
+          const beam = ctx.createLinearGradient(sunX, sunY, sunX + w * 0.45, 0);
+          beam.addColorStop(0, "rgba(255,255,255,0.22)");
+          beam.addColorStop(1, "rgba(255,255,255,0)");
+          ctx.fillStyle = beam;
+          ctx.beginPath();
+          ctx.moveTo(sunX - w * 0.02, sunY);
+          ctx.lineTo(w * (0.22 + b * 0.14), 0);
+          ctx.lineTo(w * (0.29 + b * 0.14), 0);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.restore();
+
+        /* Horizon bawah: gelombang bayangan & pantulan sorot */
+        const sea = ctx.createLinearGradient(0, h * 0.56, 0, h);
+        sea.addColorStop(0, "#242424");
+        sea.addColorStop(0.45, "#151515");
+        sea.addColorStop(1, "#080808");
+        ctx.fillStyle = sea;
+        ctx.fillRect(0, h * 0.56, w, h * 0.44);
+
+        /* Riak pantulan cahaya vertikal memudar di permukaan gelap */
+        for (let i = 0; i < 14; i++) {
+          const ry = h * (0.58 + i * 0.028);
+          const rw = w * (0.28 - i * 0.014);
+          const alpha = Math.max(0.06, 0.72 - i * 0.05);
+          ctx.fillStyle = "rgba(255,255,255," + alpha.toFixed(2) + ")";
+          ctx.fillRect(sunX - rw / 2, ry, rw, h * 0.011);
+        }
+      }
+
+      function showDefaultArtwork() {
+        mediaImg.style.display = "none";
+        mediaVideo.style.display = "none";
+        mediaIframeWrap.style.display = "none";
+        halftoneOverlay.style.display = "none";
+        mediaCanvas.style.display = "block";
+        renderHalftone(drawEndingHorizonArt, 1600, 520);
+      }
+
+      function extractYouTubeId(urlStr) {
+        try {
+          const u = new URL(urlStr);
+          const host = u.hostname.replace(/^www\./, "").toLowerCase();
+          if (host === "youtu.be") return u.pathname.split("/").filter(Boolean)[0] || "";
+          if (host.endsWith("youtube.com")) {
+            if (u.pathname === "/watch") return u.searchParams.get("v") || "";
+            const parts = u.pathname.split("/").filter(Boolean);
+            if ((parts[0] === "shorts" || parts[0] === "embed" || parts[0] === "live") && parts[1]) {
+              return parts[1];
+            }
+          }
+        } catch (e) {
+          return "";
+        }
+        return "";
+      }
+
+      function getCleanPathname(urlStr) {
+        try {
+          return new URL(urlStr, window.location.href).pathname.toLowerCase();
+        } catch (e) {
+          return urlStr.split("?")[0].toLowerCase();
+        }
+      }
+
+      function updateMediaIframeCover() {
+        if (mediaIframeWrap.style.display === "none") return;
+        const rect = mediaStage.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const targetRatio = 16 / 9;
+        const stageRatio = rect.width / rect.height;
+        let w, h;
+        if (stageRatio > targetRatio) {
+          w = rect.width * 1.04;
+          h = w / targetRatio;
+        } else {
+          h = rect.height * 1.04;
+          w = h * targetRatio;
+        }
+        mediaIframe.style.width = Math.ceil(w) + "px";
+        mediaIframe.style.height = Math.ceil(h) + "px";
+      }
+
+      if (typeof ResizeObserver !== "undefined") {
+        new ResizeObserver(updateMediaIframeCover).observe(mediaStage);
+      }
+      window.addEventListener("resize", updateMediaIframeCover);
+
+      showDefaultArtwork();
+
+      const mediaUrl = cleanParam("media") || cleanParam("img");
+      if (mediaUrl) {
+        const ytVideoId = extractYouTubeId(mediaUrl);
+        const pathLower = getCleanPathname(mediaUrl);
+        const isVideo = /\.(mp4|webm|mov|m4v|ogv)$/.test(pathLower);
+
+        if (ytVideoId) {
+          mediaIframe.src =
+            "https://www.youtube.com/embed/" +
+            encodeURIComponent(ytVideoId) +
+            "?autoplay=1&mute=1&loop=1&playlist=" +
+            encodeURIComponent(ytVideoId) +
+            "&controls=0&modestbranding=1&rel=0";
+          mediaIframe.addEventListener("load", function () {
+            mediaCanvas.style.display = "none";
+            mediaIframeWrap.style.display = "block";
+            halftoneOverlay.style.display = "block";
+            updateMediaIframeCover();
+          });
+          mediaIframe.addEventListener("error", showDefaultArtwork);
+        } else if (isVideo) {
+          mediaVideo.addEventListener("canplay", function () {
+            mediaCanvas.style.display = "none";
+            mediaVideo.style.display = "block";
+            halftoneOverlay.style.display = "block";
+          });
+          mediaVideo.addEventListener("error", showDefaultArtwork);
+          mediaVideo.src = mediaUrl;
+        } else {
+          const corsImg = new Image();
+          corsImg.crossOrigin = "anonymous";
+          corsImg.onload = function () {
+            try {
+              renderHalftone(function (octx, w, h) {
+                const imgRatio = corsImg.naturalWidth / corsImg.naturalHeight;
+                const boxRatio = w / h;
+                let sx = 0, sy = 0, sw = corsImg.naturalWidth, sh = corsImg.naturalHeight;
+                if (imgRatio > boxRatio) {
+                  sw = corsImg.naturalHeight * boxRatio;
+                  sx = (corsImg.naturalWidth - sw) / 2;
+                } else {
+                  sh = corsImg.naturalWidth / boxRatio;
+                  sy = (corsImg.naturalHeight - sh) / 2;
+                }
+                octx.drawImage(corsImg, sx, sy, sw, sh, 0, 0, w, h);
+              }, 1600, 520);
+              mediaCanvas.style.display = "block";
+              mediaImg.style.display = "none";
+              halftoneOverlay.style.display = "none";
+            } catch (err) {
+              fallbackPlainImage();
+            }
+          };
+          corsImg.onerror = fallbackPlainImage;
+          corsImg.src = mediaUrl;
+
+          function fallbackPlainImage() {
+            mediaImg.onload = function () {
+              mediaCanvas.style.display = "none";
+              mediaImg.style.display = "block";
+              halftoneOverlay.style.display = "block";
+            };
+            mediaImg.onerror = showDefaultArtwork;
+            mediaImg.src = mediaUrl;
+          }
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
